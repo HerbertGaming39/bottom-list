@@ -7,3 +7,21 @@ bot_token.txt
 secret_key.txt
 .env
 *.log
+
+# Sensitive / internal files
+config.py
+SECURITY_FIXES_PROGRESS.txt
+pentest_addendum.md
+pentest_report.html
+logfromserver.txt
+system_info_*.txt
+googlea5c67195c29a4405.html
+old stuff needed to change/
+bugs
+
+# User uploads / media
+static/record_proofs/
+static/vc_proofs/
+static/profile_media/
+static/roulette_proofs/
+static/songs/
