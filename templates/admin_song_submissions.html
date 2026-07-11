@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col gap-1 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Song Submissions</h1>
+                <div class="text-sm text-gray-400">Review and moderate user-submitted songs.</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Back to Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
+        <form action="{{ url_for('admin.admin_song_submissions') }}" method="GET" class="flex items-center gap-2">
+            <select name="status" onchange="this.form.submit()" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                <option value="pending" {{ 'selected' if status == 'pending' else '' }}>Pending</option>
+                <option value="approved" {{ 'selected' if status == 'approved' else '' }}>Approved</option>
+                <option value="rejected" {{ 'selected' if status == 'rejected' else '' }}>Rejected</option>
+                <option value="all" {{ 'selected' if status == 'all' else '' }}>All</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        {% if submissions %}
+        <div class="space-y-4">
+            {% for sub in submissions %}
+            <div class="bg-slate-800/40 rounded p-4 flex flex-col gap-3">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="text-white font-medium text-lg">{{ sub.original_filename }}</div>
+                        <div class="text-sm text-gray-400">
+                            {% if sub.level %}
+                            For level: <a href="{{ url_for('main.level_detail', level_id=sub.level.id) }}" class="text-blue-400 hover:underline">{{ sub.level.name }}</a>
+                            {% if sub.level.gd_level_id %}(GD ID: {{ sub.level.gd_level_id }}){% endif %}
+                            {% else %}
+                            GD Level ID: {{ sub.gd_level_id or 'Unknown' }}
+                            {% endif %}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            Submitted by: {{ sub.discord_username or 'Unknown' }}
+                            &bull; {{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') if sub.submitted_at else 'Unknown date' }}
+                            &bull; {{ (sub.file_size / 1024 / 1024) | round(2) }} MB
+                        </div>
+                        {% if sub.song_name or sub.artist_name %}
+                        <div class="text-xs text-gray-400 mt-1">
+                            Song: {{ sub.song_name or 'Unknown' }} by {{ sub.artist_name or 'Unknown' }}
+                            {% if sub.song_id %}<span class="text-gray-500">(replaces song ID: {{ sub.song_id }})</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% if sub.reviewed_by %}
+                        <div class="text-xs text-gray-500 mt-1">
+                            Reviewed by: {{ sub.reviewed_by.username }}
+                            {% if sub.reviewed_at %}on {{ sub.reviewed_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="px-2 py-1 rounded text-xs font-semibold
+                        {% if sub.status == 'pending' %}bg-yellow-600 text-white{% endif %}
+                        {% if sub.status == 'approved' %}bg-green-600 text-white{% endif %}
+                        {% if sub.status == 'rejected' %}bg-red-600 text-white{% endif %}">
+                        {{ sub.status|title }}
+                    </span>
+                </div>
+
+                <!-- Edit Form -->
+                <form action="{{ url_for('admin.edit_song_submission', sub_id=sub.id) }}" method="POST" class="bg-slate-900/50 rounded p-3 space-y-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-2 text-sm">
+                        <input type="text" name="song_name" value="{{ sub.song_name or '' }}" placeholder="Song name" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
+                        <input type="text" name="artist_name" value="{{ sub.artist_name or '' }}" placeholder="Artist name" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
+                        <input type="text" name="song_id" value="{{ sub.song_id or '' }}" placeholder="Song ID (Newgrounds)" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
+                        <input type="text" name="gd_level_id" value="{{ sub.gd_level_id or '' }}" placeholder="GD Level ID" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
+                        <input type="text" name="level_id" value="{{ sub.level_id or '' }}" placeholder="Internal Level ID" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">Save Changes</button>
+                </form>
+
+                <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-700">
+                    <audio controls class="h-8 flex-1 min-w-[200px]">
+                        <source src="{{ url_for('main.serve_pending_song', filename=sub.song_filename) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+
+                    {% if sub.status == 'pending' %}
+                    <form action="{{ url_for('admin.approve_song_submission', sub_id=sub.id) }}" method="POST" class="inline">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm">Approve</button>
+                    </form>
+                    <form action="{{ url_for('admin.reject_song_submission', sub_id=sub.id) }}" method="POST" class="inline">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm">Reject</button>
+                    </form>
+                    {% endif %}
+
+                    <form action="{{ url_for('admin.delete_song_submission', sub_id=sub.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this submission permanently?')">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm">&times;</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-gray-400 text-center py-8">No {{ status }} song submissions found.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

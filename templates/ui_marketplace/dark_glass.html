@@ -1,0 +1,27 @@
+<nav class="glass-panel sticky top-0 z-50 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('main.home') }}" class="nav-link px-3 py-2 rounded-md text-sm font-medium">The List</a>
+        <a href="{{ url_for('main.home') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Challenge</a>
+        <a href="{{ url_for('main.home') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Platformer</a>
+        <a href="{{ url_for('main.challenge_list') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Unverified</a>
+        <a href="{{ url_for('main.platformer_list') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Leaderboard</a>
+      </div>
+      <div class="flex items-center gap-2">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.unverified_list') }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm">
+          <span class="sm:hidden">Record</span><span class="hidden sm:inline">Submit Record</span>
+        </a>
+        <a href="{{ url_for('main.home') }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm">
+          <span class="sm:hidden">Level</span><span class="hidden sm:inline">Submit Level</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  {{ messages_html|safe }}
+  {{ content_html|safe }}
+</main>

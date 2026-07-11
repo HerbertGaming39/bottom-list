@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white">Events</h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Admin</a>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mb-8">
+        <h2 class="text-xl font-bold text-white mb-4">Create Event</h2>
+        <form action="{{ url_for('admin.admin_events_create') }}" method="POST" class="space-y-3">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="title" placeholder="Title" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" maxlength="200" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="datetime-local" name="starts_at" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                <input type="datetime-local" name="ends_at" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+            </div>
+            <label class="text-sm text-gray-300 flex items-center gap-2">
+                <input type="checkbox" name="is_published" class="h-4 w-4 accent-purple-600" checked>
+                Published
+            </label>
+            <textarea name="body" rows="6" placeholder="Event text" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" required></textarea>
+            <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Create</button>
+        </form>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <h2 class="text-xl font-bold text-white mb-4">Existing Events</h2>
+        {% if events %}
+            <div class="space-y-4">
+                {% for ev in events %}
+                <details class="bg-slate-800/30 rounded px-4 py-3">
+                    <summary class="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3">
+                        <div class="text-white font-semibold">{{ ev.title }}</div>
+                        <div class="text-xs text-gray-400 flex flex-wrap items-center gap-3">
+                            <a href="{{ url_for('main.event_detail', event_id=ev.id) }}" class="text-blue-400 hover:text-blue-300">View</a>
+                            <span>{{ 'published' if ev.is_published else 'hidden' }}</span>
+                            <span>{{ ev.created_at.strftime('%Y-%m-%d %H:%M') if ev.created_at else '' }}</span>
+                            <form action="{{ url_for('admin.admin_events_delete', event_id=ev.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this event?')">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-red-400 hover:text-red-300 hover:underline">Delete</button>
+                            </form>
+                        </div>
+                    </summary>
+                    <div class="mt-4 space-y-3">
+                        <form action="{{ url_for('admin.admin_events_update', event_id=ev.id) }}" method="POST" class="space-y-3">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <input type="text" name="title" value="{{ ev.title }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" maxlength="200" required>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="datetime-local" name="starts_at" value="{{ ev.starts_at.strftime('%Y-%m-%dT%H:%M') if ev.starts_at else '' }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                                <input type="datetime-local" name="ends_at" value="{{ ev.ends_at.strftime('%Y-%m-%dT%H:%M') if ev.ends_at else '' }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                            </div>
+                            <label class="text-sm text-gray-300 flex items-center gap-2">
+                                <input type="checkbox" name="is_published" class="h-4 w-4 accent-purple-600" {% if ev.is_published %}checked{% endif %}>
+                                Published
+                            </label>
+                            <textarea name="body" rows="8" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" required>{{ ev.body }}</textarea>
+                            <button type="submit" class="bg-green-700 hover:bg-green-600 text-white text-sm px-3 py-2 rounded">Save</button>
+                        </form>
+                        <form action="{{ url_for('admin.admin_events_delete', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Delete this event?')">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Delete</button>
+                        </form>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-sm text-gray-500">No events yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+================================================================================
+                        THE BOTTOM LIST — FAQ
+================================================================================
+
+1. GENERAL
+────────────────────────────────────────────────────────────────────────────────
+
+Q: What is The Bottom List & how do I join?
+A: A GD level list with Main/Challenge/Platformer lists. Register at
+   /register (username, 8+ char password), or use "Log in with Discord".
+   Forgot password? /forgot-password. Delete account from profile page.
+
+
+2. LEVELS & LISTS
+────────────────────────────────────────────────────────────────────────────────
+
+Q: How do I browse levels?
+A: Homepage = Main list. /challenges and /platformer for other lists.
+   Filter by tags (Ship, Wave, Timings, etc.). /unverified shows
+   levels pending verification. Click any level for full details (position,
+   creator, video, description, song, records, ratings).
+
+
+3. RECORDS & SUBMISSIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Q: How do I submit records or levels?
+A: /submit/record — select level, rate it (Deco/Gameplay/Difficulty), provide
+   proof (top levels = video, lower = screenshot, platformer = always video).
+   /submit/level — propose a new level for the list. Staff review all
+   submissions; approved records earn points.
+
+
+4. POINTS & LEADERBOARDS
+────────────────────────────────────────────────────────────────────────────────
+
+Q: How do points and rankings work?
+A: Beating levels earns points (higher-ranked = more). /leaderboard shows
+   rankings sortable by points/records/activity, filterable by device/status.
+   Clan leaderboard toggle available. Points tracked per list.
+
+
+5. PROFILES
+────────────────────────────────────────────────────────────────────────────────
+
+Q: What profile features are there?
+A: Each profile shows rank, points, avatar, banner, bio, YouTube, Discord,
+   completion stats, recent activity. Customize at /profile/edit. Full stats
+   dashboard at /user/{id}/stats. Change username at /profile/change_username.
+   Export all data as JSON at /me/export.
+
+
+6. UI & THEMES
+────────────────────────────────────────────────────────────────────────────────
+
+Q: Can I customize the site appearance?
+A: Yes. Choose Nova UI or Aurora UI on first visit (change in Settings).
+   Custom accent color available. UI Templates from staff/marketplace in
+   Settings → UI Theme. Toggle thumbnails off in Settings.
+
+
+7. SHOP, B-COINS & WHEEL
+────────────────────────────────────────────────────────────────────────────────
+
+Q: Tell me about the economy.
+A: B-Coins are the currency (start with 50). Earn more from the Wheel of
+   Fortune (/wheel — spin daily for coins or rare items) or resell on the
+   Black Market (/black-market — list limited items min 1000 coins). Spend
+   on cosmetics at /shop (avatar animations, backgrounds, decorations).
+   View/equip items at /inventory.
+
+
+8. ROULETTE
+────────────────────────────────────────────────────────────────────────────────
+
+Q: How does roulette work?
+A: Single-player: /roulette — configurable random level picker. Multiplayer:
+   create/join rooms with a 6-char code, spin levels, submit results
+   (first-try %, best %, attempts). Browse public rooms from roulette page.
+
+
+9. CLANS
+────────────────────────────────────────────────────────────────────────────────
+
+Q: How do clans work?
+A: /clans — browse or create your own. Send join requests (one clan at a
+   time). Owners accept/deny members, kick, edit description, or disband.
+   Leave anytime; owners must disband to leave.
+
+
+10. MAP PACKS & CUSTOM LISTS
+───────────────────────────────────────────────────────────────────────────────
+
+Q: What are Map Packs and Custom Lists?
+A: Map Packs are curated level collections at /map-packs (shows completion %).
+   Custom Lists are user-created collections at /custom-lists.
+
+
+11. EVENTS & NEWS
+────────────────────────────────────────────────────────────────────────────────
+
+Q: Where are events and news?
+A: Events at /events (time-limited). Latest 5 news posts on homepage.
+
+
+12. YEAR-IN-REVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+Q: What is the Recap page?
+A: /recap — annual summary of levels beaten, points, monthly breakdowns,
+   device usage, top levels, streaks, ratings, global rank, rivals, clan stats.
+
+
+13. API
+────────────────────────────────────────────────────────────────────────────────
+
+Q: Is there an API?
+A: Yes at /api/* — levels, players, clans, events, leaderboards, etc.
+   Get your token from Settings or GET /api/token. Docs at /api/docs
+   (login required).
+
+
+14. PRIVACY & COOKIES
+────────────────────────────────────────────────────────────────────────────────
+
+Q: What about privacy and security?
+A: Essential session cookies only (login, CSRF) — Accept/Decline on banner.
+   Full details at /privacy. HTTPS (Let's Encrypt), hashed passwords,
+   regeneratable API tokens.

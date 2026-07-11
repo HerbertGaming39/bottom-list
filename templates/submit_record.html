@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <h2 class="text-3xl font-bold text-white mb-8">Submit Record</h2>
+        <form method="POST" action="" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+            <div class="mb-6">
+                <label for="list_type" class="block text-sm font-medium text-gray-400 mb-2">List</label>
+                <select name="list_type" id="list_type" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="main">Main</option>
+                    <option value="challenge">Challenge</option>
+                    <option value="platformer">Platformer</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Only levels from the selected list will show up.</p>
+            </div>
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-sm text-gray-300">
+                    <input type="checkbox" id="include_unverified" class="h-4 w-4 accent-blue-600">
+                    Include unverified levels
+                </label>
+                <p class="text-xs text-gray-500 mt-1">Turn this on if you want to submit a record for an unverified level.</p>
+            </div>
+            <div class="mb-6">
+                <label for="level_search" class="block text-sm font-medium text-gray-400 mb-2">Level</label>
+                <input type="hidden" name="level_id" id="level_id" required>
+                <input type="text" id="level_search" list="level_options" placeholder="Type to search..." autocomplete="off" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <datalist id="level_options">
+                    {% for level in levels %}
+                        <option value="#{{ level.position if level.position else '-' }} - {{ level.name }}"></option>
+                    {% endfor %}
+                </datalist>
+                <p id="level_search_note" class="text-xs text-gray-500 mt-1">Pick a level from the dropdown suggestions.</p>
+            </div>
+            <div class="mb-6">
+                <label for="device" class="block text-sm font-medium text-gray-400 mb-2">Device</label>
+                <select name="device" id="device" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="pc">PC</option>
+                    <option value="mobile">Mobile</option>
+                </select>
+            </div>
+            <div class="mb-6" id="video-proof-wrap">
+                <label for="video_url" class="block text-sm font-medium text-gray-400 mb-2">Video Proof URL</label>
+                <input type="url" name="video_url" id="video_url" placeholder="https://youtube.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1" id="video-proof-note">Required for some levels.</p>
+            </div>
+            <div class="mb-6 hidden" id="image-proof-wrap">
+                <label for="proof_image" class="block text-sm font-medium text-gray-400 mb-2">Screenshot Proof</label>
+                <input type="file" name="proof_image" id="proof_image" accept="image/*" data-max-size="10485760" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1" id="image-proof-note">Used when video is not required.</p>
+            </div>
+            <div class="mb-6">
+                <label for="comment" class="block text-sm font-medium text-gray-400 mb-2">Comment (Optional)</label>
+                <textarea name="comment" id="comment" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Was this beaten on VC?</label>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="beaten_on_vc" id="beaten_on_vc" value="1" class="h-4 w-4 accent-blue-600">
+                    <span class="text-gray-300 text-sm">Yes</span>
+                </div>
+                <div id="vc-proof-wrap" class="mt-3 hidden">
+                    <label for="vc_proof" class="block text-sm font-medium text-gray-400 mb-2">VC Proof Image</label>
+                    <input type="file" name="vc_proof" id="vc_proof" accept="image/*" data-max-size="10485760" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Required if beaten on VC.</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Ratings (Required)</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="rating_deco" class="block text-xs font-medium text-gray-500 mb-2">Deco</label>
+                        <select name="rating_deco" id="rating_deco" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                            {% for i in range(1, 11) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="rating_gameplay" class="block text-xs font-medium text-gray-500 mb-2">Gameplay</label>
+                        <select name="rating_gameplay" id="rating_gameplay" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                            {% for i in range(1, 11) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="rating_difficulty" class="block text-xs font-medium text-gray-500 mb-2">Enjoyment</label>
+                        <select name="rating_difficulty" id="rating_difficulty" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                            {% for i in range(1, 11) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                {% if captcha_provider == 'recaptcha' and captcha_site_key %}
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% elif captcha_provider == 'hcaptcha' and captcha_site_key %}
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                <div class="h-captcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% else %}
+                <label class="block text-sm font-medium text-gray-400 mb-2">Anti-bot check</label>
+                <div class="flex items-center space-x-2">
+                    <span class="text-white">{{ captcha_a }} + {{ captcha_b }} =</span>
+                    <input type="number" name="captcha_answer" required class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white w-24">
+                </div>
+                {% endif %}
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Submit Record
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+const vcToggle = document.getElementById('beaten_on_vc')
+const vcWrap = document.getElementById('vc-proof-wrap')
+const vcFile = document.getElementById('vc_proof')
+const levelSearch = document.getElementById('level_search')
+const levelId = document.getElementById('level_id')
+const levelSearchNote = document.getElementById('level_search_note')
+const listSelect = document.getElementById('list_type')
+const levelOptions = document.getElementById('level_options')
+const includeUnverified = document.getElementById('include_unverified')
+const proofTopNByList = {{ (record_proof_top_n_by_list or {'main': 30, 'challenge': 30, 'platformer': 10000})|tojson }}
+const videoInput = document.getElementById('video_url')
+const videoNote = document.getElementById('video-proof-note')
+const imageInput = document.getElementById('proof_image')
+const imageNote = document.getElementById('image-proof-note')
+const form = levelSearch.closest('form')
+const levelItemsAll = [
+    {% for level in levels %}
+    { id: {{ level.id }}, pos: {{ level.position or 0 }}, ver: {{ (1 if level.is_verified else 0) }}, lt: {{ (level.list_type or 'main')|tojson }}, nm: {{ (level.name or '')|tojson }}, label: {{ ("#" ~ (level.position if level.position else '-') ~ " - " ~ level.name)|tojson }} },
+    {% endfor %}
+]
+let levelItems = levelItemsAll.slice()
+let levelMap = new Map(levelItems.map(lv => [lv.label, String(lv.id)]))
+let levelObjMap = new Map(levelItems.map(lv => [lv.label, lv]))
+function includeUnverifiedOn() {
+    return Boolean(includeUnverified && includeUnverified.checked)
+}
+function currentListType() {
+    let lt = (listSelect && listSelect.value) ? String(listSelect.value).toLowerCase() : 'main'
+    if (lt === 'challange') lt = 'challenge'
+    if (!['main','challenge','platformer'].includes(lt)) lt = 'main'
+    return lt
+}
+function rebuildLevelOptions() {
+    const lt = currentListType()
+    const showUnv = includeUnverifiedOn()
+    levelItems = levelItemsAll.filter(lv => {
+        if (String(lv.lt || 'main').toLowerCase() !== lt) return false
+        if (showUnv) return true
+        return Boolean(lv.ver)
+    })
+    levelMap = new Map(levelItems.map(lv => [lv.label, String(lv.id)]))
+    levelObjMap = new Map(levelItems.map(lv => [lv.label, lv]))
+    if (levelOptions) {
+        levelOptions.innerHTML = ''
+        for (const lv of levelItems) {
+            const opt = document.createElement('option')
+            opt.value = lv.label
+            levelOptions.appendChild(opt)
+        }
+    }
+}
+function syncVideoProof() {
+    const v = (levelSearch.value || '').trim()
+    const lv = levelObjMap.get(v) || null
+    const pos = (lv && typeof lv.pos === 'number') ? lv.pos : 0
+    const lt = (lv && lv.lt) ? String(lv.lt).toLowerCase() : currentListType()
+    const topN = parseInt((proofTopNByList && proofTopNByList[lt] != null) ? proofTopNByList[lt] : 0, 10) || 0
+    const requireVideo = Boolean(lt === 'platformer' || (lt !== 'platformer' && topN > 0 && pos > 0 && pos <= topN))
+    const requireImage = Boolean((lt === 'main' || lt === 'challenge') && topN > 0 && pos > topN)
+    if (videoInput) {
+        videoInput.required = requireVideo
+    }
+    if (videoNote) {
+        if (!requireVideo) {
+            videoNote.textContent = `Video proof is optional for this level.`
+        } else if (lt === 'platformer') {
+            videoNote.textContent = `Required for the platformer list.`
+        } else {
+            videoNote.textContent = `Required for Top ${topN} levels.`
+        }
+    }
+    if (imageInput) {
+        imageInput.required = requireImage
+    }
+    if (imageNote) {
+        if (requireImage) {
+            imageNote.textContent = `Screenshot proof is required for this level.`
+        } else {
+            imageNote.textContent = `Used when video is not required.`
+        }
+    }
+    const videoWrap = document.getElementById('video-proof-wrap')
+    const imageWrap = document.getElementById('image-proof-wrap')
+    if (videoWrap) {
+        videoWrap.classList.toggle('hidden', requireImage)
+    }
+    if (imageWrap) {
+        imageWrap.classList.toggle('hidden', !requireImage)
+    }
+}
+function resolveLevelFromText(raw) {
+    const v = (raw || '').trim()
+    if (!v) return null
+
+    const direct = levelObjMap.get(v)
+    if (direct) return direct
+
+    const vLower = v.toLowerCase()
+    const byName = levelItems.filter(lv => String(lv.nm || '').trim().toLowerCase() === vLower)
+    if (byName.length === 1) return byName[0]
+    const byStarts = levelItems.filter(lv => String(lv.nm || '').trim().toLowerCase().startsWith(vLower))
+    if (byStarts.length === 1) return byStarts[0]
+    const byContains = levelItems.filter(lv => String(lv.nm || '').trim().toLowerCase().includes(vLower))
+    if (byContains.length === 1) return byContains[0]
+
+    const full = v.match(/^\s*#?\s*(\d+)\s*-\s*(.+)\s*$/)
+    if (full) {
+        const pos = parseInt(full[1] || '0', 10) || 0
+        const nameLower = String(full[2] || '').trim().toLowerCase()
+        const exact = levelItems.filter(lv => (parseInt(lv.pos || 0, 10) || 0) === pos && String(lv.nm || '').trim().toLowerCase() === nameLower)
+        if (exact.length === 1) return exact[0]
+        const byPos = levelItems.filter(lv => (parseInt(lv.pos || 0, 10) || 0) === pos)
+        if (byPos.length === 1) return byPos[0]
+    }
+
+    const posOnly = v.match(/^\s*#?\s*(\d+)\s*$/)
+    if (posOnly) {
+        const pos = parseInt(posOnly[1] || '0', 10) || 0
+        const byPos = levelItems.filter(lv => (parseInt(lv.pos || 0, 10) || 0) === pos)
+        if (byPos.length === 1) return byPos[0]
+    }
+
+    return null
+}
+function syncLevelHidden() {
+    const v = (levelSearch.value || '').trim()
+    const resolved = resolveLevelFromText(v)
+    const id = resolved ? String(resolved.id) : ''
+    levelId.value = id
+    if (resolved && resolved.label && v !== resolved.label) {
+        levelSearch.value = resolved.label
+        levelObjMap.set(resolved.label, resolved)
+    }
+    if (!id && v) {
+        levelSearchNote.textContent = 'Please choose a level from the suggestions so it can be matched.'
+        levelSearchNote.classList.remove('text-gray-500')
+        levelSearchNote.classList.add('text-red-400')
+    } else {
+        levelSearchNote.textContent = 'Pick a level from the dropdown suggestions.'
+        levelSearchNote.classList.add('text-gray-500')
+        levelSearchNote.classList.remove('text-red-400')
+    }
+    syncVideoProof()
+}
+levelSearch.addEventListener('input', syncLevelHidden)
+if (listSelect) {
+    listSelect.addEventListener('change', () => {
+        rebuildLevelOptions()
+        levelSearch.value = ''
+        syncLevelHidden()
+    })
+}
+if (includeUnverified) {
+    includeUnverified.addEventListener('change', () => {
+        rebuildLevelOptions()
+        levelSearch.value = ''
+        syncLevelHidden()
+    })
+}
+if (form) {
+    form.addEventListener('submit', (e) => {
+        syncLevelHidden()
+        if (!levelId.value) {
+            e.preventDefault()
+            levelSearch.focus()
+        }
+    })
+}
+try {
+    const pre = parseInt(new URLSearchParams(window.location.search).get('level_id') || '0', 10)
+    if (pre) {
+        const found = levelItemsAll.find(lv => lv.id === pre)
+        if (found) {
+            if (listSelect) listSelect.value = String(found.lt || 'main').toLowerCase()
+            if (includeUnverified && !found.ver) includeUnverified.checked = true
+            rebuildLevelOptions()
+            levelSearch.value = found.label
+        }
+    }
+} catch (e) {}
+rebuildLevelOptions()
+syncLevelHidden()
+function syncVc() {
+    const on = vcToggle.checked
+    vcWrap.classList.toggle('hidden', !on)
+    vcFile.required = on
+}
+vcToggle.addEventListener('change', syncVc)
+syncVc()
+</script>
+
+
+
+{% endblock %}

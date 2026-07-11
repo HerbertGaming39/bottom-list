@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+            <img src="{{ url_for('main.bcoin_png') }}" alt="B" class="w-8 h-8">
+            Shop Editor
+        </h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Admin</a>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mb-8">
+        <h2 class="text-xl font-bold text-white mb-4">Create Item</h2>
+        <form action="{{ url_for('admin.admin_shop_create') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" name="name" placeholder="Item name" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm" maxlength="200" required>
+                <input type="number" name="price" placeholder="Price in bcoins" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm" min="1" required>
+                <select name="item_type" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                    <option value="profile_deco">Profile Decoration</option>
+                    <option value="background">Profile Background</option>
+                    <option value="animated_avatar">Animated Avatar</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <textarea name="description" rows="3" placeholder="Description" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full"></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="is_limited" class="h-4 w-4 accent-purple-600" onchange="document.getElementById('expiry-group').classList.toggle('hidden', !this.checked)">
+                    Limited / Event item
+                </label>
+                <div id="expiry-group" class="hidden">
+                    <label class="text-sm text-gray-300">Expires at:</label>
+                    <input type="datetime-local" name="expires_at" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                </div>
+            </div>
+            <div>
+                <label class="text-sm text-gray-300">Image (optional):</label>
+                <input type="file" name="image" accept="image/*" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+            </div>
+            <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Create Item</button>
+        </form>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <h2 class="text-xl font-bold text-white mb-4">Existing Items</h2>
+        {% if items %}
+        <div class="space-y-4">
+            {% for item in items %}
+            <details class="bg-slate-800/30 rounded px-4 py-3">
+                <summary class="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        {% if item.image_filename %}
+                        <img src="{{ url_for('static', filename='shop_images/' ~ item.image_filename) }}" alt="" class="w-10 h-10 rounded object-contain bg-slate-700/50">
+                        {% endif %}
+                        <div>
+                            <div class="text-white font-semibold">{{ item.name }}</div>
+                            <div class="text-xs text-gray-400">{{ item.item_type }} &middot; {{ item.price }} bcoins</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="{{ 'text-green-400' if item.is_available else 'text-red-400' }}">{{ 'Available' if item.is_available else 'Hidden' }}</span>
+                    </div>
+                </summary>
+                <div class="mt-4 space-y-3">
+                    <form action="{{ url_for('admin.admin_shop_edit', item_id=item.id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input type="text" name="name" value="{{ item.name }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm" maxlength="200" required>
+                            <input type="number" name="price" value="{{ item.price }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm" min="0" required>
+                            <select name="item_type" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                                <option value="profile_deco" {{ 'selected' if item.item_type == 'profile_deco' else '' }}>Profile Decoration</option>
+                                <option value="background" {{ 'selected' if item.item_type == 'background' else '' }}>Profile Background</option>
+                                <option value="animated_avatar" {{ 'selected' if item.item_type == 'animated_avatar' else '' }}>Animated Avatar</option>
+                                <option value="other" {{ 'selected' if item.item_type == 'other' else '' }}>Other</option>
+                            </select>
+                        </div>
+                        <textarea name="description" rows="3" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">{{ item.description or '' }}</textarea>
+                        <label class="text-sm text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" name="is_available" class="h-4 w-4 accent-green-600" {% if item.is_available %}checked{% endif %}>
+                            Available for purchase
+                        </label>
+                        <label class="text-sm text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" name="is_limited" class="h-4 w-4 accent-purple-600" {% if item.is_limited %}checked{% endif %}>
+                            Limited / Event item
+                        </label>
+                        <div>
+                            <label class="text-sm text-gray-300">Expires at:</label>
+                            <input type="datetime-local" name="expires_at" value="{{ item.expires_at.strftime('%Y-%m-%dT%H:%M') if item.expires_at else '' }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-300">Replace Image (leave empty to keep):</label>
+                            <input type="file" name="image" accept="image/*" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        </div>
+                        <button type="submit" class="bg-green-700 hover:bg-green-600 text-white text-sm px-3 py-2 rounded">Save</button>
+                    </form>
+                    <form action="{{ url_for('admin.admin_shop_delete', item_id=item.id) }}" method="POST" onsubmit="return confirm('Delete this item? Users who purchased it will lose it.')">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Delete</button>
+                    </form>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-sm text-gray-500">No shop items yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto text-center">
+    <h1 class="text-3xl font-bold text-white mb-2">Wheel of Fortune</h1>
+    <p class="text-gray-400 mb-8">Spin once per day for a chance to win bcoins or rare items!</p>
+
+    <div class="glass-panel p-8 rounded-lg mb-6">
+        <div class="text-6xl mb-6">🎡</div>
+
+        {% if can_spin %}
+        <form action="{{ url_for('shop.wheel_spin') }}" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xl px-8 py-4 rounded-full transition-all hover:scale-105">
+                SPIN!
+            </button>
+        </form>
+        {% else %}
+        <div class="text-gray-400">
+            <p class="mb-2">You've already spun today!</p>
+            {% if next_spin_at %}
+            <p class="text-sm">Next spin available: <span class="text-yellow-400">{{ next_spin_at.strftime('%Y-%m-%d %H:%M') }}</span></p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <h2 class="text-xl font-bold text-white mb-4">Possible Rewards</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-slate-800/50 rounded p-3">
+                <div class="text-2xl mb-1">💰</div>
+                <div class="text-yellow-400 font-bold">500 bcoins</div>
+            </div>
+            <div class="bg-slate-800/50 rounded p-3">
+                <div class="text-2xl mb-1">🤑</div>
+                <div class="text-yellow-400 font-bold">100 bcoins</div>
+            </div>
+            <div class="bg-slate-800/50 rounded p-3">
+                <div class="text-2xl mb-1">😐</div>
+                <div class="text-gray-400 font-bold">Nothing</div>
+            </div>
+            <div class="bg-slate-800/50 rounded p-3">
+                <div class="text-2xl mb-1">🎁</div>
+                <div class="text-purple-400 font-bold">Rare Item!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

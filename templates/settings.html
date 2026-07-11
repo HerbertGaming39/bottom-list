@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <h2 class="text-3xl font-bold text-white mb-2">Settings</h2>
+        <div class="text-sm text-gray-400 mb-8">UI and theme preferences.</div>
+        <form method="POST" action="">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label for="ui_version" class="block text-sm font-medium text-gray-400 mb-2">UI Version</label>
+                    <select name="ui_version" id="ui_version" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                        <option value="new" {% if (current_user.ui_version or 'new') == 'new' %}selected{% endif %}>Nova UI</option>
+                        <option value="new2" {% if current_user.ui_version == 'new2' %}selected{% endif %}>Aurora UI</option>
+                        {% for t in ui_templates %}
+                        <option value="{{ t.slug }}" {% if current_user.ui_version == t.slug %}selected{% endif %}>{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="text-xs text-gray-500 mt-2">Switch between available UIs.</div>
+                </div>
+                <div>
+                    <label for="theme_accent" class="block text-sm font-medium text-gray-400 mb-2">Theme Accent</label>
+                    <input type="color" name="theme_accent" id="theme_accent" value="{{ current_user.theme_accent or '#60a5fa' }}" class="w-full h-11 bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <div class="text-xs text-gray-500 mt-2">Used for buttons, links, and highlights.</div>
+                </div>
+                <div>
+                    <label for="theme_accent_bg" class="block text-sm font-medium text-gray-400 mb-2">Background Accent</label>
+                    <input type="color" name="theme_accent_bg" id="theme_accent_bg" value="{{ current_user.theme_accent_bg or (current_user.theme_accent or '#60a5fa') }}" class="w-full h-11 bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <div class="text-xs text-gray-500 mt-2">New UI background glow only.</div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-sm text-gray-300">
+                    <input type="checkbox" name="disable_thumbnails" value="1" class="h-4 w-4 accent-blue-600" {% if disable_thumbnails %}checked{% endif %}>
+                    Disable thumbnails
+                </label>
+                <div class="text-xs text-gray-500 mt-1">Hides thumbnails for faster loading (only for you).</div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Save Settings</button>
+                    <a href="{{ url_for('profile.profile') }}" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg text-center transition-colors">Back</a>
+                </div>
+                <div class="border-t border-slate-700 pt-4 space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-200">API Token</div>
+                            <div class="text-xs text-gray-500 mt-1">Regenerate your API token. This will invalidate the old one.</div>
+                        </div>
+                        <button type="submit" name="action" value="regen_api_token" class="px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-lg">Regenerate</button>
+                    </div>
+                    <div class="ml-0">
+                        {% if current_user.api_token %}
+                        <div class="flex items-center gap-2" id="api-token-row">
+                            <input type="password" readonly value="{{ current_user.api_token }}" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-gray-300 font-mono" id="api-token-field">
+                            <button type="button" onclick="toggleApiToken()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded transition-colors shrink-0" id="api-token-toggle" title="Show/hide token">Show</button>
+                            <button type="button" onclick="copyApiToken()" class="px-2.5 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs rounded transition-colors shrink-0" id="api-token-copy">Copy</button>
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-yellow-400 mt-1">No API token yet. Click Regenerate to create one.</div>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-200">Export My Data</div>
+                            <div class="text-xs text-gray-500 mt-1">Download your profile, records, and submissions as JSON.</div>
+                        </div>
+                        <a href="{{ url_for('profile.export_my_data') }}" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg">Download</a>
+                    </div>
+                    <div class="mt-2">
+                        <div class="text-sm font-semibold text-gray-200 mb-2">Notifications</div>
+                        <div class="space-y-2 text-sm text-gray-300">
+                            <label class="flex items-center gap-2">
+                                <input id="notif-global" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                <span>Enable notifications on this site</span>
+                            </label>
+                            <div class="pl-5 space-y-1 text-xs text-gray-400">
+                                <label class="flex items-center gap-2">
+                                    <input id="notif-roulette" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <span>Roulette rooms (kicked, similar events)</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input id="notif-record-approved" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <span>Your records approved</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input id="notif-record-rejected" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <span>Your records rejected</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input id="notif-level-approved" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <span>Your level submissions approved</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input id="notif-level-rejected" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <span>Your level submissions rejected</span>
+                                </label>
+                            </div>
+                            <div class="text-xs text-gray-500 pt-1">
+                                These settings only apply if your browser notifications are allowed.
+                            </div>
+                            <button type="button" id="notif-permission" class="mt-2 px-3 py-1 bg-slate-700 hover:bg-slate-600 text-xs text-white rounded">
+                                Browser permission popup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="glass-panel p-8 rounded-lg mt-6">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <div class="text-xl font-bold text-white">Clans</div>
+                {% if current_user.clan %}
+                    <div class="text-sm text-gray-400 mt-1">You are in <span class="text-gray-200 font-semibold">{{ current_user.clan.name }}</span>.</div>
+                {% else %}
+                    <div class="text-sm text-gray-400 mt-1">You are not in a clan.</div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('main.clans') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Browse Clans</a>
+        </div>
+        {% if current_user.clan %}
+        <div class="mt-4">
+            <a href="{{ url_for('main.clan_detail', clan_id=current_user.clan.id) }}" class="text-blue-400 hover:text-blue-300 text-sm">Open your clan page</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+;(function() {
+    const globalEl = document.getElementById('notif-global')
+    const rouletteEl = document.getElementById('notif-roulette')
+    const recAppEl = document.getElementById('notif-record-approved')
+    const recRejEl = document.getElementById('notif-record-rejected')
+    const lvlAppEl = document.getElementById('notif-level-approved')
+    const lvlRejEl = document.getElementById('notif-level-rejected')
+    const permBtn = document.getElementById('notif-permission')
+    if (!globalEl || !rouletteEl || !recAppEl || !recRejEl || !lvlAppEl || !lvlRejEl) return
+    function readFlag(key, defOn) {
+        try {
+            const v = localStorage.getItem(key)
+            if (v === '0') return false
+            if (v === '1') return true
+        } catch (e) {}
+        return defOn
+    }
+    function writeFlag(key, on) {
+        try {
+            localStorage.setItem(key, on ? '1' : '0')
+        } catch (e) {}
+    }
+    globalEl.checked = readFlag('notif_global', true)
+    rouletteEl.checked = readFlag('notif_roulette', true)
+    recAppEl.checked = readFlag('notif_record_approved', true)
+    recRejEl.checked = readFlag('notif_record_rejected', true)
+    lvlAppEl.checked = readFlag('notif_level_approved', true)
+    lvlRejEl.checked = readFlag('notif_level_rejected', true)
+    globalEl.addEventListener('change', () => writeFlag('notif_global', globalEl.checked))
+    rouletteEl.addEventListener('change', () => writeFlag('notif_roulette', rouletteEl.checked))
+    recAppEl.addEventListener('change', () => writeFlag('notif_record_approved', recAppEl.checked))
+    recRejEl.addEventListener('change', () => writeFlag('notif_record_rejected', recRejEl.checked))
+    lvlAppEl.addEventListener('change', () => writeFlag('notif_level_approved', lvlAppEl.checked))
+    lvlRejEl.addEventListener('change', () => writeFlag('notif_level_rejected', lvlRejEl.checked))
+    if (permBtn) {
+        permBtn.addEventListener('click', function() {
+            try {
+                if (window.triggerNotifConsent) window.triggerNotifConsent()
+            } catch (e) {}
+        })
+    }
+})()
+
+function toggleApiToken() {
+    const f = document.getElementById('api-token-field')
+    const btn = document.getElementById('api-token-toggle')
+    if (!f || !btn) return
+    const hidden = f.getAttribute('type') === 'password'
+    f.setAttribute('type', hidden ? 'text' : 'password')
+    btn.textContent = hidden ? 'Hide' : 'Show'
+}
+
+function copyApiToken() {
+    const f = document.getElementById('api-token-field')
+    if (!f) return
+    f.setAttribute('type', 'text')
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(f.value).then(() => {
+                const btn = document.getElementById('api-token-copy')
+                if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500) }
+            })
+        } else {
+            f.select()
+            document.execCommand('copy')
+            const btn = document.getElementById('api-token-copy')
+            if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500) }
+        }
+    } catch (e) {
+        f.select()
+        try { document.execCommand('copy') } catch (e2) {}
+    }
+}
+</script>
+
+{% endblock %}

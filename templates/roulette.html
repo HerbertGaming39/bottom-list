@@ -1,0 +1,1360 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-10">
+  <div class="text-center">
+    <h1 class="text-4xl md:text-6xl gd-header mb-2 text-transparent bg-clip-text bg-gradient-to-b from-purple-300 to-purple-600">Roulette</h1>
+    <div class="text-sm text-gray-400">Spin a random level. Create a room to play with friends.</div>
+  </div>
+
+  <div class="glass-panel p-6 rounded-lg max-w-6xl mx-auto mt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <div class="relative h-32 overflow-hidden rounded bg-slate-900 border border-slate-800">
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-purple-500"></div>
+          <div id="track" class="flex items-center gap-3 will-change-transform" style="transform: translateX(0)"></div>
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-900/90 via-transparent to-slate-900/90"></div>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <button id="spin" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded transition-colors disabled:opacity-50 disabled:pointer-events-none">Spin</button>
+          <button id="skip" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded transition-colors disabled:opacity-50 disabled:pointer-events-none" disabled>Skip This Level</button>
+          <a id="open" href="#" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded transition-colors pointer-events-none opacity-50">Open Level</a>
+          <button id="collapse-btn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-6 py-3 rounded transition-colors">Collapse</button>
+        </div>
+
+        <div class="mt-4 glass-panel p-4 rounded-lg">
+          <div class="flex items-center justify-between gap-3">
+            <div class="text-sm text-gray-300 font-semibold">Chosen</div>
+            <button id="reopen-result" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-2 rounded transition-colors">Come back</button>
+          </div>
+          <div id="chosen" class="mt-2 text-gray-200 text-sm sm:text-base break-words"></div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="glass-panel p-4 rounded-lg">
+          <div class="text-sm text-gray-300 font-semibold mb-3">Filters</div>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-xs text-gray-400">Speed
+              <select id="speed-control" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                <option value="slow">Slow</option>
+                <option value="normal" selected>Normal</option>
+                <option value="fast">Fast</option>
+              </select>
+            </label>
+            <label class="text-xs text-gray-400">Category
+              <select id="category-filter" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                <option value="all">All Levels</option>
+                <option value="main">Main List</option>
+                <option value="challenge">Challenge List</option>
+              </select>
+            </label>
+            <label class="text-xs text-gray-400">Verified
+              <select id="verified-filter" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                <option value="verified" selected>Verified only</option>
+                <option value="unverified">Unverified only</option>
+                <option value="both">Both</option>
+              </select>
+            </label>
+            <label class="text-xs text-gray-400">Top
+              <select id="top-filter" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm">
+                <option value="0" selected>All</option>
+                <option value="50">Top 50</option>
+                <option value="25">Top 25</option>
+                <option value="10">Top 10</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <label class="text-sm text-gray-300 flex items-center gap-2">
+              <input id="no-repeat" type="checkbox" class="h-4 w-4 accent-purple-600">
+              Don’t repeat
+            </label>
+            <button id="reset-roulette" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-2 rounded transition-colors">Reset</button>
+          </div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-lg">
+          <div class="text-sm text-gray-300 font-semibold mb-3">Multiplayer</div>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="room-create" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-2 rounded transition-colors">Create</button>
+            <button id="room-join" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded transition-colors">Join</button>
+            <input id="room-code" type="text" maxlength="6" placeholder="ROOM CODE" class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white uppercase w-full text-center">
+            <button id="room-leave" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-2 rounded transition-colors disabled:opacity-50 disabled:pointer-events-none" disabled>Leave</button>
+          </div>
+          <div class="mt-3">
+            <input id="player-name" type="text" maxlength="32" placeholder="NAME" class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white w-full text-center">
+          </div>
+          <div class="mt-3 flex items-center justify-between gap-3">
+            <div id="room-status" class="text-sm text-gray-300">Single-player</div>
+            <div id="game-status" class="text-xs text-gray-500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="single-settings" class="mt-4">
+      <div class="glass-panel p-4 rounded-lg text-left">
+        <div class="text-sm text-gray-300 font-semibold mb-3">Single-player Tags</div>
+        <div id="single-tags" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
+      </div>
+    </div>
+
+    <div id="players-wrap" class="mt-4 hidden">
+      <div class="glass-panel p-4 rounded-lg text-left">
+        <div class="text-sm text-gray-300 font-semibold mb-3">Players</div>
+        <div id="players" class="text-sm text-gray-200 flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <div id="public-rooms-wrap" class="mt-4">
+      <div class="glass-panel p-4 rounded-lg text-left">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-sm text-gray-300 font-semibold">Public Rooms</div>
+          <button id="refresh-public-rooms" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1 rounded">Refresh</button>
+        </div>
+        <div id="public-rooms" class="space-y-2 text-sm text-gray-200"></div>
+      </div>
+    </div>
+
+    <div id="room-settings" class="mt-4 hidden">
+      <div class="glass-panel p-4 rounded-lg text-left">
+        <div class="text-sm text-gray-300 font-semibold mb-3">Room Settings (Owner)</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <label class="text-sm text-gray-300">List
+            <select id="room-list-type" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white">
+              <option value="all">All</option>
+              <option value="main">Main</option>
+              <option value="challenge">Challenge</option>
+            </select>
+          </label>
+          <label class="text-sm text-gray-300">Verified
+            <select id="room-verified-mode" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white">
+              <option value="verified">Verified only</option>
+              <option value="unverified">Unverified only</option>
+              <option value="both">Both</option>
+            </select>
+          </label>
+          <label class="text-sm text-gray-300">Top
+            <select id="room-top-n" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white">
+              <option value="0">All</option>
+              <option value="50">Top 50</option>
+              <option value="25">Top 25</option>
+              <option value="10">Top 10</option>
+            </select>
+          </label>
+          <label class="text-sm text-gray-300">Rounds
+            <input id="max-rounds" type="number" min="1" max="200" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" value="15">
+          </label>
+          <label class="text-sm text-gray-300">Max attempts
+            <input id="max-attempts" type="number" min="1" max="50" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" value="10">
+          </label>
+          <div class="flex flex-col justify-end gap-2">
+            <label class="text-sm text-gray-300 flex items-center gap-2">
+              <input id="room-public" type="checkbox" class="h-4 w-4 accent-purple-600">
+              Public room
+            </label>
+            <label class="text-sm text-gray-300 flex items-center gap-2">
+              <input id="require-proof" type="checkbox" class="h-4 w-4 accent-purple-600">
+              Require screenshot proof
+            </label>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button id="save-room-settings" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Save</button>
+          <button id="close-room" class="bg-red-700 hover:bg-red-800 text-white text-sm px-3 py-2 rounded">Close room</button>
+        </div>
+        <div class="mt-4">
+          <div class="text-sm text-gray-300 mb-2">Tags</div>
+          <div id="room-tags" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="results-wrap" class="mt-6 hidden">
+      <div class="glass-panel p-4 rounded-lg text-left">
+        <div class="text-sm text-gray-300 font-semibold mb-3">Results</div>
+        <div id="results" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="result-modal" class="fixed inset-0 hidden items-center justify-center z-50">
+  <div id="result-backdrop" class="absolute inset-0 bg-black/70"></div>
+  <div class="relative glass-panel p-6 rounded-lg w-[95%] max-w-lg text-left">
+    <div class="text-xl font-bold text-white">Submit attempt</div>
+    <div id="result-level" class="text-sm text-gray-300 mt-1"></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+      <label class="text-sm text-gray-300">First try %
+        <input id="first-try" type="number" min="0" max="100" step="0.1" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+      </label>
+      <label class="text-sm text-gray-300">Best %
+        <input id="best-try" type="number" min="0" max="100" step="0.1" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+      </label>
+      <label class="text-sm text-gray-300">Attempts used
+        <input id="attempts-used" type="number" min="1" max="50" step="1" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+      </label>
+      <label class="text-sm text-gray-300">Screenshot (optional)
+        <input id="proof-file" type="file" accept="image/*" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+      </label>
+    </div>
+    <div id="proof-note" class="text-xs text-gray-400 mt-2"></div>
+    <div class="mt-5 flex justify-end gap-2">
+      <button id="cancel-result" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded">Cancel</button>
+      <button id="submit-result" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Submit</button>
+    </div>
+  </div>
+</div>
+<script>
+const track = document.getElementById('track')
+const spinBtn = document.getElementById('spin')
+const skipBtn = document.getElementById('skip')
+const openLink = document.getElementById('open')
+const chosenEl = document.getElementById('chosen')
+const reopenResultBtn = document.getElementById('reopen-result')
+const speedControl = document.getElementById('speed-control')
+const categoryFilter = document.getElementById('category-filter')
+const verifiedFilter = document.getElementById('verified-filter')
+const topFilter = document.getElementById('top-filter')
+const noRepeatInput = document.getElementById('no-repeat')
+const resetRouletteBtn = document.getElementById('reset-roulette')
+const collapseBtn = document.getElementById('collapse-btn')
+const roomCreateBtn = document.getElementById('room-create')
+const roomJoinBtn = document.getElementById('room-join')
+const roomLeaveBtn = document.getElementById('room-leave')
+const roomCodeInput = document.getElementById('room-code')
+const playerNameInput = document.getElementById('player-name')
+const roomStatusEl = document.getElementById('room-status')
+const gameStatusEl = document.getElementById('game-status')
+const playersWrap = document.getElementById('players-wrap')
+const playersEl = document.getElementById('players')
+const publicRoomsWrap = document.getElementById('public-rooms-wrap')
+const publicRoomsEl = document.getElementById('public-rooms')
+const refreshPublicRoomsBtn = document.getElementById('refresh-public-rooms')
+const roomSettingsWrap = document.getElementById('room-settings')
+const roomListTypeSelect = document.getElementById('room-list-type')
+const roomVerifiedModeSelect = document.getElementById('room-verified-mode')
+const maxRoundsInput = document.getElementById('max-rounds')
+const maxAttemptsInput = document.getElementById('max-attempts')
+const roomTopNSelect = document.getElementById('room-top-n')
+const roomPublicInput = document.getElementById('room-public')
+const requireProofInput = document.getElementById('require-proof')
+const saveRoomSettingsBtn = document.getElementById('save-room-settings')
+const closeRoomBtn = document.getElementById('close-room')
+const roomTagsEl = document.getElementById('room-tags')
+const singleSettingsWrap = document.getElementById('single-settings')
+const singleTagsEl = document.getElementById('single-tags')
+const resultsWrap = document.getElementById('results-wrap')
+const resultsEl = document.getElementById('results')
+
+const modal = document.getElementById('result-modal')
+const modalBackdrop = document.getElementById('result-backdrop')
+const modalLevel = document.getElementById('result-level')
+const firstTryInput = document.getElementById('first-try')
+const bestTryInput = document.getElementById('best-try')
+const attemptsUsedInput = document.getElementById('attempts-used')
+const proofFileInput = document.getElementById('proof-file')
+const proofNote = document.getElementById('proof-note')
+const cancelResultBtn = document.getElementById('cancel-result')
+const submitResultBtn = document.getElementById('submit-result')
+
+let pool = []
+let items = []
+let itemWidth = { step: 0, card: 0 }
+let chosen = null
+let ready = false
+let currentSpeed = 'normal'
+let currentCategory = 'all'
+let currentVerifiedMode = 'verified'
+let currentTopN = 0
+let isCollapsed = false
+let isAnimatingSpin = false
+let pendingTrackRebuild = false
+let roomCode = null
+let roomConfig = { max_rounds: 15, max_attempts: 10, current_round: 0, require_proof: false }
+let roomMeta = { category: 'all', verified_mode: 'verified', tags: [], top_n: 0, is_public: false, closed: false, no_repeat: false, players: [] }
+let roomResults = []
+let localResults = []
+let pendingResultLevel = null
+let pendingRoundNo = 0
+let lastPrompt = { levelId: null, roundNo: null }
+let lastResultPrompt = null
+let roomSettingsDirty = false
+
+const TAGS = ['2.1','2.2','Medium','Long','XL','XXL+','Ship','Cube','Wave','Robot','UFO','Spider','Swing Copter','Dual','Timings','Memory','Nerve Control','Slow Paced','Fast Paced','High CPS','Chokepoints','buffer click abuse','buffer click']
+const AUTH_USER_ID = {{ auth_user_id|tojson }}
+const AUTH_USERNAME = {{ auth_username|tojson }}
+const IS_AUTH = AUTH_USER_ID !== null
+const IS_STAFF = {{ 'true' if current_user.is_authenticated and (current_user.is_admin or current_user.is_mod) else 'false' }}
+
+function ensurePlayerId() {
+  let id = localStorage.getItem('roulette_player_id') || ''
+  if (id) return id
+  try {
+    id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ''
+  } catch (e) {
+    id = ''
+  }
+  if (!id) {
+    id = `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`
+  }
+  localStorage.setItem('roulette_player_id', id)
+  return id
+}
+
+const playerId = IS_AUTH ? `user:${AUTH_USER_ID}` : ensurePlayerId()
+
+if (IS_AUTH) {
+  playerNameInput.value = AUTH_USERNAME || ''
+  playerNameInput.disabled = true
+  playerNameInput.classList.add('opacity-60')
+} else {
+  playerNameInput.value = localStorage.getItem('roulette_player_name') || ''
+  playerNameInput.addEventListener('change', () => {
+    const v = (playerNameInput.value || '').trim().slice(0, 32)
+    playerNameInput.value = v
+    localStorage.setItem('roulette_player_name', v)
+  })
+}
+
+function renderTagGrid(container, cls) {
+  if (!container) return
+  const c = cls || 'roulette-tag'
+  container.innerHTML = TAGS.map(t => {
+    const key = escapeHtml(t)
+    return `<label class="inline-flex items-center gap-2 bg-slate-800 px-2 py-1 rounded">
+      <input type="checkbox" class="${c} h-4 w-4 accent-purple-600" value="${key}">
+      <span class="text-xs text-gray-300">${key}</span>
+    </label>`
+  }).join('')
+}
+
+function selectedTags(container, cls) {
+  const out = []
+  if (!container) return out
+  const c = cls || 'roulette-tag'
+  for (const el of container.querySelectorAll(`.${c}`)) {
+    if (el.checked) out.push(el.value)
+  }
+  return out
+}
+
+function setSelectedTags(container, tags, cls) {
+  if (!container) return
+  const c = cls || 'roulette-tag'
+  const want = new Set((tags || []).map(t => String(t || '').toLowerCase()))
+  for (const el of container.querySelectorAll(`.${c}`)) {
+    el.checked = want.has(String(el.value || '').toLowerCase())
+  }
+}
+
+function renderPlayers(list) {
+  if (!playersEl) return
+  const players = (list || []).slice(0, 50).map(p => ({
+    id: String((p && p.id) ? p.id : ''),
+    name: (p && p.name) ? p.name : 'Player',
+    is_owner: !!(p && p.is_owner)
+  }))
+  if (!players.length) {
+    playersEl.innerHTML = '<span class="text-gray-500 text-sm">No players</span>'
+    return
+  }
+  const canKick = isOwner() || IS_STAFF
+  playersEl.innerHTML = players.map(p => {
+    const ownerBadge = p.is_owner ? '<span class="text-[10px] text-yellow-300 ml-1">owner</span>' : ''
+    const kickBtn = (canKick && p.id && p.id !== playerId && !p.is_owner)
+      ? `<button class="kick-player text-[10px] px-2 py-0.5 rounded bg-red-700/60 text-red-100 hover:bg-red-700" data-kick="${escapeHtml(p.id)}">Kick</button>`
+      : ''
+    return `<div class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 rounded px-2 py-1">
+      <span class="text-xs text-gray-200">${escapeHtml(p.name)}${ownerBadge}</span>
+      ${kickBtn}
+    </div>`
+  }).join('')
+  for (const btn of playersEl.querySelectorAll('.kick-player')) {
+    btn.addEventListener('click', async () => {
+      if (!inRoom()) return
+      const pid = btn.dataset.kick || ''
+      if (!pid) return
+      btn.disabled = true
+      try {
+        await fetch('/api/roulette/room/kick', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ code: roomCode, owner_token: ownerTokenFor(roomCode), player_id: pid })
+        })
+      } catch (e) {}
+      btn.disabled = false
+      await fetchPool()
+    })
+  }
+}
+
+function roomLabel(r) {
+  const parts = []
+  const cat = (r.category || 'all')
+  if (cat !== 'all') parts.push(cat)
+  const vm = (r.verified_mode || 'verified')
+  if (vm !== 'verified') parts.push(vm)
+  const topN = Number(r.top_n || 0)
+  if (topN > 0) parts.push(`top ${topN}`)
+  const tags = (r.tags || [])
+  if (tags.length) parts.push(`${tags.length} tags`)
+  return parts.join(' • ')
+}
+
+async function refreshPublicRooms() {
+  if (!publicRoomsEl) return
+  if (inRoom()) return
+  try {
+    const res = await fetch('/api/roulette/rooms/public')
+    const data = await res.json()
+    const rooms = data.rooms || []
+    if (!rooms.length) {
+      publicRoomsEl.innerHTML = '<div class="text-gray-500 text-sm">No public rooms right now.</div>'
+      return
+    }
+    publicRoomsEl.innerHTML = rooms.slice(0, 12).map(r => {
+      const code = escapeHtml(r.code || '')
+      const owner = escapeHtml(r.owner_name || 'Owner')
+      const players = Number(r.players_count || 0)
+      const label = escapeHtml(roomLabel(r))
+      return `<div class="bg-slate-800/30 rounded px-3 py-2 flex items-center justify-between gap-3">
+        <div>
+          <div class="text-white font-semibold">${code} <span class="text-gray-400 font-normal">by ${owner}</span></div>
+          <div class="text-xs text-gray-400">${players} player${players === 1 ? '' : 's'}${label ? ` • ${label}` : ''}</div>
+        </div>
+        <button class="join-public bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded" data-code="${code}">Join</button>
+      </div>`
+    }).join('')
+    for (const btn of publicRoomsEl.querySelectorAll('.join-public')) {
+      btn.addEventListener('click', async () => {
+        const code = (btn.dataset.code || '').toUpperCase()
+        roomCodeInput.value = code
+        roomJoinBtn.click()
+      })
+    }
+  } catch (e) {}
+}
+
+if (refreshPublicRoomsBtn) {
+  refreshPublicRoomsBtn.addEventListener('click', refreshPublicRooms)
+}
+
+function inRoom() {
+  return !!roomCode
+}
+
+function ownerTokenFor(code) {
+  if (!code) return ''
+  return localStorage.getItem(`roulette_owner_token:${code}`) || ''
+}
+
+function isOwner() {
+  return inRoom() && !!ownerTokenFor(roomCode)
+}
+
+function setRoomUi(nextCode, category) {
+  roomSettingsDirty = false
+  roomCode = nextCode
+  if (roomCode) {
+    roomStatusEl.textContent = `Room: ${roomCode}`
+    roomLeaveBtn.disabled = false
+    categoryFilter.disabled = true
+    verifiedFilter.disabled = true
+    topFilter.disabled = true
+    if (category) {
+      currentCategory = category
+      categoryFilter.value = category
+    }
+  } else {
+    roomStatusEl.textContent = 'Single-player'
+    roomLeaveBtn.disabled = true
+    categoryFilter.disabled = false
+    verifiedFilter.disabled = false
+    topFilter.disabled = false
+  }
+  roomSettingsWrap.classList.toggle('hidden', !isOwner())
+  if (singleSettingsWrap) singleSettingsWrap.classList.toggle('hidden', inRoom())
+  resultsWrap.classList.toggle('hidden', !inRoom() && localResults.length === 0)
+  playersWrap.classList.toggle('hidden', !inRoom())
+  publicRoomsWrap.classList.toggle('hidden', inRoom())
+}
+
+function card(lv) {
+  const d = document.createElement('div')
+  d.className = 'w-64 h-24 flex-none glass-panel rounded flex items-center justify-center px-4'
+  const id = displayLevelId(lv)
+  d.textContent = `${id ? `ID ${id} • ` : ''}${lv.name} — ${lv.creator}`
+  d.dataset.id = lv.id
+  return d
+}
+
+function levelNo(lv) {
+  if (!lv) return ''
+  return lv.position ? lv.position : lv.id
+}
+
+function displayLevelId(lv) {
+  if (!lv) return ''
+  const gd = String(lv.gd_level_id || '').trim()
+  if (gd) return gd
+  return String(lv.id || '').trim()
+}
+
+function syncReopenBtn() {
+  if (!reopenResultBtn) return
+  const show = inRoom() && !!lastResultPrompt && modal.classList.contains('hidden')
+  reopenResultBtn.classList.toggle('hidden', !show)
+}
+
+function buildTrack() {
+  track.innerHTML = ''
+  items = []
+  const base = pool.slice()
+  if (base.length === 0) return
+  const repeats = 12
+  for (let r = 0; r < repeats; r++) {
+    for (const lv of base) {
+      const c = card(lv)
+      track.appendChild(c)
+      items.push(c)
+    }
+  }
+  const measure = () => {
+    const stepWidth = items.length > 1 ? (items[1].offsetLeft - items[0].offsetLeft) : items[0].getBoundingClientRect().width
+    const cardWidth = items[0].getBoundingClientRect().width
+    itemWidth = { step: stepWidth, card: cardWidth }
+    ready = true
+    if (!inRoom() || isOwner() || IS_STAFF) spinBtn.disabled = false
+  }
+  track.style.transform = 'translateX(0px)'
+  track.style.transition = 'none'
+  requestAnimationFrame(() => measure())
+}
+
+function indexOfChosen(id) {
+  for (let i = items.length - pool.length; i < items.length; i++) {
+    if (items[i].dataset.id == id) return i
+  }
+  return items.length - 1
+}
+
+async function fetchPool() {
+  spinBtn.disabled = true
+  if (inRoom()) {
+    const name = (playerNameInput.value || '').trim()
+    const qs = `code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}`
+    const res = await fetch(`/api/roulette/room/state?${qs}`)
+    const data = await res.json()
+    if (data.error) {
+      setRoomUi(null)
+      await fetchPool()
+      return
+    }
+    pool = data.levels || []
+    roomConfig = {
+      max_rounds: data.max_rounds || 15,
+      max_attempts: data.max_attempts || 10,
+      current_round: data.current_round || 0,
+      require_proof: !!data.require_proof
+    }
+    roomMeta = {
+      category: data.category || roomMeta.category,
+      verified_mode: data.verified_mode || roomMeta.verified_mode,
+      tags: data.tags || roomMeta.tags,
+      is_public: !!data.is_public,
+      closed: !!data.closed,
+      top_n: data.top_n || roomMeta.top_n,
+      no_repeat: !!data.no_repeat,
+      players: data.players || []
+    }
+    roomResults = data.results || []
+    syncRoomUi()
+    renderResults(roomResults)
+    renderPlayers(roomMeta.players)
+    if (data.last_level) {
+      chosen = data.last_level
+      chosenEl.textContent = `Chosen: ID ${displayLevelId(chosen)} • ${chosen.name} — ${chosen.creator}`
+      openLink.href = `/level/${chosen.id}`
+      openLink.classList.remove('pointer-events-none')
+      openLink.classList.remove('opacity-50')
+      skipBtn.disabled = !(isOwner() || IS_STAFF)
+    }
+  } else {
+    let url = '/api/roulette/pool'
+    const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+    const qs = new URLSearchParams()
+    qs.set('category', currentCategory)
+    qs.set('verified_mode', currentVerifiedMode)
+    qs.set('top_n', String(currentTopN || 0))
+    if (tags.length) qs.set('tags', tags.join(','))
+    if (noRepeatEnabled()) qs.set('no_repeat', '1')
+    url += `?${qs.toString()}`
+    const res = await fetch(url)
+    const data = await res.json()
+    pool = data.levels || []
+  }
+  buildTrack()
+}
+
+function spinDurationMs() {
+  if (currentSpeed === 'slow') return 6000
+  if (currentSpeed === 'fast') return 1500
+  return 3500
+}
+
+function canMutateRoomPool() {
+  return inRoom() && (isOwner() || IS_STAFF)
+}
+
+function noRepeatEnabled() {
+  if (inRoom()) return !!roomMeta.no_repeat
+  return !!(noRepeatInput && noRepeatInput.checked)
+}
+
+function markRoomSettingsEditing() {
+  roomSettingsDirty = true
+}
+
+function roomSettingsIsEditing() {
+  return roomSettingsDirty
+}
+
+function syncRoomUi() {
+  if (inRoom()) {
+    const parts = [
+      `Round ${roomConfig.current_round}/${roomConfig.max_rounds}`,
+      `Max attempts ${roomConfig.max_attempts}`,
+      `Proof ${roomConfig.require_proof ? 'required' : 'optional'}`
+    ]
+    if (roomMeta.category && roomMeta.category !== 'all') parts.push(roomMeta.category)
+    if (roomMeta.verified_mode && roomMeta.verified_mode !== 'verified') parts.push(roomMeta.verified_mode)
+    if ((roomMeta.top_n || 0) > 0) parts.push(`top ${roomMeta.top_n}`)
+    if (roomMeta.tags && roomMeta.tags.length) parts.push(`${roomMeta.tags.length} tags`)
+    if (roomMeta.no_repeat) parts.push('no repeats')
+    if (roomMeta.is_public) parts.push('public')
+    if (roomMeta.closed) parts.push('closed')
+    if ((roomConfig.current_round || 0) >= (roomConfig.max_rounds || 0) && (roomConfig.max_rounds || 0) > 0) {
+      const w = computeWinner(roomResults)
+      if (w) parts.push(`Winner ${w}`)
+    }
+    gameStatusEl.textContent = parts.join(' • ')
+    resultsWrap.classList.remove('hidden')
+    if (isOwner() && !roomSettingsIsEditing()) {
+      maxRoundsInput.value = String(roomConfig.max_rounds)
+      maxAttemptsInput.value = String(roomConfig.max_attempts)
+      roomListTypeSelect.value = roomMeta.category || 'all'
+      roomVerifiedModeSelect.value = roomMeta.verified_mode || 'verified'
+      roomTopNSelect.value = String(roomMeta.top_n || 0)
+      roomPublicInput.checked = !!roomMeta.is_public
+      requireProofInput.checked = !!roomConfig.require_proof
+      setSelectedTags(roomTagsEl, roomMeta.tags || [], 'roulette-tag-room')
+    }
+    const canSpin = isOwner() || IS_STAFF
+    if (!canSpin) {
+      spinBtn.disabled = true
+      skipBtn.disabled = true
+    }
+  } else {
+    gameStatusEl.textContent = ''
+    resultsWrap.classList.toggle('hidden', localResults.length === 0)
+    if (localResults.length) renderResults(localResults)
+  }
+  if (noRepeatInput) {
+    if (inRoom()) {
+      noRepeatInput.checked = !!roomMeta.no_repeat
+      noRepeatInput.disabled = !isOwner()
+      noRepeatInput.classList.toggle('opacity-60', noRepeatInput.disabled)
+    } else {
+      noRepeatInput.disabled = false
+      noRepeatInput.classList.remove('opacity-60')
+    }
+  }
+  if (resetRouletteBtn) {
+    resetRouletteBtn.disabled = inRoom() && !canMutateRoomPool()
+  }
+  roomSettingsWrap.classList.toggle('hidden', !isOwner())
+  syncReopenBtn()
+}
+
+function escapeHtml(s) {
+  return String(s || '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;')
+}
+
+function computeWinner(results) {
+  const rows = Array.isArray(results) ? results : []
+  const agg = new Map()
+  for (const r of rows) {
+    const name = String((r && r.player_name) ? r.player_name : '').trim()
+    if (!name) continue
+    const a = agg.get(name) || { rounds: 0, attempts: 0, bestSum: 0 }
+    const attempts = Number(r.attempts_used)
+    const best = Number(r.best_percent)
+    a.rounds += 1
+    a.attempts += Number.isFinite(attempts) ? attempts : 0
+    a.bestSum += Number.isFinite(best) ? best : 0
+    agg.set(name, a)
+  }
+  let bestName = ''
+  let bestRow = null
+  for (const [name, a] of agg.entries()) {
+    if (!bestRow) {
+      bestName = name
+      bestRow = a
+      continue
+    }
+    if (a.rounds !== bestRow.rounds) {
+      if (a.rounds > bestRow.rounds) { bestName = name; bestRow = a }
+      continue
+    }
+    if (a.attempts !== bestRow.attempts) {
+      if (a.attempts < bestRow.attempts) { bestName = name; bestRow = a }
+      continue
+    }
+    if (a.bestSum !== bestRow.bestSum) {
+      if (a.bestSum > bestRow.bestSum) { bestName = name; bestRow = a }
+      continue
+    }
+  }
+  return bestName
+}
+
+function applySingleSettingsFromStorage() {
+  try {
+    const v = (localStorage.getItem('roulette_single_verified_mode') || '').trim()
+    if (v) currentVerifiedMode = v
+  } catch (e) {}
+  try {
+    const v = parseInt(localStorage.getItem('roulette_single_top_n') || '0', 10)
+    if (Number.isFinite(v)) currentTopN = v
+  } catch (e) {}
+  if (verifiedFilter) verifiedFilter.value = currentVerifiedMode
+  if (topFilter) topFilter.value = String(currentTopN || 0)
+  try {
+    const raw = localStorage.getItem('roulette_single_tags') || '[]'
+    const tags = JSON.parse(raw)
+    setSelectedTags(singleTagsEl, Array.isArray(tags) ? tags : [], 'roulette-tag-single')
+  } catch (e) {}
+  if (noRepeatInput) {
+    try {
+      const raw = localStorage.getItem('roulette_single_no_repeat') || ''
+      noRepeatInput.checked = raw === '1'
+    } catch (e) {}
+  }
+}
+
+renderTagGrid(roomTagsEl, 'roulette-tag-room')
+renderTagGrid(singleTagsEl, 'roulette-tag-single')
+applySingleSettingsFromStorage()
+
+function renderResults(list) {
+  const items = (list || []).slice().reverse().slice(0, 50)
+  if (!items.length) {
+    resultsEl.innerHTML = '<div class="text-sm text-gray-500">No results yet.</div>'
+    return
+  }
+  resultsEl.innerHTML = items.map(r => {
+    const lv = r.level || {}
+    const proof = r.proof_url ? `<a class="text-blue-400 hover:underline text-xs" target="_blank" href="${escapeHtml(r.proof_url)}">Proof</a>` : ''
+    const id = String(lv.gd_level_id || '').trim() || String(lv.id || '').trim()
+    return `<div class="bg-slate-800/30 rounded px-3 py-2 flex items-center justify-between gap-3">
+      <div>
+        <div class="text-sm text-white font-semibold">${escapeHtml(r.player_name || 'Player')} • Round ${escapeHtml(r.round_no)}</div>
+        <div class="text-xs text-gray-400">${id ? `ID ${escapeHtml(id)} • ` : ''}${escapeHtml(lv.name)} — ${escapeHtml(lv.creator)}</div>
+        <div class="text-xs text-gray-400">First try ${escapeHtml(r.first_try_percent)}% • Best ${escapeHtml(r.best_percent)}% • Attempts ${escapeHtml(r.attempts_used)}</div>
+      </div>
+      <div class="flex items-center gap-2">${proof}</div>
+    </div>`
+  }).join('')
+}
+
+function openResultModal(level, roundNo, requireProof, maxAttempts) {
+  pendingResultLevel = level
+  pendingRoundNo = roundNo
+  lastResultPrompt = { level, roundNo, requireProof, maxAttempts }
+  modalLevel.textContent = `${displayLevelId(level) ? `ID ${displayLevelId(level)} • ` : ''}${level.name} — ${level.creator} • Round ${roundNo}`
+  firstTryInput.value = ''
+  bestTryInput.value = ''
+  attemptsUsedInput.value = '1'
+  attemptsUsedInput.max = String(maxAttempts || 10)
+  proofFileInput.value = ''
+  proofFileInput.required = !!requireProof
+  proofNote.textContent = requireProof ? 'Screenshot proof is required by the room owner.' : 'Screenshot proof is optional.'
+  modal.classList.remove('hidden')
+  modal.classList.add('flex')
+  syncReopenBtn()
+}
+
+function closeResultModal() {
+  modal.classList.add('hidden')
+  modal.classList.remove('flex')
+  pendingResultLevel = null
+  pendingRoundNo = 0
+  syncReopenBtn()
+}
+
+modalBackdrop.addEventListener('click', closeResultModal)
+cancelResultBtn.addEventListener('click', closeResultModal)
+if (reopenResultBtn) {
+  reopenResultBtn.addEventListener('click', () => {
+    if (!inRoom() || !lastResultPrompt) return
+    openResultModal(lastResultPrompt.level, lastResultPrompt.roundNo, lastResultPrompt.requireProof, lastResultPrompt.maxAttempts)
+  })
+}
+
+async function spin() {
+  if (!ready) await fetchPool()
+  spinBtn.disabled = true
+  skipBtn.disabled = true
+  openLink.classList.add('pointer-events-none')
+  openLink.classList.add('opacity-50')
+  chosenEl.textContent = ''
+
+  let spinUrl = '/api/roulette/spin'
+  if (inRoom()) {
+    const name = (playerNameInput.value || '').trim()
+    spinUrl = `/api/roulette/room/spin?code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}`
+  } else {
+    const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+    const qs = new URLSearchParams()
+    qs.set('category', currentCategory)
+    qs.set('verified_mode', currentVerifiedMode)
+    qs.set('top_n', String(currentTopN || 0))
+    if (tags.length) qs.set('tags', tags.join(','))
+    if (noRepeatEnabled()) qs.set('no_repeat', '1')
+    spinUrl += `?${qs.toString()}`
+  }
+
+  const res = await fetch(spinUrl, { method: 'POST' })
+  const data = await res.json()
+  if (data.error) {
+    if (data.error === 'finished') {
+      await fetchPool()
+      const winner = computeWinner(roomResults)
+      chosenEl.textContent = `Finished: ${roomConfig.current_round}/${roomConfig.max_rounds} rounds.${winner ? ` Winner: ${winner}` : ''}`
+      spinBtn.disabled = true
+      return
+    }
+    if (data.error === 'empty_pool') {
+      await fetchPool()
+      chosenEl.textContent = 'Pool empty — click Reset roulette.'
+      spinBtn.disabled = true
+      skipBtn.disabled = true
+      return
+    }
+    await fetchPool()
+    spinBtn.disabled = false
+    return
+  }
+  chosen = data.level
+  if (inRoom()) {
+    roomConfig.current_round = data.current_round || roomConfig.current_round
+    roomConfig.max_rounds = data.max_rounds || roomConfig.max_rounds
+    roomConfig.max_attempts = data.max_attempts || roomConfig.max_attempts
+    roomConfig.require_proof = !!data.require_proof
+    syncRoomUi()
+  }
+
+  openLink.href = `/level/${chosen.id}`
+  openLink.classList.remove('pointer-events-none')
+  openLink.classList.remove('opacity-50')
+  skipBtn.disabled = inRoom() ? !(isOwner() || IS_STAFF) : false
+
+  const showChosen = () => {
+    chosenEl.textContent = `Chosen: ID ${displayLevelId(chosen)} • ${chosen.name} — ${chosen.creator}`
+    if (inRoom()) {
+      lastPrompt = { levelId: chosen.id, roundNo: roomConfig.current_round || 0 }
+      openResultModal(chosen, roomConfig.current_round, roomConfig.require_proof, roomConfig.max_attempts)
+    }
+  }
+
+  const afterChosen = async () => {
+    if (noRepeatEnabled() && chosen) {
+      if (!inRoom()) {
+        const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+        const qs = new URLSearchParams()
+        qs.set('category', currentCategory)
+        qs.set('verified_mode', currentVerifiedMode)
+        qs.set('top_n', String(currentTopN || 0))
+        if (tags.length) qs.set('tags', tags.join(','))
+        qs.set('no_refill', '1')
+        const url = `/api/roulette/skip?${qs.toString()}`
+        await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ level_id: chosen.id })
+        })
+        await fetchPool()
+      } else if (canMutateRoomPool()) {
+        const name = (playerNameInput.value || '').trim()
+        const url = `/api/roulette/room/skip?code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}&no_refill=1&keep_round=1`
+        await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ level_id: chosen.id })
+        })
+        await fetchPool()
+      }
+    }
+    if (!inRoom() || isOwner() || IS_STAFF) spinBtn.disabled = false
+  }
+
+  const canAnimate = !(pool.length < 2 || isCollapsed || track.parentElement.clientWidth === 0)
+  if (!canAnimate) {
+    showChosen()
+    afterChosen()
+    return
+  }
+
+  track.style.transition = 'none'
+  track.style.transform = 'translateX(0px)'
+  await new Promise(r => setTimeout(r, 50))
+
+  const baseIdx = pool.findIndex(lv => lv.id === chosen.id)
+  const loops = 6
+  const finalIdx = Math.max(0, baseIdx) + loops * pool.length
+  const center = track.parentElement.clientWidth / 2 - itemWidth.card / 2
+  const target = Math.round(finalIdx * itemWidth.step - center)
+  const duration = spinDurationMs()
+  isAnimatingSpin = true
+  track.style.transition = `transform ${duration}ms cubic-bezier(0.1, 0.7, 0, 1)`
+  track.style.transform = `translateX(-${target}px)`
+  setTimeout(() => {
+    showChosen()
+    afterChosen()
+    isAnimatingSpin = false
+    if (pendingTrackRebuild) {
+      pendingTrackRebuild = false
+      buildTrack()
+    }
+  }, duration)
+}
+
+async function skip() {
+  if (!chosen) return
+  skipBtn.disabled = true
+  let url = '/api/roulette/skip'
+  if (inRoom()) {
+    const name = (playerNameInput.value || '').trim()
+    const noRefill = noRepeatEnabled() ? '&no_refill=1' : ''
+    url = `/api/roulette/room/skip?code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}${noRefill}`
+  } else {
+    const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+    const qs = new URLSearchParams()
+    qs.set('category', currentCategory)
+    qs.set('verified_mode', currentVerifiedMode)
+    qs.set('top_n', String(currentTopN || 0))
+    if (tags.length) qs.set('tags', tags.join(','))
+    if (noRepeatEnabled()) qs.set('no_refill', '1')
+    url = `/api/roulette/skip?${qs.toString()}`
+  }
+  await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ level_id: chosen.id })
+  })
+  await fetchPool()
+  spin()
+}
+
+speedControl.addEventListener('change', (e) => { currentSpeed = e.target.value })
+categoryFilter.addEventListener('change', async (e) => { currentCategory = e.target.value; await fetchPool() })
+verifiedFilter.addEventListener('change', async (e) => {
+  currentVerifiedMode = e.target.value
+  try { localStorage.setItem('roulette_single_verified_mode', currentVerifiedMode) } catch (err) {}
+  await fetchPool()
+})
+topFilter.addEventListener('change', async (e) => {
+  currentTopN = parseInt(e.target.value || '0', 10) || 0
+  try { localStorage.setItem('roulette_single_top_n', String(currentTopN)) } catch (err) {}
+  await fetchPool()
+})
+if (singleTagsEl) {
+  singleTagsEl.addEventListener('change', async () => {
+    const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+    try { localStorage.setItem('roulette_single_tags', JSON.stringify(tags)) } catch (err) {}
+    await fetchPool()
+  })
+}
+if (noRepeatInput) {
+  noRepeatInput.addEventListener('change', async () => {
+    if (inRoom()) {
+      if (!isOwner()) {
+        noRepeatInput.checked = !!roomMeta.no_repeat
+        return
+      }
+      const token = ownerTokenFor(roomCode)
+      try {
+        const res = await fetch('/api/roulette/room/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ code: roomCode, owner_token: token, no_repeat: !!noRepeatInput.checked })
+        })
+        const data = await res.json()
+        if (!data.error) {
+          roomMeta.no_repeat = !!data.no_repeat
+          syncRoomUi()
+        }
+      } catch (e) {}
+    } else {
+      try { localStorage.setItem('roulette_single_no_repeat', noRepeatInput.checked ? '1' : '0') } catch (err) {}
+    }
+  })
+}
+if (resetRouletteBtn) {
+  resetRouletteBtn.addEventListener('click', async () => {
+    if (inRoom() && !canMutateRoomPool()) return
+    resetRouletteBtn.disabled = true
+    try {
+      if (inRoom()) {
+        const name = (playerNameInput.value || '').trim()
+        const url = `/api/roulette/room/reset?code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}`
+        await fetch(url, { method: 'POST' })
+      } else {
+        await fetch('/api/roulette/reset', { method: 'POST' })
+      }
+      await fetchPool()
+    } catch (e) {}
+    resetRouletteBtn.disabled = false
+    syncRoomUi()
+  })
+}
+collapseBtn.addEventListener('click', () => {
+  isCollapsed = !isCollapsed
+  const trackContainer = track.parentElement
+  trackContainer.style.display = isCollapsed ? 'none' : 'block'
+  collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse'
+})
+
+spinBtn.addEventListener('click', spin)
+skipBtn.addEventListener('click', skip)
+
+roomCreateBtn.addEventListener('click', async () => {
+  spinBtn.disabled = true
+  const name = (playerNameInput.value || '').trim()
+  const tags = selectedTags(singleTagsEl, 'roulette-tag-single')
+  const res = await fetch('/api/roulette/room/create', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ category: currentCategory, verified_mode: currentVerifiedMode, top_n: currentTopN || 0, tags, player_id: playerId, player_name: name })
+  })
+  const data = await res.json()
+  if (data.error) {
+    spinBtn.disabled = false
+    return
+  }
+  setRoomUi(data.code, data.category)
+  if (data.owner_token) {
+    localStorage.setItem(`roulette_owner_token:${data.code}`, data.owner_token)
+  }
+  pool = data.levels || []
+  roomConfig = { max_rounds: data.max_rounds || 15, max_attempts: data.max_attempts || 10, current_round: data.current_round || 0, require_proof: !!data.require_proof }
+  roomMeta = { category: data.category || 'all', verified_mode: data.verified_mode || 'verified', tags: data.tags || [], top_n: data.top_n || 0, is_public: !!data.is_public, closed: !!data.closed, players: data.players || [] }
+  roomMeta.no_repeat = !!data.no_repeat
+  roomResults = data.results || []
+  syncRoomUi()
+  renderResults(roomResults)
+  renderPlayers(roomMeta.players)
+  buildTrack()
+  chosen = null
+  chosenEl.textContent = ''
+})
+
+roomJoinBtn.addEventListener('click', async () => {
+  const code = (roomCodeInput.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  roomCodeInput.value = code
+  if (!code) return
+  spinBtn.disabled = true
+  const name = (playerNameInput.value || '').trim()
+  const res = await fetch('/api/roulette/room/join', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ code, player_id: playerId, player_name: name })
+  })
+  const data = await res.json()
+  if (data.error) {
+    spinBtn.disabled = false
+    return
+  }
+  setRoomUi(data.code, data.category)
+  pool = data.levels || []
+  roomConfig = { max_rounds: data.max_rounds || 15, max_attempts: data.max_attempts || 10, current_round: data.current_round || 0, require_proof: !!data.require_proof }
+  roomMeta = { category: data.category || 'all', verified_mode: data.verified_mode || 'verified', tags: data.tags || [], top_n: data.top_n || 0, is_public: !!data.is_public, closed: !!data.closed, players: data.players || [] }
+  roomMeta.no_repeat = !!data.no_repeat
+  roomResults = data.results || []
+  syncRoomUi()
+  renderResults(roomResults)
+  renderPlayers(roomMeta.players)
+  buildTrack()
+  if (data.last_level) {
+    chosen = data.last_level
+    chosenEl.textContent = `Chosen: ID ${displayLevelId(chosen)} • ${chosen.name} — ${chosen.creator}`
+    openLink.href = `/level/${chosen.id}`
+    openLink.classList.remove('pointer-events-none')
+    openLink.classList.remove('opacity-50')
+    skipBtn.disabled = !(isOwner() || IS_STAFF)
+  } else {
+    chosen = null
+    chosenEl.textContent = ''
+  }
+})
+
+roomLeaveBtn.addEventListener('click', async () => {
+  const leavingCode = roomCode
+  setRoomUi(null)
+  chosen = null
+  chosenEl.textContent = ''
+  lastResultPrompt = null
+  openLink.href = '#'
+  openLink.classList.add('pointer-events-none')
+  openLink.classList.add('opacity-50')
+  skipBtn.disabled = true
+  roomResults = []
+  roomConfig = { max_rounds: 15, max_attempts: 10, current_round: 0, require_proof: false }
+  roomMeta = { category: 'all', verified_mode: 'verified', tags: [], top_n: 0, is_public: false, closed: false, players: [] }
+  roomMeta.no_repeat = false
+  syncRoomUi()
+  if (leavingCode) {
+    try {
+      await fetch('/api/roulette/room/leave', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ code: leavingCode, player_id: playerId })
+      })
+    } catch (e) {}
+  }
+  await fetchPool()
+})
+
+for (const el of [maxRoundsInput, maxAttemptsInput, roomListTypeSelect, roomVerifiedModeSelect, roomTopNSelect, roomPublicInput, requireProofInput]) {
+  if (!el) continue
+  el.addEventListener('input', markRoomSettingsEditing)
+  el.addEventListener('change', markRoomSettingsEditing)
+  el.addEventListener('focus', markRoomSettingsEditing)
+}
+if (roomTagsEl) {
+  roomTagsEl.addEventListener('click', markRoomSettingsEditing)
+}
+
+saveRoomSettingsBtn.addEventListener('click', async () => {
+  if (!isOwner()) return
+  const token = ownerTokenFor(roomCode)
+  const maxRounds = Number(maxRoundsInput.value || 15)
+  const maxAttempts = Number(maxAttemptsInput.value || 10)
+  const requireProof = !!requireProofInput.checked
+  const noRepeat = !!(noRepeatInput && noRepeatInput.checked)
+  const listType = roomListTypeSelect.value || 'all'
+  const verifiedMode = roomVerifiedModeSelect.value || 'verified'
+  const topN = parseInt(roomTopNSelect.value || '0', 10) || 0
+  const isPublic = !!roomPublicInput.checked
+  const tags = selectedTags(roomTagsEl, 'roulette-tag-room')
+  const res = await fetch('/api/roulette/room/config', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      code: roomCode,
+      owner_token: token,
+      max_rounds: maxRounds,
+      max_attempts: maxAttempts,
+      require_proof: requireProof,
+      no_repeat: noRepeat,
+      category: listType,
+      verified_mode: verifiedMode,
+      top_n: topN,
+      is_public: isPublic,
+      tags
+    })
+  })
+  const data = await res.json()
+  if (data.error) return
+  roomSettingsDirty = false
+  roomConfig.max_rounds = (typeof data.max_rounds === 'number') ? data.max_rounds : roomConfig.max_rounds
+  roomConfig.max_attempts = (typeof data.max_attempts === 'number') ? data.max_attempts : roomConfig.max_attempts
+  roomConfig.current_round = (typeof data.current_round === 'number') ? data.current_round : roomConfig.current_round
+  roomConfig.require_proof = !!data.require_proof
+  roomMeta.no_repeat = !!data.no_repeat
+  roomMeta.category = data.category || roomMeta.category
+  roomMeta.verified_mode = data.verified_mode || roomMeta.verified_mode
+  roomMeta.tags = Array.isArray(data.tags) ? data.tags : roomMeta.tags
+  roomMeta.top_n = (typeof data.top_n === 'number') ? data.top_n : roomMeta.top_n
+  roomMeta.is_public = !!data.is_public
+  roomMeta.closed = !!data.closed
+  syncRoomUi()
+  await fetchPool()
+})
+
+if (closeRoomBtn) {
+  closeRoomBtn.addEventListener('click', async () => {
+    if (!isOwner()) return
+    const token = ownerTokenFor(roomCode)
+    closeRoomBtn.disabled = true
+    try {
+      const res = await fetch('/api/roulette/room/close', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ code: roomCode, owner_token: token })
+      })
+      const data = await res.json()
+      if (data && !data.error) {
+        roomMeta.closed = !!data.closed
+        roomMeta.is_public = !!data.is_public
+        syncRoomUi()
+      }
+    } catch (e) {}
+    closeRoomBtn.disabled = false
+  })
+}
+
+submitResultBtn.addEventListener('click', async () => {
+  if (!pendingResultLevel || !inRoom()) return
+  const firstTry = Number(firstTryInput.value)
+  const bestTry = Number(bestTryInput.value)
+  let attemptsUsed = Number(attemptsUsedInput.value || '1')
+  if (!Number.isFinite(firstTry) || !Number.isFinite(bestTry) || !Number.isFinite(attemptsUsed)) {
+    proofNote.textContent = 'Please enter valid numbers.'
+    return
+  }
+  if (attemptsUsed < 1) attemptsUsed = 1
+  const fd = new FormData()
+  fd.append('code', roomCode)
+  fd.append('player_id', playerId)
+  fd.append('player_name', (playerNameInput.value || '').trim())
+  fd.append('level_id', String(pendingResultLevel.id))
+  fd.append('round_no', String(pendingRoundNo || roomConfig.current_round || 0))
+  fd.append('first_try_percent', String(firstTry))
+  fd.append('best_percent', String(bestTry))
+  fd.append('attempts_used', String(attemptsUsed))
+  if (proofFileInput.files && proofFileInput.files[0]) {
+    fd.append('proof', proofFileInput.files[0])
+  }
+  submitResultBtn.disabled = true
+  let data = null
+  try {
+    const res = await fetch(`/api/roulette/room/result?code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}`, { method: 'POST', body: fd })
+    data = await res.json()
+  } catch (e) {
+    submitResultBtn.disabled = false
+    proofNote.textContent = 'Could not submit. Please try again.'
+    return
+  }
+  submitResultBtn.disabled = false
+  if (data && data.error) {
+    if (data.error === 'proof_required') proofNote.textContent = 'Screenshot proof is required for this room.'
+    else if (data.error === 'bad_file') proofNote.textContent = 'Screenshot must be an image.'
+    else if (data.error === 'kicked') {
+      proofNote.textContent = 'You were kicked from the room.'
+      try { if (window.siteNotifyFor) window.siteNotifyFor('roulette', 'Roulette room', 'You were kicked from the room.') } catch (e) {}
+    } else proofNote.textContent = 'Could not submit. Please check your inputs and try again.'
+    return
+  }
+  roomResults = (data && data.results) ? data.results : []
+  renderResults(roomResults)
+  closeResultModal()
+  lastResultPrompt = null
+  syncReopenBtn()
+})
+
+setInterval(async () => {
+  if (!inRoom()) return
+  try {
+    const name = (playerNameInput.value || '').trim()
+    const qs = `code=${encodeURIComponent(roomCode)}&player_id=${encodeURIComponent(playerId)}&player_name=${encodeURIComponent(name)}`
+    const res = await fetch(`/api/roulette/room/state?${qs}`)
+    const data = await res.json()
+    if (data && data.error === 'kicked') {
+      try { if (window.siteNotifyFor) window.siteNotifyFor('roulette', 'Roulette room', 'You were kicked from the room.') } catch (e) {}
+      setRoomUi(null)
+      await fetchPool()
+      return
+    }
+    if (data && !data.error) {
+      const nextPool = data.levels || []
+      const oldIds = (pool || []).map(lv => lv.id).join(',')
+      const newIds = (nextPool || []).map(lv => lv.id).join(',')
+      roomConfig = {
+        max_rounds: (typeof data.max_rounds === 'number') ? data.max_rounds : roomConfig.max_rounds,
+        max_attempts: (typeof data.max_attempts === 'number') ? data.max_attempts : roomConfig.max_attempts,
+        current_round: (typeof data.current_round === 'number') ? data.current_round : roomConfig.current_round,
+        require_proof: !!data.require_proof
+      }
+      roomMeta = {
+        category: data.category || roomMeta.category,
+        verified_mode: data.verified_mode || roomMeta.verified_mode,
+        tags: Array.isArray(data.tags) ? data.tags : roomMeta.tags,
+        is_public: !!data.is_public,
+        closed: !!data.closed,
+        top_n: (typeof data.top_n === 'number') ? data.top_n : roomMeta.top_n,
+        no_repeat: !!data.no_repeat,
+        players: data.players || roomMeta.players
+      }
+      roomResults = data.results || roomResults
+      syncRoomUi()
+      renderResults(roomResults)
+      renderPlayers(roomMeta.players)
+      if (oldIds !== newIds) {
+        pool = nextPool
+        if (!isAnimatingSpin) buildTrack()
+        else pendingTrackRebuild = true
+      }
+      if (data.last_level && (!chosen || chosen.id !== data.last_level.id)) {
+        chosen = data.last_level
+        const showRemoteChosen = () => {
+          chosenEl.textContent = `Chosen: ID ${displayLevelId(chosen)} • ${chosen.name} — ${chosen.creator}`
+          openLink.href = `/level/${chosen.id}`
+          openLink.classList.remove('pointer-events-none')
+          openLink.classList.remove('opacity-50')
+          skipBtn.disabled = !(isOwner() || IS_STAFF)
+          const roundNo = roomConfig.current_round || 0
+          if (lastPrompt.levelId !== chosen.id || lastPrompt.roundNo !== roundNo) {
+            lastPrompt = { levelId: chosen.id, roundNo }
+            openResultModal(chosen, roundNo, roomConfig.require_proof, roomConfig.max_attempts)
+          }
+        }
+        if (pool.length < 2 || isCollapsed || track.parentElement.clientWidth === 0) {
+          showRemoteChosen()
+        } else {
+          track.style.transition = 'none'
+          track.style.transform = 'translateX(0px)'
+          await new Promise(r => setTimeout(r, 50))
+          const baseIdx = pool.findIndex(lv => lv.id === chosen.id)
+          if (baseIdx < 0) {
+            showRemoteChosen()
+          } else {
+            const loops = 6
+            const finalIdx = Math.max(0, baseIdx) + loops * pool.length
+            const center = track.parentElement.clientWidth / 2 - itemWidth.card / 2
+            const target = Math.round(finalIdx * itemWidth.step - center)
+            const duration = spinDurationMs()
+            isAnimatingSpin = true
+            track.style.transition = `transform ${duration}ms cubic-bezier(0.1, 0.7, 0, 1)`
+            track.style.transform = `translateX(-${target}px)`
+            setTimeout(() => {
+              showRemoteChosen()
+              isAnimatingSpin = false
+              if (pendingTrackRebuild) {
+                pendingTrackRebuild = false
+                buildTrack()
+              }
+            }, duration)
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}, 1200)
+
+fetchPool()
+refreshPublicRooms()
+setInterval(() => { if (!inRoom()) refreshPublicRooms() }, 4000)
+</script>
+
+
+
+{% endblock %}

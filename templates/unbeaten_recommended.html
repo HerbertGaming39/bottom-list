@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <section class="glass-panel p-6 rounded-lg order-1">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-white">Recommendation</h2>
+            <form action="{{ url_for('profile.unbeaten_levels') }}" method="GET" class="flex items-center gap-2">
+                <select name="list_type" onchange="this.form.submit()" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-white text-sm">
+                    <option value="all" {{ 'selected' if list_type == 'all' else '' }}>All Lists</option>
+                    <option value="main" {{ 'selected' if list_type == 'main' else '' }}>Main List</option>
+                    <option value="challenge" {{ 'selected' if list_type == 'challenge' else '' }}>Challenge List</option>
+                    <option value="platformer" {{ 'selected' if list_type == 'platformer' else '' }}>Platformer List</option>
+                </select>
+            </form>
+        </div>
+        {% if recommended %}
+        <div class="space-y-3">
+            <a href="{{ url_for('main.level_detail', level_id=recommended.id) }}" class="text-xl font-semibold text-blue-300 hover:text-blue-200">
+                {{ recommended.name }}
+            </a>
+            <div class="text-sm text-gray-400">by <span class="text-gray-200">{{ recommended.creator }}</span></div>
+            <div class="text-sm text-gray-400">Position: {{ ('#' ~ recommended.position) if recommended.position else 'Unrated' }}</div>
+            <div class="text-sm text-gray-300">Tags: {{ recommended.categories or '—' }}</div>
+            <div class="pt-2 border-t border-slate-700">
+                <div class="text-sm text-gray-400 mb-2">Community ratings</div>
+                <div class="grid grid-cols-3 gap-2 text-sm">
+                    <div class="bg-slate-800/60 rounded px-3 py-2"><span class="text-gray-400">Deco</span><div class="text-white font-semibold">{{ rec_ratings.deco if rec_ratings.deco is not none else '—' }}</div></div>
+                    <div class="bg-slate-800/60 rounded px-3 py-2"><span class="text-gray-400">Gameplay</span><div class="text-white font-semibold">{{ rec_ratings.gameplay if rec_ratings.gameplay is not none else '—' }}</div></div>
+                    <div class="bg-slate-800/60 rounded px-3 py-2"><span class="text-gray-400">Enjoyment</span><div class="text-white font-semibold">{{ rec_ratings.enjoyment if rec_ratings.enjoyment is not none else '—' }}</div></div>
+                </div>
+            </div>
+            <div class="pt-2">
+                <a href="{{ url_for('profile.unbeaten_levels', skip=1) }}" class="inline-flex items-center px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white text-sm">Skip Recommendation</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-gray-400">No recommendation available yet.</div>
+        {% endif %}
+    </section>
+
+    <section class="glass-panel p-6 rounded-lg order-2">
+        <h2 class="text-2xl font-bold text-white mb-4">Unbeaten Levels</h2>
+        <div class="space-y-3">
+            {% for level in unbeaten_levels %}
+            <div class="bg-slate-800/40 rounded p-3 flex items-center justify-between">
+                <div>
+                    <a href="{{ url_for('main.level_detail', level_id=level.id) }}" class="text-white hover:text-blue-300 font-medium">{{ level.name }}</a>
+                    <div class="text-xs text-gray-400">{{ level.creator }} • {{ level.list_type }} {{ ('#' ~ level.position) if level.position else '' }}</div>
+                </div>
+                <span class="text-xs text-gray-300">{{ level.points_reward }} pts</span>
+            </div>
+            {% else %}
+            <div class="text-gray-400">You've beaten everything on the list.</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

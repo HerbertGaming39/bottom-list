@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white">Sell on Black Market</h1>
+        <a href="{{ url_for('shop.black_market') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back</a>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <div class="flex items-center gap-3 mb-4">
+            {% if item and item.image_filename %}
+            <img src="{{ url_for('static', filename='shop_images/' ~ item.image_filename) }}" alt="" class="w-16 h-16 rounded object-contain bg-slate-800/50">
+            {% endif %}
+            <div>
+                <h2 class="text-xl font-bold text-white">{{ item.name if item else 'Unknown' }}</h2>
+                <p class="text-sm text-gray-400">Limited item &middot; Original price: {{ item.price if item else 0 }} bcoins</p>
+            </div>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="text-sm text-gray-300 block mb-1">Listing price (minimum 1000 bcoins)</label>
+                <input type="number" name="price" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" min="1000" required>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm">List for Sale</button>
+                <a href="{{ url_for('shop.black_market') }}" class="bg-slate-700 hover:bg-slate-600 text-gray-200 px-4 py-2 rounded text-sm">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set eq_bg = equipped_items.get(user.equipped_background_item_id) if user.equipped_background_item_id else None %}
+{% if eq_bg %}
+<div class="fixed inset-0 -z-10 bg-cover bg-center" style="{% if eq_bg.image_filename %}background-image: url('{{ url_for('static', filename='shop_images/' ~ eq_bg.image_filename) }}');{% else %}background: linear-gradient(135deg, #0f172a, #1e293b);{% endif %}"></div>
+<div class="fixed inset-0 -z-10 bg-slate-900/70"></div>
+{% endif %}
+<div class="max-w-4xl mx-auto">
+    {% if user.banner_filename %}
+    <div class="rounded-lg mb-4 overflow-hidden h-48">
+        <div class="w-full h-full bg-cover bg-center" style="background-image: url('{{ url_for('static', filename='profile_media/' ~ user.banner_filename) }}')"></div>
+    </div>
+    {% endif %}
+    <div class="rounded-lg mb-8 overflow-hidden glass-panel p-8 flex flex-col md:flex-row items-center md:items-start justify-between">
+        <div class="mb-4 md:mb-0">
+            <div class="flex items-center gap-4 mb-1">
+                {% set eq_av = equipped_items.get(user.equipped_avatar_item_id) if user.equipped_avatar_item_id else None %}
+                {% set avatar_url = url_for('static', filename='shop_images/' ~ eq_av.image_filename) if eq_av and eq_av.image_filename else (url_for('static', filename='profile_media/' ~ user.avatar_filename) if user.avatar_filename else None) %}
+                {% if avatar_url %}
+                <img src="{{ avatar_url }}" alt="Avatar" class="w-14 h-14 rounded-full object-cover border border-slate-700">
+                {% endif %}
+                <h1 class="text-3xl font-bold {{ 'text-yellow-400' if user.is_donor else 'text-white' }}">{{ user.username }}{% if user.is_donor %} <span class="text-sm bg-yellow-600 text-black px-2 py-0.5 rounded font-bold uppercase align-middle">Donor</span>{% endif %}</h1>
+            </div>
+            <p class="text-gray-400">Rank: {{ rank_label(user_rank(user)) }}</p>
+            {% if user.clan %}
+            <p class="text-gray-400">Clan: <a href="{{ url_for('main.clan_detail', clan_id=user.clan.id) }}" class="text-gray-200 font-semibold hover:underline">{{ user.clan.name }}</a></p>
+            {% endif %}
+            
+            <div class="flex space-x-4 mt-3">
+                {% if user.youtube_link %}
+                <a href="{{ user.youtube_link }}" target="_blank" class="text-red-500 hover:text-red-400">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                </a>
+                {% endif %}
+                {% if user.discord_id %}
+                <div class="text-indigo-400 flex items-center" title="Discord linked">
+                    <img src="{{ url_for('main.discord_icon_png') }}" alt="Discord" class="w-6 h-6 mr-1">
+                    <span class="text-sm text-gray-300">Discord linked</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% set eq_dec = equipped_items.get(user.equipped_deco_item_id) if user.equipped_deco_item_id else None %}
+            {% if eq_dec and eq_dec.image_filename %}
+            <div class="mt-3">
+                <img src="{{ url_for('static', filename='shop_images/' ~ eq_dec.image_filename) }}" alt="Decoration" class="max-w-xs rounded-lg opacity-80">
+            </div>
+            {% endif %}
+
+            {% if user.bio %}
+            <p class="text-gray-300 mt-4 max-w-lg">{{ user.bio }}</p>
+            {% endif %}
+
+            {% if current_user.id == user.id %}
+            <div class="mt-4">
+                <a href="{{ url_for('profile.edit_profile') }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors">Edit Profile</a>
+                <a href="{{ url_for('profile.settings') }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors ml-2">Settings</a>
+                <a href="{{ url_for('profile.stats') }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors ml-2">Stats</a>
+                {% if year_recap_enabled %}
+                <a href="{{ url_for('recap.recap') }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors ml-2">Recap</a>
+                {% endif %}
+                <form action="{{ url_for('profile.change_username') }}" method="POST" class="inline-flex items-center ml-2 space-x-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="new_username" placeholder="New username" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white text-sm">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">Change Username</button>
+                </form>
+                <form action="{{ url_for('auth.delete_account') }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Delete your account? This cannot be undone.')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">Delete Account</button>
+                </form>
+            </div>
+            {% endif %}
+            {% if current_user.id != user.id %}
+            <div class="mt-4">
+                <a href="{{ url_for('profile.user_stats', user_id=user.id) }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors">Stats</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="text-right">
+            <div class="text-4xl font-bold text-green-400">{{ display_points if display_points is not none else user.points }}</div>
+            <div class="text-sm text-gray-500">Combined Points</div>
+            <div class="mt-2 text-sm space-y-1">
+                <div><span class="text-gray-500">Main list:</span> <span class="text-gray-200 font-semibold">{{ main_points if main_points is not none else 0 }}</span></div>
+                <div><span class="text-gray-500">Challenge list:</span> <span class="text-purple-400 font-semibold">{{ challenge_points if challenge_points is not none else 0 }}</span></div>
+                <div><span class="text-gray-500">Platformer list:</span> <span class="text-sky-400 font-semibold">{{ platformer_points if platformer_points is not none else 0 }}</span></div>
+            </div>
+
+            <div class="mt-6 space-y-3">
+                <div class="text-xs">
+                    <div class="flex justify-between text-gray-500 mb-1">
+                        <span>Main Beaten</span>
+                        <span>{{ beaten_main_count }}/{{ total_main_count }} ({{ main_percent }}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5">
+                        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ main_percent }}%"></div>
+                    </div>
+                </div>
+                <div class="text-xs">
+                    <div class="flex justify-between text-gray-500 mb-1">
+                        <span>Challenge Beaten</span>
+                        <span>{{ beaten_challenge_count }}/{{ total_challenge_count }} ({{ challenge_percent }}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5">
+                        <div class="bg-purple-500 h-1.5 rounded-full" style="width: {{ challenge_percent }}%"></div>
+                    </div>
+                </div>
+                <div class="text-xs">
+                    <div class="flex justify-between text-gray-500 mb-1">
+                        <span>Platformer Beaten</span>
+                        <span>{{ beaten_platformer_count }}/{{ total_platformer_count }} ({{ platformer_percent }}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5">
+                        <div class="bg-sky-500 h-1.5 rounded-full" style="width: {{ platformer_percent }}%"></div>
+                    </div>
+                </div>
+                <div class="text-xs">
+                    <div class="flex justify-between text-gray-500 mb-1">
+                        <span>Map Packs Beaten</span>
+                        <span>{{ beaten_pack_count }}/{{ total_pack_count }} ({{ pack_percent }}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5">
+                        <div class="bg-yellow-500 h-1.5 rounded-full" style="width: {{ pack_percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if total_records_count > 0 or total_submissions_count > 0 %}
+            <div class="mt-6 space-y-2">
+                {% if total_records_count > 0 %}
+                <div class="text-sm">
+                    <span class="text-blue-400 font-bold">{{ approved_records_count }}/{{ total_records_count }}</span>
+                    <span class="text-gray-400">({{ record_completion_percentage }}%)</span>
+                    <span class="text-gray-500">Record Completion</span>
+                </div>
+                {% endif %}
+                
+                {% if total_submissions_count > 0 %}
+                <div class="text-sm">
+                    <span class="text-purple-400 font-bold">{{ approved_submissions_count }}/{{ total_submissions_count }}</span>
+                    <span class="text-gray-400">({{ submission_success_rate }}%)</span>
+                    <span class="text-gray-500">Submission Success</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-panel p-6 rounded-lg">
+            <h2 class="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">My Records</h2>
+            <div class="space-y-3">
+                {% for record in records %}
+                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded">
+                    <div>
+                        <div class="font-bold text-white">{{ record.level.name }}</div>
+                        <div class="text-xs text-gray-500">{{ record.submitted_at.strftime('%Y-%m-%d') }} • Device: {{ record.device or 'unknown' }}</div>
+                    </div>
+                    <div>
+                        <span class="text-xs px-2 py-1 rounded 
+                            {% if record.status == 'approved' %}bg-green-900 text-green-200
+                            {% elif record.status == 'rejected' %}bg-red-900 text-red-200
+                            {% else %}bg-yellow-900 text-yellow-200{% endif %}">
+                            {{ record.status }}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm">No records submitted.</p>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <a href="{{ url_for('profile.submit_record') }}" class="text-blue-400 hover:text-blue-300 text-sm">Submit a new record &rarr;</a>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-lg">
+            <h2 class="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">Level Submissions</h2>
+            <div class="space-y-3">
+                {% for sub in submissions %}
+                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded">
+                    <div>
+                        <div class="font-bold text-white">{{ sub.name }}</div>
+                        <div class="text-xs text-gray-500">by {{ sub.creator }}</div>
+                    </div>
+                    <div>
+                        <span class="text-xs px-2 py-1 rounded 
+                            {% if sub.status == 'approved' %}bg-green-900 text-green-200
+                            {% elif sub.status == 'rejected' %}bg-red-900 text-red-200
+                            {% else %}bg-yellow-900 text-yellow-200{% endif %}">
+                            {{ sub.status }}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm">No levels submitted.</p>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <a href="{{ url_for('profile.submit_level') }}" class="text-purple-400 hover:text-purple-300 text-sm">Submit a new level &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    {% if recent_activity %}
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <h2 class="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">Recent Activity</h2>
+        <div class="space-y-3">
+            {% for activity in recent_activity %}
+            <div class="flex items-center bg-slate-800/50 p-3 rounded">
+                <div class="flex-shrink-0 mr-4">
+                    {% if activity.type == 'record' %}
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    {% else %}
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    {% if activity.type == 'record' %}
+                    <div class="font-bold text-white">{{ activity.item.level.name }}</div>
+                    <div class="text-xs text-gray-500">
+                        Record submission • {{ activity.date.strftime('%Y-%m-%d %H:%M') }}
+                        • Status: 
+                        <span class="{% if activity.status == 'approved' %}text-green-400{% elif activity.status == 'rejected' %}text-red-400{% else %}text-yellow-400{% endif %}">
+                            {{ activity.status }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="font-bold text-white">{{ activity.item.name }}</div>
+                    <div class="text-xs text-gray-500">
+                        Level submission • {{ activity.date.strftime('%Y-%m-%d %H:%M') }}
+                        • Status: 
+                        <span class="{% if activity.status == 'approved' %}text-green-400{% elif activity.status == 'rejected' %}text-red-400{% else %}text-yellow-400{% endif %}">
+                            {{ activity.status }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% if current_user.id == user.id %}
+<script>
+;(function() {
+    if (!window.siteNotifyFor) return
+    const approvedRecords = {{ approved_record_notifs|default([])|tojson }};
+    const rejectedRecords = {{ rejected_record_notifs|default([])|tojson }};
+    const approvedSubs = {{ approved_submission_notifs|default([])|tojson }};
+    const rejectedSubs = {{ rejected_submission_notifs|default([])|tojson }};
+    const userId = {{ current_user.id|tojson }};
+    function notifyNew(list, keySuffix, buildMessage) {
+        if (!list || !list.length) return
+        let lastId = 0
+        try {
+            lastId = parseInt(localStorage.getItem('notif:' + keySuffix + ':' + String(userId)) || '0', 10) || 0
+        } catch (e) {
+            lastId = 0
+        }
+        let maxId = lastId
+        for (const item of list) {
+            const id = Number(item.id) || 0
+            if (id > lastId) {
+                const msg = buildMessage(item)
+                try {
+                    window.siteNotifyFor(msg.kind, msg.title, msg.body)
+                } catch (e) {}
+                if (id > maxId) maxId = id
+            }
+        }
+        if (maxId > lastId) {
+            try {
+                localStorage.setItem('notif:' + keySuffix + ':' + String(userId), String(maxId))
+            } catch (e) {}
+        }
+    }
+    notifyNew(approvedRecords, 'record_approved', function(item) {
+        const name = item.level_name || 'a level'
+        const creator = item.level_creator || ''
+        const base = 'Your record on ' + name
+        const body = creator ? base + ' by ' + creator + ' was approved.' : base + ' was approved.'
+        return { kind: 'record_approved', title: 'Record approved', body: body }
+    })
+    notifyNew(rejectedRecords, 'record_rejected', function(item) {
+        const name = item.level_name || 'a level'
+        const creator = item.level_creator || ''
+        const base = 'Your record on ' + name
+        const body = creator ? base + ' by ' + creator + ' was rejected.' : base + ' was rejected.'
+        return { kind: 'record_rejected', title: 'Record rejected', body: body }
+    })
+    notifyNew(approvedSubs, 'level_approved', function(item) {
+        const name = item.name || 'your level'
+        const creator = item.creator || ''
+        const base = 'Your level submission "' + name + '"'
+        const body = creator ? base + ' by ' + creator + ' was approved.' : base + ' was approved.'
+        return { kind: 'level_approved', title: 'Level approved', body: body }
+    })
+    notifyNew(rejectedSubs, 'level_rejected', function(item) {
+        const name = item.name || 'your level'
+        const creator = item.creator || ''
+        const base = 'Your level submission "' + name + '"'
+        const body = creator ? base + ' by ' + creator + ' was rejected.' : base + ' was rejected.'
+        return { kind: 'level_rejected', title: 'Level rejected', body: body }
+    })
+})()
+</script>
+{% endif %}
+
+
+
+{% endblock %}

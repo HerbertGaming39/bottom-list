@@ -1,0 +1,54 @@
+Security Fixes Progress
+=======================
+Date: July 7, 2026
+Based on pentest report (pentest_report.html) and addendum (pentest_addendum.md)
+
+CRITICAL
+--------
+C1: OAuth State Reuse                    [RESOLVED per addendum - dynamic UUID]
+C2: Custom 404 Not Found                 [RESOLVED per addendum - handled in errorhandler]
+
+HIGH
+----
+H1: CSRF Bypass on /api/ endpoints       [FIXED - roulette endpoints added auth checks]
+H2: Server Version Disclosure             [ALREADY SUPPRESSED in utils/security.py:152-153]
+H3: Hard-coded Discord handle            [FIXED - forgot_password.html depersonalized]
+H4: Missing Auth on Roulette Endpoints   [FIXED - auth checks added to all 4 single-player endpoints]
+
+MEDIUM
+------
+M1: CSP policy has https: wildcards      [FIXED - replaced with specific origins + object-src 'none']
+M2: Math CAPTCHA / anti-bot puzzle       [FIXED - removed math puzzle fallback; only hCaptcha/reCAPTCHA]
+M3: Session cookie SameSite=Lax          [FIXED - changed to Strict in config.py]
+M4: Account Deletion lacks confirmation  [FIXED - soft-delete with 7-day grace period + confirmation]
+M5: Empty form action                    [FIXED - login.html and register.html use explicit actions]
+
+LOW
+---
+L1: Rate Limiting Gaps                   [FIXED - username changes + password changes rate limited]
+
+INFO
+----
+I1: Rate limiting on registration        [EXISTS - 15/min on auth.login and auth.register]
+
+ADDENDUM FINDINGS
+-----------------
+N1: CSRF Exemption via GET               [DESIGN-INTENTIONAL - API uses token auth, not cookies]
+N2: OAuth redirect_uri not forced HTTPS  [FIXED - get_discord_redirect_uri() enforces https://]
+N3: Anti-bot puzzle still present        [FIXED - math puzzle removed, captcha-only]
+N4: Missing rate limiting username       [FIXED - 2/hour on username changes]
+N5: OAuth callback URL HTTP              [FIXED - get_discord_redirect_uri() rewrites http:// to https://]
+
+Files Modified:
+- config.py                              (SESSION_COOKIE_SAMESITE: Lax -> Strict)
+- app.py                                 (scheduled deletion processing + column migration)
+- models.py                              (added scheduled_deletion_at column)
+- utils/security.py                      (tightened CSP with specific origins)
+- blueprints/auth.py                     (soft-delete, cancel endpoint, captcha-only, confirmation)
+- blueprints/api.py                      (rate limiting on username/password changes)
+- blueprints/roulette.py                 (auth checks on single-player endpoints)
+- discord_webhooks.py                    (enforce HTTPS in OAuth redirect URI)
+- templates/login.html                   (explicit form action)
+- templates/register.html                (explicit form action)
+- templates/forgot_password.html         (removed personal Discord handle)
+- templates/confirm_delete.html          (new - account deletion confirmation page)

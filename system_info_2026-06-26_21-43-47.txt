@@ -1,0 +1,599 @@
+==============================
+ SYSTEM INFO REPORT
+==============================
+
+=== DATE ===
+Fri Jun 26 09:43:47 PM UTC 2026
+
+=== HOSTNAME ===
+ Static hostname: server
+       Icon name: computer-laptop
+         Chassis: laptop 💻
+      Machine ID: 9e8e12ab6c0f4d77b587df0f56286ab3
+         Boot ID: 9867ba87112a4db8bb16688148e88398
+Operating System: Ubuntu 24.04.4 LTS
+          Kernel: Linux 6.8.0-124-generic
+    Architecture: x86-64
+ Hardware Vendor: Dell Inc.
+  Hardware Model: Inspiron 3593
+Firmware Version: 1.30.0
+   Firmware Date: Thu 2024-03-07
+    Firmware Age: 2y 3month 2w 6d
+
+=== OS INFO ===
+PRETTY_NAME="Ubuntu 24.04.4 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.4 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+
+=== KERNEL ===
+Linux server 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+
+=== CPU INFO ===
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           39 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  8
+On-line CPU(s) list:                     0-7
+Vendor ID:                               GenuineIntel
+Model name:                              Intel(R) Core(TM) i5-1035G1 CPU @ 1.00GHz
+CPU family:                              6
+Model:                                   126
+Thread(s) per core:                      2
+Core(s) per socket:                      4
+Socket(s):                               1
+Stepping:                                5
+CPU(s) scaling MHz:                      62%
+CPU max MHz:                             3600.0000
+CPU min MHz:                             400.0000
+BogoMIPS:                                2380.80
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves split_lock_detect dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid sgx_lc fsrm md_clear flush_l1d arch_capabilities
+Virtualization:                          VT-x
+L1d cache:                               192 KiB (4 instances)
+L1i cache:                               128 KiB (4 instances)
+L2 cache:                                2 MiB (4 instances)
+L3 cache:                                6 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-7
+Vulnerability Gather data sampling:      Mitigation; Microcode
+Vulnerability Indirect target selection: Mitigation; Aligned branch/return thunks
+Vulnerability Itlb multihit:             KVM: Mitigation: VMX disabled
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Mitigation; Enhanced IBRS
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop
+Vulnerability Srbds:                     Mitigation; Microcode
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+
+=== MEMORY ===
+               total        used        free      shared  buff/cache   available
+Mem:            11Gi       5.5Gi       483Mi       7.6Mi       5.7Gi       5.9Gi
+Swap:           15Gi       2.2Gi        13Gi
+
+=== DISK USAGE ===
+NAME                 MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+loop0                  7:0    0  66.8M  1 loop /snap/core24/1587
+loop1                  7:1    0  66.8M  1 loop /snap/core24/1643
+loop2                  7:2    0   2.6G  1 loop /snap/ollama/116
+loop3                  7:3    0   1.8G  1 loop /snap/ollama/122
+loop4                  7:4    0  48.4M  1 loop /snap/snapd/26382
+loop5                  7:5    0  49.3M  1 loop /snap/snapd/26865
+sda                    8:0    0 238.5G  0 disk 
+└─sda1                 8:1    0 238.5G  0 part 
+nvme0n1              259:0    0 465.8G  0 disk 
+├─nvme0n1p1          259:1    0     1G  0 part /boot/efi
+├─nvme0n1p2          259:2    0     2G  0 part /boot
+└─nvme0n1p3          259:3    0 462.7G  0 part 
+  └─ubuntu--vg-lv--0 252:0    0   462G  0 lvm  /
+
+Filesystem                    Size  Used Avail Use% Mounted on
+tmpfs                         1.2G  6.1M  1.2G   1% /run
+efivarfs                      374K  289K   80K  79% /sys/firmware/efi/efivars
+/dev/mapper/ubuntu--vg-lv--0  454G  269G  163G  63% /
+tmpfs                         5.7G  1.1M  5.7G   1% /dev/shm
+tmpfs                         5.0M     0  5.0M   0% /run/lock
+/dev/nvme0n1p2                2.0G  201M  1.6G  11% /boot
+/dev/nvme0n1p1                1.1G  6.2M  1.1G   1% /boot/efi
+tmpfs                         1.2G   12K  1.2G   1% /run/user/1000
+
+=== PCI DEVICES ===
+00:00.0 Host bridge: Intel Corporation Ice Lake-LP Processor Host Bridge/DRAM Registers (rev 03)
+00:02.0 VGA compatible controller: Intel Corporation Iris Plus Graphics G1 (Ice Lake) (rev 07)
+00:04.0 Signal processing controller: Intel Corporation Processor Power and Thermal Controller (rev 03)
+00:14.0 USB controller: Intel Corporation Ice Lake-LP USB 3.1 xHCI Host Controller (rev 30)
+00:14.2 RAM memory: Intel Corporation Ice Lake-LP DRAM Controller (rev 30)
+00:15.0 Serial bus controller: Intel Corporation Ice Lake-LP Serial IO I2C Controller #0 (rev 30)
+00:15.1 Serial bus controller: Intel Corporation Ice Lake-LP Serial IO I2C Controller #1 (rev 30)
+00:16.0 Communication controller: Intel Corporation Ice Lake-LP Management Engine (rev 30)
+00:17.0 SATA controller: Intel Corporation Ice Lake-LP SATA Controller [AHCI mode] (rev 30)
+00:19.0 Serial bus controller: Intel Corporation Ice Lake-LP Serial IO I2c Controller #4 (rev 30)
+00:1d.0 PCI bridge: Intel Corporation Ice Lake-LP PCI Express Root Port #9 (rev 30)
+00:1d.1 PCI bridge: Intel Corporation Ice Lake-LP PCIe Port #10 (rev 30)
+00:1d.4 PCI bridge: Intel Corporation Ice Lake-LP PCIe Port #13 (rev 30)
+00:1f.0 ISA bridge: Intel Corporation Ice Lake-LP LPC Controller (rev 30)
+00:1f.3 Audio device: Intel Corporation Ice Lake-LP Smart Sound Technology Audio Controller (rev 30)
+00:1f.4 SMBus: Intel Corporation Ice Lake-LP SMBus Controller (rev 30)
+00:1f.5 Serial bus controller: Intel Corporation Ice Lake-LP SPI Controller (rev 30)
+01:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL810xE PCI Express Fast Ethernet controller (rev 07)
+02:00.0 Network controller: Qualcomm Atheros QCA9377 802.11ac Wireless Network Adapter (rev 31)
+03:00.0 Non-Volatile memory controller: Samsung Electronics Co Ltd NVMe SSD Controller 980 (DRAM-less)
+
+=== USB DEVICES ===
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 2a94:5249 G2Touch Multi-Touch by G2TSP
+Bus 001 Device 003: ID 0cf3:e009 Qualcomm Atheros Communications 
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+
+=== NETWORK INTERFACES ===
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 98:e7:43:1c:cb:82 brd ff:ff:ff:ff:ff:ff
+3: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether ac:d5:64:dd:e3:03 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.68.102/24 metric 600 brd 192.168.68.255 scope global dynamic wlp2s0
+       valid_lft 5176sec preferred_lft 5176sec
+    inet6 fe80::aed5:64ff:fedd:e303/64 scope link 
+       valid_lft forever preferred_lft forever
+4: docker_gwbridge: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 3e:85:5e:89:ee:da brd ff:ff:ff:ff:ff:ff
+    inet 172.18.0.1/16 brd 172.18.255.255 scope global docker_gwbridge
+       valid_lft forever preferred_lft forever
+    inet6 fe80::3c85:5eff:fe89:eeda/64 scope link 
+       valid_lft forever preferred_lft forever
+5: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 3a:60:29:dd:d0:43 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::3860:29ff:fedd:d043/64 scope link 
+       valid_lft forever preferred_lft forever
+7: br-a8605761bcde: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether b2:61:9b:1c:d7:69 brd ff:ff:ff:ff:ff:ff
+    inet 172.20.0.1/16 brd 172.20.255.255 scope global br-a8605761bcde
+       valid_lft forever preferred_lft forever
+    inet6 fe80::b061:9bff:fe1c:d769/64 scope link 
+       valid_lft forever preferred_lft forever
+8: vethd44b503@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br-a8605761bcde state UP group default 
+    link/ether 5e:2a:bc:94:a3:29 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::5c2a:bcff:fe94:a329/64 scope link 
+       valid_lft forever preferred_lft forever
+9: vethca0a28a@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 3e:08:77:07:ce:d2 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet6 fe80::3c08:77ff:fe07:ced2/64 scope link 
+       valid_lft forever preferred_lft forever
+10: vethf3a5408@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br-a8605761bcde state UP group default 
+    link/ether ea:81:c4:6b:bd:c2 brd ff:ff:ff:ff:ff:ff link-netnsid 2
+    inet6 fe80::e881:c4ff:fe6b:bdc2/64 scope link 
+       valid_lft forever preferred_lft forever
+11: vethfd8a46f@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether e6:f8:6d:0f:f7:c6 brd ff:ff:ff:ff:ff:ff link-netnsid 3
+    inet6 fe80::e4f8:6dff:fe0f:f7c6/64 scope link 
+       valid_lft forever preferred_lft forever
+12: vethb7b4cc2@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 1e:50:0e:ac:38:16 brd ff:ff:ff:ff:ff:ff link-netnsid 4
+    inet6 fe80::1c50:eff:feac:3816/64 scope link 
+       valid_lft forever preferred_lft forever
+17: veth11d711b@if16: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether 62:76:d8:ad:00:7d brd ff:ff:ff:ff:ff:ff link-netnsid 6
+    inet6 fe80::6076:d8ff:fead:7d/64 scope link 
+       valid_lft forever preferred_lft forever
+35: veth5092220@if34: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether aa:bd:ec:fd:63:83 brd ff:ff:ff:ff:ff:ff link-netnsid 9
+    inet6 fe80::a8bd:ecff:fefd:6383/64 scope link 
+       valid_lft forever preferred_lft forever
+37: veth9efda4d@if36: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether de:7c:18:7e:62:64 brd ff:ff:ff:ff:ff:ff link-netnsid 11
+    inet6 fe80::dc7c:18ff:fe7e:6264/64 scope link 
+       valid_lft forever preferred_lft forever
+39: vethf52d3d5@if38: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether a2:e3:47:a4:41:1b brd ff:ff:ff:ff:ff:ff link-netnsid 12
+    inet6 fe80::a0e3:47ff:fea4:411b/64 scope link 
+       valid_lft forever preferred_lft forever
+41: vetha45545a@if40: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether fa:a9:bc:67:ee:28 brd ff:ff:ff:ff:ff:ff link-netnsid 10
+    inet6 fe80::f8a9:bcff:fe67:ee28/64 scope link 
+       valid_lft forever preferred_lft forever
+43: vethf9dc6f4@if42: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker_gwbridge state UP group default 
+    link/ether 02:7c:e8:24:81:2a brd ff:ff:ff:ff:ff:ff link-netnsid 13
+    inet6 fe80::7c:e8ff:fe24:812a/64 scope link 
+       valid_lft forever preferred_lft forever
+
+=== ROUTING TABLE ===
+default via 192.168.68.1 dev wlp2s0 proto dhcp src 192.168.68.102 metric 600 
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 
+172.18.0.0/16 dev docker_gwbridge proto kernel scope link src 172.18.0.1 
+172.20.0.0/16 dev br-a8605761bcde proto kernel scope link src 172.20.0.1 
+192.168.1.1 via 192.168.68.1 dev wlp2s0 proto dhcp src 192.168.68.102 metric 600 
+192.168.68.0/24 dev wlp2s0 proto kernel scope link src 192.168.68.102 metric 600 
+192.168.68.1 dev wlp2s0 proto dhcp scope link src 192.168.68.102 metric 600 
+
+=== OPEN PORTS ===
+Netid State  Recv-Q Send-Q                      Local Address:Port  Peer Address:PortProcess                                                                                                                                           
+udp   UNCONN 0      0                                 0.0.0.0:10000      0.0.0.0:*    ino:17523422 sk:2001 cgroup:/system.slice/webmin.service <->                                                                                     
+udp   UNCONN 0      0                                 0.0.0.0:42797      0.0.0.0:*    ino:5060101 sk:2002 cgroup:/system.slice/playit.service <->                                                                                      
+udp   UNCONN 0      0                                 0.0.0.0:4789       0.0.0.0:*    ino:12903 sk:4 cgroup:/system.slice/docker.service <->                                                                                           
+udp   UNCONN 0      0                                 0.0.0.0:46958      0.0.0.0:*    ino:5060105 sk:2003 cgroup:/system.slice/playit.service <->                                                                                      
+udp   UNCONN 0      0                              127.0.0.54:53         0.0.0.0:*    uid:992 ino:6933 sk:5 cgroup:/system.slice/systemd-resolved.service <->                                                                          
+udp   UNCONN 0      0                           127.0.0.53%lo:53         0.0.0.0:*    uid:992 ino:6931 sk:6 cgroup:/system.slice/systemd-resolved.service <->                                                                          
+udp   UNCONN 0      0                   192.168.68.102%wlp2s0:68         0.0.0.0:*    uid:998 ino:20112667 sk:2004 cgroup:/system.slice/systemd-networkd.service <->                                                                   
+udp   UNCONN 0      0                          192.168.68.255:137        0.0.0.0:*    ino:22489 sk:8 cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                          192.168.68.102:137        0.0.0.0:*    ino:22488 sk:9 cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                          172.17.255.255:137        0.0.0.0:*    ino:13676 sk:a cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                              172.17.0.1:137        0.0.0.0:*    ino:13675 sk:b cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                          172.18.255.255:137        0.0.0.0:*    ino:13672 sk:c cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                              172.18.0.1:137        0.0.0.0:*    ino:13671 sk:d cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                          172.20.255.255:137        0.0.0.0:*    ino:13668 sk:e cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                              172.20.0.1:137        0.0.0.0:*    ino:13667 sk:f cgroup:/system.slice/nmbd.service <->                                                                                             
+udp   UNCONN 0      0                                 0.0.0.0:137        0.0.0.0:*    ino:13484 sk:12 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                          192.168.68.255:138        0.0.0.0:*    ino:22491 sk:13 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                          192.168.68.102:138        0.0.0.0:*    ino:22490 sk:14 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                          172.17.255.255:138        0.0.0.0:*    ino:13678 sk:15 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                              172.17.0.1:138        0.0.0.0:*    ino:13677 sk:16 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                          172.18.255.255:138        0.0.0.0:*    ino:13674 sk:17 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                              172.18.0.1:138        0.0.0.0:*    ino:13673 sk:18 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                          172.20.255.255:138        0.0.0.0:*    ino:13670 sk:19 cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                              172.20.0.1:138        0.0.0.0:*    ino:13669 sk:1a cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                                 0.0.0.0:138        0.0.0.0:*    ino:13485 sk:1d cgroup:/system.slice/nmbd.service <->                                                                                            
+udp   UNCONN 0      0                                       *:58547            *:*    ino:5060106 sk:2005 cgroup:/system.slice/playit.service v6only:0 <->                                                                             
+udp   UNCONN 0      0                                       *:1309             *:*    uid:1004 ino:19588879 sk:2006 cgroup:/system.slice/crafty.service v6only:0 <->                                                                   
+udp   UNCONN 0      0                                       *:60170            *:*    ino:5060102 sk:2007 cgroup:/system.slice/playit.service v6only:0 <->                                                                             
+udp   UNCONN 0      0                                       *:44526            *:*    uid:1004 ino:19595315 sk:2008 cgroup:/system.slice/crafty.service v6only:0 <->                                                                   
+udp   UNCONN 0      0                                       *:7946             *:*    ino:19173 sk:20 cgroup:/system.slice/docker.service v6only:0 <->                                                                                 
+udp   UNCONN 0      0      [fe80::aed5:64ff:fedd:e303]%wlp2s0:546           [::]:*    uid:998 ino:3274083 sk:2009 cgroup:/system.slice/systemd-networkd.service v6only:1 <->                                                           
+tcp   LISTEN 0      80                              127.0.0.1:3306       0.0.0.0:*    uid:113 ino:10717 sk:23 cgroup:/system.slice/mariadb.service <->                                                                                 
+tcp   LISTEN 0      4096                              0.0.0.0:8081       0.0.0.0:*    ino:14739 sk:24 cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      511                               0.0.0.0:8080       0.0.0.0:*    ino:14218450 sk:200a cgroup:/system.slice/nginx.service <->                                                                                      
+tcp   LISTEN 0      4096                           127.0.0.54:53         0.0.0.0:*    uid:992 ino:6934 sk:26 cgroup:/system.slice/systemd-resolved.service <->                                                                         
+tcp   LISTEN 0      128                               0.0.0.0:6890       0.0.0.0:*    users:(("python",pid=4094,fd=7),("python",pid=4094,fd=6),("python",pid=3457,fd=6)) uid:1000 ino:22769 sk:27 cgroup:/system.slice/cron.service <->
+tcp   LISTEN 0      200                             127.0.0.1:5432       0.0.0.0:*    uid:111 ino:14215016 sk:200b cgroup:/system.slice/system-postgresql.slice/postgresql@16-main.service <->                                         
+tcp   LISTEN 0      4096                              0.0.0.0:10000      0.0.0.0:*    ino:17523420 sk:200c cgroup:/system.slice/webmin.service <->                                                                                     
+tcp   LISTEN 0      4096                              0.0.0.0:1935       0.0.0.0:*    ino:11001 sk:2a cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      511                               0.0.0.0:80         0.0.0.0:*    ino:14218451 sk:200d cgroup:/system.slice/nginx.service <->                                                                                      
+tcp   LISTEN 0      4096                              0.0.0.0:22         0.0.0.0:*    ino:10382 sk:2c cgroup:/system.slice/ssh.socket <->                                                                                              
+tcp   LISTEN 0      128                               0.0.0.0:8443       0.0.0.0:*    uid:1004 ino:14614 sk:2d cgroup:/system.slice/crafty.service <->                                                                                 
+tcp   LISTEN 0      50                                0.0.0.0:139        0.0.0.0:*    ino:16772 sk:2e cgroup:/system.slice/smbd.service <->                                                                                            
+tcp   LISTEN 0      50                                0.0.0.0:445        0.0.0.0:*    ino:16771 sk:2f cgroup:/system.slice/smbd.service <->                                                                                            
+tcp   LISTEN 0      4096                              0.0.0.0:8900       0.0.0.0:*    ino:16915 sk:30 cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      4096                              0.0.0.0:8889       0.0.0.0:*    ino:11028 sk:31 cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      4096                              0.0.0.0:8888       0.0.0.0:*    ino:16967 sk:32 cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      4096                        127.0.0.53%lo:53         0.0.0.0:*    uid:992 ino:6932 sk:33 cgroup:/system.slice/systemd-resolved.service <->                                                                         
+tcp   LISTEN 0      4096                              0.0.0.0:3000       0.0.0.0:*    ino:13920 sk:34 cgroup:/system.slice/docker.service <->                                                                                          
+tcp   LISTEN 0      4096                                    *:7946             *:*    ino:19171 sk:35 cgroup:/system.slice/docker.service v6only:0 <->                                                                                 
+tcp   LISTEN 0      4096                                 [::]:8081          [::]:*    ino:14740 sk:36 cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+tcp   LISTEN 0      50                                      *:8100             *:*    uid:1004 ino:19594484 sk:200e cgroup:/system.slice/crafty.service v6only:0 <->                                                                   
+tcp   LISTEN 0      4096                                 [::]:10000         [::]:*    ino:17523421 sk:200f cgroup:/system.slice/webmin.service v6only:1 <->                                                                            
+tcp   LISTEN 0      4096                                    *:26565            *:*    uid:1004 ino:19592759 sk:2010 cgroup:/system.slice/crafty.service v6only:0 <->                                                                   
+tcp   LISTEN 0      4096                                 [::]:1935          [::]:*    ino:11002 sk:39 cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+tcp   LISTEN 0      511                                  [::]:80            [::]:*    ino:14218452 sk:2011 cgroup:/system.slice/nginx.service v6only:1 <->                                                                             
+tcp   LISTEN 0      4096                                 [::]:22            [::]:*    ino:6941 sk:3b cgroup:/system.slice/ssh.socket v6only:1 <->                                                                                      
+tcp   LISTEN 0      128                                  [::]:8443          [::]:*    uid:1004 ino:14615 sk:3c cgroup:/system.slice/crafty.service v6only:1 <->                                                                        
+tcp   LISTEN 0      50                                   [::]:139           [::]:*    ino:16770 sk:3d cgroup:/system.slice/smbd.service v6only:1 <->                                                                                   
+tcp   LISTEN 0      50                                   [::]:445           [::]:*    ino:16769 sk:3e cgroup:/system.slice/smbd.service v6only:1 <->                                                                                   
+tcp   LISTEN 0      4096                                 [::]:8900          [::]:*    ino:16916 sk:3f cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+tcp   LISTEN 0      4096                                 [::]:8889          [::]:*    ino:11029 sk:40 cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+tcp   LISTEN 0      4096                                 [::]:8888          [::]:*    ino:16968 sk:41 cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+tcp   LISTEN 0      4096                                    *:11434            *:*    ino:17457 sk:42 cgroup:/system.slice/snap.ollama.listener.service v6only:0 <->                                                                   
+tcp   LISTEN 0      4096                                    *:2377             *:*    ino:17444 sk:43 cgroup:/system.slice/docker.service v6only:0 <->                                                                                 
+tcp   LISTEN 0      4096                                    *:3001             *:*    ino:21056 sk:45 cgroup:/system.slice/docker.service v6only:0 <->                                                                                 
+tcp   LISTEN 0      4096                                 [::]:3000          [::]:*    ino:13921 sk:46 cgroup:/system.slice/docker.service v6only:1 <->                                                                                 
+
+=== RUNNING PROCESSES (TOP 30 CPU) ===
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root      408630 46.6  0.0  17284  7768 ?        Ss   21:43   0:00 /usr/lib/systemd/systemd-hostnamed
+crafty    280930  9.0 30.3 9122912 3612616 ?     Sl   13:27  45:09 java @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.234/unix_args.txt nogui $@
+crafty      1103  1.1  2.1 3650944 255100 ?      Sl   Jun14 193:11 python3 main.py -d
+root     1145840  1.0  0.3  63740 37424 ?        Ssl  Jun17 135:56 /opt/playit/playitd --secret-path /etc/playit/playit.toml -l /var/log/playit/playit.log
+pteroda+    1932  0.8  0.0  39380  1108 ?        Ssl  Jun14 154:19 redis-server *:6379
+pteroda+    3984  0.6  0.2 579748 30240 ?        Ssl  Jun14 111:51 mongod --auth --bind_ip_all
+marcel      4094  0.5  0.5 710432 64860 ?        Sl   Jun14 102:02 /home/marcel/site3/venv/bin/python -u app.py
+root        1282  0.5  0.5 3569220 62940 ?       Ssl  Jun14  95:35 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+marcel    408573  0.5  0.0  15132  7212 ?        S    21:43   0:00 sshd: marcel@pts/0
+pteroda+    3977  0.4  0.0 138264  2760 ?        Ssl  Jun14  81:51 redis-server *:6379
+marcel    408574  0.3  0.0   9448  6460 pts/0    Ss   21:43   0:00 -bash
+root     3242933  0.2  0.0 422312  6120 ?        Ssl  Jun23  15:04 /usr/sbin/thermald --systemd --dbus-enable --adaptive
+root          77  0.2  0.0      0     0 ?        S    Jun14  43:33 [irq/9-acpi]
+root        1924  0.2  0.2 4587464 30848 ?       Ssl  Jun14  42:09 /usr/local/bin/python3 -m uvicorn open_webui.main:app --host 0.0.0.0 --port 8080 --forwarded-allow-ips * --workers 1
+marcel      2050  0.1  0.0 193184  2188 ?        Sl   Jun14  27:41 /usr/local/bin/python3-ot /usr/local/bin/open-terminal run
+root        1082  0.1  0.2 2322128 31516 ?       Ssl  Jun14  23:35 /usr/bin/containerd
+root      408517  0.1  0.0  14972 10736 ?        Ss   21:43   0:00 sshd: marcel [priv]
+root        1917  0.1  0.3 1262064 45864 ?       Ssl  Jun14  21:00 ./bin/core
+root        4411  0.1  4.9 31121488 584772 ?     Sl   Jun14  19:41 node -r dotenv/config dist/server.mjs
+root          17  0.1  0.0      0     0 ?        I    Jun14  19:34 [rcu_preempt]
+root           1  0.0  0.0  23272 11140 ?        Ss   Jun14  10:23 /sbin/init
+root        3907  0.0  0.0 1235352 8068 ?        Sl   Jun14   8:40 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 140091bbdd0e2343d463cb96564394edef89b3cae03ba22a6eea9fe1271244a0 -address /run/containerd/containerd.sock
+root         397  0.0  1.1 226956 139668 ?       S<s  Jun14   8:25 /usr/lib/systemd/systemd-journald
+root        4166  0.0  0.0      0     0 ?        I    Jun14   7:03 [ipvs-e:8:0]
+root        4755  0.0  0.0      0     0 ?        I    Jun14   6:56 [ipvs-e:6:0]
+root          93  0.0  0.0      0     0 ?        S    Jun14   5:03 [kswapd0]
+root      407542  0.0  0.0      0     0 ?        I    21:39   0:00 [kworker/u16:4-flush-252:0]
+root      401449  0.0  0.0      0     0 ?        I    21:16   0:00 [kworker/u16:1-efi_rts_wq]
+root        1099  0.0  0.1 329648 19364 ?        Ssl  Jun14   4:19 /usr/libexec/upowerd
+
+=== RUNNING PROCESSES (TOP 30 RAM) ===
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+crafty    280930  9.0 30.3 9122912 3612616 ?     Sl   13:27  45:09 java @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.234/unix_args.txt nogui $@
+root        4411  0.1  4.9 31121488 584772 ?     Sl   Jun14  19:41 node -r dotenv/config dist/server.mjs
+crafty      1103  1.1  2.1 3650944 255100 ?      Sl   Jun14 193:11 python3 main.py -d
+root         397  0.0  1.1 226956 139668 ?       S<s  Jun14   8:25 /usr/lib/systemd/systemd-journald
+marcel      4094  0.5  0.5 710432 64860 ?        Sl   Jun14 102:02 /home/marcel/site3/venv/bin/python -u app.py
+root        1282  0.5  0.5 3569220 62940 ?       Ssl  Jun14  95:35 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+root        4381  0.0  0.4 977068 58440 ?        Sl   Jun14   3:02 /nix/store/wlpq101dsifq98z2bk300x4dk80wcybr-nodejs-18.20.5/bin/node /app/dist/bot.js
+root        1917  0.1  0.3 1262064 45864 ?       Ssl  Jun14  21:00 ./bin/core
+root     1145840  1.0  0.3  63740 37424 ?        Ssl  Jun17 135:56 /opt/playit/playitd --secret-path /etc/playit/playit.toml -l /var/log/playit/playit.log
+root     3242892  0.0  0.2 655536 35320 ?        Ssl  Jun23   0:15 /usr/libexec/fwupd/fwupd
+root        1082  0.1  0.2 2322128 31516 ?       Ssl  Jun14  23:35 /usr/bin/containerd
+root        1924  0.2  0.2 4587464 30848 ?       Ssl  Jun14  42:09 /usr/local/bin/python3 -m uvicorn open_webui.main:app --host 0.0.0.0 --port 8080 --forwarded-allow-ips * --workers 1
+pteroda+    3984  0.6  0.2 579748 30240 ?        Ssl  Jun14 111:51 mongod --auth --bind_ip_all
+root         453  0.0  0.2 289120 27456 ?        SLsl Jun14   1:11 /sbin/multipathd -d -s
+marcel      4268  0.0  0.2 254880 26016 ?        Sl   Jun14   0:47 python -u discord_bot.py
+root         907  0.0  0.1 2294328 21464 ?       Ssl  Jun14   0:52 /usr/lib/snapd/snapd
+root        1099  0.0  0.1 329648 19364 ?        Ssl  Jun14   4:19 /usr/libexec/upowerd
+root     3242907  0.0  0.1 297576 16160 ?        Ss   Jun23   0:15 php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)
+root      406193  0.0  0.1  91224 15452 ?        S    21:34   0:00 smbd: client [192.168.68.107]
+pteroda+  400291  0.0  0.1 219132 12612 ?        Ss   21:11   0:00 postgres: dokploy dokploy 10.0.1.11(34806) idle
+postgres 3242912  0.0  0.1 222872 12504 ?        Ss   Jun23   0:12 /usr/lib/postgresql/16/bin/postgres -D /var/lib/postgresql/16/main -c config_file=/etc/postgresql/16/main/postgresql.conf
+root        1421  0.0  0.1 2337868 12236 ?       Sl   Jun14   0:50 /snap/ollama/122/bin/ollama serve
+root     3242906  0.0  0.0 256928 11808 ?        Ss   Jun23   0:15 php-fpm: master process (/etc/php/8.3/fpm/php-fpm.conf)
+root           1  0.0  0.0  23272 11140 ?        Ss   Jun14  10:23 /sbin/init
+root      408517  0.1  0.0  14972 10736 ?        Ss   21:43   0:00 sshd: marcel [priv]
+marcel   3800381  0.0  0.0 1244492 9012 ?        Sl   Jun24   0:17 ./exfrpc_new -c smpexfrpc.toml
+marcel   3799807  0.0  0.0  20656  8912 ?        Ss   Jun24   0:00 /usr/lib/systemd/systemd --user
+root        3907  0.0  0.0 1235352 8068 ?        Sl   Jun14   8:40 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 140091bbdd0e2343d463cb96564394edef89b3cae03ba22a6eea9fe1271244a0 -address /run/containerd/containerd.sock
+root      408630 43.7  0.0  17284  7768 ?        Ss   21:43   0:00 /usr/lib/systemd/systemd-hostnamed
+
+=== INSTALLED PACKAGES (APT) ===
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                                  Version                                          Architecture Description
++++-=====================================-================================================-============-=============================================================================================
+ii  2to3                                  3.12.3-0ubuntu2.1                                all          2to3 binary using python3
+ii  adduser                               3.137ubuntu1                                     all          add and remove users and groups
+ii  alsa-topology-conf                    1.2.5.1-2                                        all          ALSA topology configuration files
+ii  alsa-ucm-conf                         1.2.10-1ubuntu5.10                               all          ALSA Use Case Manager configuration files
+ii  amd64-microcode                       3.20251202.1ubuntu0.24.04.1                      amd64        Platform firmware and microcode for AMD CPUs and SoCs
+ii  apparmor                              4.0.1really4.0.1-0ubuntu0.24.04.6                amd64        user-space parser utility for AppArmor
+ii  apport                                2.28.1-0ubuntu3.8                                all          automatically generate crash reports for debugging
+ii  apport-core-dump-handler              2.28.1-0ubuntu3.8                                all          Kernel core dump handler for Apport
+ii  apport-symptoms                       0.25                                             all          symptom scripts for apport
+ii  appstream                             1.0.2-1build6                                    amd64        Software component metadata management
+ii  apt                                   2.8.3                                            amd64        commandline package manager
+ii  apt-transport-https                   2.8.3                                            all          transitional package for https support
+ii  apt-utils                             2.8.3                                            amd64        package management related utility programs
+ii  attr                                  1:2.5.2-1build1.1                                amd64        utilities for manipulating filesystem extended attributes
+ii  base-files                            13ubuntu10.4                                     amd64        Debian base system miscellaneous files
+ii  base-passwd                           3.6.3build1                                      amd64        Debian base system master password and group files
+ii  bash                                  5.2.21-2ubuntu4                                  amd64        GNU Bourne Again SHell
+ii  bash-completion                       1:2.11-8                                         all          programmable completion for the bash shell
+ii  bc                                    1.07.1-3ubuntu4                                  amd64        GNU bc arbitrary precision calculator language
+ii  bcache-tools                          1.0.8-5build1                                    amd64        bcache userspace tools
+ii  bind9-dnsutils                        1:9.18.39-0ubuntu0.24.04.5                       amd64        Clients provided with BIND 9
+ii  bind9-host                            1:9.18.39-0ubuntu0.24.04.5                       amd64        DNS Lookup Utility
+ii  bind9-libs:amd64                      1:9.18.39-0ubuntu0.24.04.5                       amd64        Shared Libraries used by BIND 9
+ii  binutils                              2.42-4ubuntu2.10                                 amd64        GNU assembler, linker and binary utilities
+ii  binutils-common:amd64                 2.42-4ubuntu2.10                                 amd64        Common files for the GNU assembler, linker and binary utilities
+ii  binutils-x86-64-linux-gnu             2.42-4ubuntu2.10                                 amd64        GNU binary utilities, for x86-64-linux-gnu target
+ii  blt                                   2.5.3+dfsg-7build1                               amd64        graphics extension library for Tcl/Tk - run-time
+ii  bolt                                  0.9.7-1                                          amd64        system daemon to manage thunderbolt 3 devices
+ii  bpfcc-tools                           0.29.1+ds-1ubuntu7                               all          tools for BPF Compiler Collection (BCC)
+ii  bpftrace                              0.20.2-1ubuntu4.3                                amd64        high-level tracing language for Linux eBPF
+ii  bsdextrautils                         2.39.3-9ubuntu6.5                                amd64        extra utilities from 4.4BSD-Lite
+ii  bsdutils                              1:2.39.3-9ubuntu6.5                              amd64        basic utilities from 4.4BSD-Lite
+ii  btrfs-progs                           6.6.3-1.1build2                                  amd64        Checksumming Copy on Write Filesystem utilities
+ii  build-essential                       12.10ubuntu1                                     amd64        Informational list of build-essential packages
+ii  busybox-initramfs                     1:1.36.1-6ubuntu3.1                              amd64        Standalone shell setup for initramfs
+ii  busybox-static                        1:1.36.1-6ubuntu3.1                              amd64        Standalone rescue shell with tons of builtin utilities
+ii  byobu                                 6.11-0ubuntu1                                    all          text window manager, shell multiplexer, integrated DevOps environment
+ii  bzip2                                 1.0.8-5.1build0.1                                amd64        high-quality block-sorting file compressor - utilities
+ii  ca-certificates                       20260601~24.04.1                                 all          Common CA certificates
+ii  ca-certificates-java                  20240118                                         all          Common CA certificates (JKS keystore)
+ii  caca-utils                            0.99.beta20-4ubuntu0.2                           amd64        text mode graphics utilities
+ii  caddy                                 2.11.3                                           amd64        Caddy - Powerful, enterprise-ready, open source web server with automatic HTTPS written in Go
+ii  certbot                               2.9.0-1                                          all          automatically configure HTTPS using Let's Encrypt
+ii  chafa                                 1.14.0-1.1build1                                 amd64        Image-to-text converter supporting a wide range of symbols, etc.
+ii  cloud-guest-utils                     0.33-1                                           all          cloud guest utilities
+
+=== SYSTEMD SERVICES (ACTIVE) ===
+  UNIT                         LOAD   ACTIVE SUB     DESCRIPTION
+  containerd.service           loaded active running containerd container runtime
+  crafty.service               loaded active running Crafty 4
+  cron.service                 loaded active running Regular background program processing daemon
+  dbus.service                 loaded active running D-Bus System Message Bus
+  docker.service               loaded active running Docker Application Container Engine
+  fwupd.service                loaded active running Firmware update daemon
+  getty@tty1.service           loaded active running Getty on tty1
+  mariadb.service              loaded active running MariaDB 10.11.14 database server
+  ModemManager.service         loaded active running Modem Manager
+  multipathd.service           loaded active running Device-Mapper Multipath Device Controller
+  netplan-wpa-wlp2s0.service   loaded active running WPA supplicant for netplan wlp2s0
+  nginx.service                loaded active running A high performance web server and a reverse proxy server
+  nmbd.service                 loaded active running Samba NMB Daemon
+  php8.3-fpm.service           loaded active running The PHP 8.3 FastCGI Process Manager
+  php8.4-fpm.service           loaded active running The PHP 8.4 FastCGI Process Manager
+  playit.service               loaded active running Playit Agent
+  polkit.service               loaded active running Authorization Manager
+  postgresql@16-main.service   loaded active running PostgreSQL Cluster 16-main
+  rsyslog.service              loaded active running System Logging Service
+  smbd.service                 loaded active running Samba SMB Daemon
+  snap.ollama.listener.service loaded active running Service for snap application ollama.listener
+  snapd.service                loaded active running Snap Daemon
+  ssh.service                  loaded active running OpenBSD Secure Shell server
+  systemd-hostnamed.service    loaded active running Hostname Service
+  systemd-journald.service     loaded active running Journal Service
+  systemd-logind.service       loaded active running User Login Management
+  systemd-networkd.service     loaded active running Network Configuration
+  systemd-resolved.service     loaded active running Network Name Resolution
+  systemd-timesyncd.service    loaded active running Network Time Synchronization
+  systemd-udevd.service        loaded active running Rule-based Manager for Device Events and Files
+  thermald.service             loaded active running Thermal Daemon Service
+  udisks2.service              loaded active running Disk Manager
+  unattended-upgrades.service  loaded active running Unattended Upgrades Shutdown
+  upower.service               loaded active running Daemon for power management
+  user@1000.service            loaded active running User Manager for UID 1000
+  webmin.service               loaded active running Webmin server daemon
+  wpa_supplicant.service       loaded active running WPA supplicant
+
+Legend: LOAD   → Reflects whether the unit definition was properly loaded.
+        ACTIVE → The high-level unit activation state, i.e. generalization of SUB.
+        SUB    → The low-level unit activation state, values depend on unit type.
+
+37 loaded units listed.
+
+=== UPTIME ===
+ 21:43:47 up 12 days,  2:35,  2 users,  load average: 0.15, 0.12, 0.16
+
+=== LOAD AVERAGE ===
+0.15 0.12 0.16 2/919 408651
+
+=== KERNEL MODULES ===
+Module                  Size  Used by
+xt_recent              24576  0
+tls                   155648  0
+tcp_diag               12288  0
+udp_diag               12288  0
+inet_diag              28672  2 tcp_diag,udp_diag
+ip_vs_rr               12288  5
+xt_ipvs                16384  2
+ip_vs                 221184  8 ip_vs_rr,xt_ipvs
+xt_REDIRECT            16384  1
+ccm                    20480  6
+vxlan                 155648  0
+ip6_udp_tunnel         16384  1 vxlan
+udp_tunnel             32768  1 vxlan
+xt_policy              12288  0
+xt_mark                12288  6
+xt_bpf                 16384  0
+nf_conntrack_netlink    57344  0
+xt_nat                 12288  45
+xt_tcpudp              16384  0
+veth                   45056  0
+xt_conntrack           12288  6
+xt_MASQUERADE          16384  4
+br_netfilter           32768  0
+bridge                425984  1 br_netfilter
+stp                    12288  1 bridge
+llc                    16384  2 bridge,stp
+xfrm_user              61440  1
+xfrm_algo              16384  1 xfrm_user
+xt_set                 20480  0
+ip_set                 61440  1 xt_set
+nft_chain_nat          12288  24
+nf_nat                 61440  4 xt_nat,nft_chain_nat,xt_MASQUERADE,xt_REDIRECT
+nf_conntrack          196608  7 xt_conntrack,nf_nat,xt_nat,nf_conntrack_netlink,xt_MASQUERADE,ip_vs,xt_REDIRECT
+nf_defrag_ipv6         24576  2 nf_conntrack,ip_vs
+nf_defrag_ipv4         12288  1 nf_conntrack
+xt_addrtype            12288  7
+nft_compat             20480  71
+nf_tables             380928  730 nft_compat,nft_chain_nat
+overlay               212992  10
+qrtr                   53248  2
+snd_ctl_led            24576  0
+snd_sof_pci_intel_icl    12288  0
+snd_sof_intel_hda_common   217088  1 snd_sof_pci_intel_icl
+soundwire_intel        73728  1 snd_sof_intel_hda_common
+snd_hda_codec_realtek   208896  1
+snd_sof_intel_hda_mlink    45056  2 soundwire_intel,snd_sof_intel_hda_common
+soundwire_cadence      45056  1 soundwire_intel
+snd_hda_codec_generic   122880  1 snd_hda_codec_realtek
+snd_sof_intel_hda      24576  1 snd_sof_intel_hda_common
+
+=== ENVIRONMENT VARIABLES ===
+SHELL=/bin/bash
+PWD=/home/marcel
+LOGNAME=marcel
+XDG_SESSION_TYPE=tty
+HOME=/home/marcel
+LANG=en_US.UTF-8
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+SSH_CONNECTION=192.168.68.107 62941 192.168.68.102 22
+LESSCLOSE=/usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+LESSOPEN=| /usr/bin/lesspipe %s
+USER=marcel
+SHLVL=2
+XDG_SESSION_ID=55027
+XDG_RUNTIME_DIR=/run/user/1000
+SSH_CLIENT=192.168.68.107 62941 22
+XDG_DATA_DIRS=/usr/local/share:/usr/share:/var/lib/snapd/desktop
+PATH=/home/marcel/.local/bin:/home/marcel/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+SSH_TTY=/dev/pts/0
+_=/usr/bin/printenv
+
+=== USERS ===
+root
+daemon
+bin
+sys
+sync
+games
+man
+lp
+mail
+news
+uucp
+proxy
+www-data
+backup
+list
+irc
+_apt
+nobody
+systemd-network
+systemd-timesync
+dhcpcd
+messagebus
+systemd-resolve
+pollinate
+polkitd
+syslog
+uuidd
+tcpdump
+tss
+landscape
+fwupd-refresh
+usbmux
+sshd
+marcel
+_galera
+redis
+kasia
+admin
+pelican
+pterodactyl
+postgres
+gameap
+caddy
+mysql
+crafty
+iperf3
+
+=== SUDO USERS ===
+sudo:x:27:marcel
+
+==============================
+ END OF REPORT
+==============================

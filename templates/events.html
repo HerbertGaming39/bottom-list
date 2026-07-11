@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-white mb-6">Events</h1>
+    <div class="space-y-4">
+        {% for event in events %}
+        <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="block glass-panel p-6 rounded-lg hover:bg-slate-800/60 transition-colors">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="text-xl font-bold text-white">{{ event.title }}</div>
+                <div class="text-xs text-gray-400">
+                    {% if event.starts_at %}{{ event.starts_at.strftime('%Y-%m-%d %H:%M') }}{% else %}TBA{% endif %}
+                    {% if event.ends_at %}&rarr; {{ event.ends_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                </div>
+            </div>
+            <div class="text-sm text-gray-300 mt-3 whitespace-pre-wrap">{{ (event.body or '')[:240] }}{% if (event.body or '')|length > 240 %}...{% endif %}</div>
+        </a>
+        {% else %}
+        <div class="glass-panel p-6 rounded-lg text-gray-400">No events yet.</div>
+        {% endfor %}
+    </div>
+</div>
+
+
+
+{% endblock %}

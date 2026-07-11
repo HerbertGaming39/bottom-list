@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <h1 class="text-3xl font-bold text-white mb-2">Discord OAuth Setup</h1>
+        <div class="text-sm text-gray-400 mb-6">How to enable “Login with Discord” on this site.</div>
+
+        <div class="space-y-6 text-sm text-gray-300 leading-relaxed">
+            <div>
+                <div class="text-white font-semibold mb-1">1) Create an application</div>
+                <div>Go to the Discord Developer Portal → Applications → New Application.</div>
+            </div>
+
+            <div>
+                <div class="text-white font-semibold mb-1">2) Copy the Client ID and Client Secret</div>
+                <div>Open your application → OAuth2. Copy the Client ID and Client Secret. Keep the secret private.</div>
+            </div>
+
+            <div>
+                <div class="text-white font-semibold mb-1">3) Add a Redirect URI</div>
+                <div>Add this Redirect URI inside Discord Developer Portal → OAuth2 → Redirects:</div>
+                <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded px-4 py-3 font-mono text-xs text-gray-200 break-all">
+                    {{ request.url_root.rstrip('/') }}{{ url_for('auth.login') }}
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                    It must match exactly (http vs https, domain, port, and path). Don’t mix localhost and 127.0.0.1.
+                </div>
+            </div>
+
+            <div>
+                <div class="text-white font-semibold mb-1">4) Put the values into Admin → Discord OAuth</div>
+                <div>In your admin dashboard, set:</div>
+                <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded px-4 py-3 text-xs text-gray-200 space-y-1">
+                    <div><span class="text-gray-400">Client ID</span>: Discord Application Client ID</div>
+                    <div><span class="text-gray-400">Client Secret</span>: Discord Application Client Secret</div>
+                    <div><span class="text-gray-400">Redirect URI</span>: the URL above</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="text-white font-semibold mb-1">5) Test</div>
+                <div>Open the login page. The “Login with Discord” button appears once all fields are set.</div>
+                <div class="text-xs text-gray-500 mt-2">
+                    If you changed any Discord OAuth settings, restart your app so the changes are definitely active.
+                </div>
+            </div>
+
+            <div>
+                <div class="text-white font-semibold mb-1">Troubleshooting</div>
+                <div class="text-xs text-gray-200 space-y-2">
+                    <div><span class="text-gray-400">“Discord linking failed” immediately</span>: redirect URI mismatch or state mismatch. Confirm the exact redirect URL above exists in both Discord and the Admin panel.</div>
+                    <div><span class="text-gray-400">HTTP 403 / error code 1010</span>: Discord/Cloudflare blocked your server-to-Discord request. This can happen on some IPs (VPN/datacenter) or local environments. Try using your real domain + HTTPS, and check the server log for the detailed warning line.</div>
+                    <div><span class="text-gray-400">Where to check logs</span>: look at your app output (for example: <span class="font-mono">tail -n 200 logs/app.out</span> if you start with nohup).</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{{ url_for('auth.login') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded">Back to Login</a>
+            {% if current_user.is_authenticated and has_perm(current_user, 'access_admin') %}
+            <a href="{{ url_for('auth.login') }}" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded">Open Admin</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

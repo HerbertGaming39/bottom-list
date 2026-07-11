@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="glass-panel p-8 rounded-lg shadow-xl">
+        <h2 class="text-3xl font-bold text-center text-white mb-8">Register</h2>
+        <form method="POST" action="{{ url_for('auth.register') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+            <div class="mb-6">
+                <label for="username" class="block text-sm font-medium text-gray-400 mb-2">Username</label>
+                <input type="text" name="username" id="username" required maxlength="32" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                <input type="password" name="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label class="flex items-start gap-3 text-sm text-gray-300">
+                    <input type="checkbox" name="agree_guidelines" value="1" required class="mt-1">
+                    <span>
+                        I agree to the <a href="{{ guidelines_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">THE BOTTOM LIST Guidelines</a>
+                    </span>
+                </label>
+            </div>
+            {% set pending = session.get('pending_discord') %}
+            <div class="mb-6">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="text-sm font-medium text-gray-400">Discord</div>
+                    <a href="{{ url_for('auth.discord_link', mode='register') }}" class="text-blue-400 hover:text-blue-300 text-sm">
+                        {% if pending and pending.get('discord_id') %}Change{% else %}Link{% endif %}
+                    </a>
+                </div>
+                <div class="mt-2 text-sm text-gray-300">
+                    {% if pending and pending.get('discord_id') %}
+                        Linked: {{ pending.get('discord_tag') or pending.get('discord_username') or 'Discord' }}
+                    {% else %}
+                        Not linked (optional)
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mb-6">
+                {% if captcha_provider == 'recaptcha' and captcha_site_key %}
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% elif captcha_provider == 'hcaptcha' and captcha_site_key %}
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                <div class="h-captcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% else %}
+                <label class="block text-sm font-medium text-gray-400 mb-2">Anti-bot check</label>
+                <div class="flex items-center space-x-2">
+                    <span class="text-white">{{ captcha_a }} + {{ captcha_b }} =</span>
+                    <input type="number" name="captcha_answer" required class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white w-24">
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Solve to prove you are human.</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Create Account
+            </button>
+        </form>
+        <div class="mt-6 text-center text-sm text-gray-400">
+            Already have an account? <a href="{{ url_for('auth.login') }}" class="text-blue-400 hover:text-blue-300">Login here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

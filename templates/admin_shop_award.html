@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+            <img src="{{ url_for('main.bcoin_png') }}" alt="B" class="w-8 h-8">
+            Award Item
+        </h1>
+        <div class="flex gap-2">
+            <a href="{{ url_for('admin.admin_shop') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Shop Editor</a>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Admin</a>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <form method="POST" class="space-y-4">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="text-sm text-gray-300 block mb-1">User</label>
+                <select name="user_id" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" required>
+                    <option value="">Select user...</option>
+                    {% for u in users %}
+                    <option value="{{ u.id }}">{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="text-sm text-gray-300 block mb-1">Item</label>
+                <select name="item_id" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" required>
+                    <option value="">Select item...</option>
+                    {% for item in items %}
+                    <option value="{{ item.id }}">{{ item.name }} ({{ item.price }} bcoins)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded">Award Item</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

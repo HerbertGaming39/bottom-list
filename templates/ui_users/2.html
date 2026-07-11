@@ -1,0 +1,28 @@
+<style>.glass-panel, .rounded, .rounded-lg { border-radius: 16px !important; }</style>
+<nav class="glass-panel sticky top-0 z-50 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2">
+        <span class="nav-link px-3 py-2 rounded-md text-sm font-bold text-white">The List</span>
+        <details class="relative lg:hidden">
+          <summary class="list-none cursor-pointer nav-link px-3 py-2 rounded-md text-sm font-medium">Menu</summary>
+          <div class="absolute left-0 mt-2 w-64 glass-panel rounded shadow-lg p-2">
+            <div class="px-3 py-2 text-xs text-gray-400">Navigate</div>
+            
+          </div>
+        </details>
+        <div class="hidden lg:flex items-center gap-2">
+          
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        
+      </div>
+    </div>
+  </div>
+</nav>
+<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  
+  { messages_html|safe }
+  { content_html|safe }
+</main>

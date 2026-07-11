@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <h2 class="text-3xl font-bold text-white mb-8">Submit Level Showcase</h2>
+        <p class="text-gray-400 mb-6">Want to add a custom level to the Bottom List? Submit it here as a level showcase.</p>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+            <div class="mb-6">
+                <label for="name" class="block text-sm font-medium text-gray-400 mb-2">Level Name</label>
+                <input type="text" name="name" id="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Creator</label>
+                <input type="text" value="{{ current_user.username }}" disabled class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-gray-300">
+                <p class="text-xs text-gray-500 mt-1">Creator is set to your username automatically.</p>
+            </div>
+            <div class="mb-6">
+                <label for="video_url" class="block text-sm font-medium text-gray-400 mb-2">Level Showcase Video URL</label>
+                <input type="url" name="video_url" id="video_url" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="thumbnail" class="block text-sm font-medium text-gray-400 mb-2">Thumbnail (image)</label>
+                <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1">Optional: shown behind the title and points.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="gd_level_id" class="block text-sm font-medium text-gray-400 mb-2">Geometry Dash Level ID</label>
+                    <input type="text" name="gd_level_id" id="gd_level_id" placeholder="e.g. 123456" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="proposed_position" class="block text-sm font-medium text-gray-400 mb-2">Proposed Position</label>
+                    <input type="number" name="proposed_position" id="proposed_position" min="1" placeholder="optional" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Where you think it should go.</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="list_type" class="block text-sm font-medium text-gray-400 mb-2">List</label>
+                <select name="list_type" id="list_type" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="main">Main</option>
+                    <option value="challenge">Challenge</option>
+                    <option value="platformer">Platformer</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">This may be adjusted during review.</p>
+            </div>
+            <div class="mb-6">
+                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <input type="checkbox" name="is_verified" id="is_verified" class="h-4 w-4 accent-purple-600">
+                    Already verified on the list
+                </label>
+                <div class="mt-3" id="verified_link_wrap" style="display:none">
+                    <label for="verified_video_url" class="block text-sm font-medium text-gray-400 mb-2">Verification Video URL</label>
+                    <input type="url" name="verified_video_url" id="verified_video_url" placeholder="https://youtube.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Required if marked verified.</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="collaborators" class="block text-sm font-medium text-gray-400 mb-2">Collaborators</label>
+                <input type="text" name="collaborators" id="collaborators" placeholder="Comma-separated usernames (optional)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1">If multiple people made it, list them here.</p>
+            </div>
+            <div class="border-t border-slate-700/60 pt-6 mb-6">
+                <h3 class="text-lg font-bold text-white mb-4">Song Info <span class="text-xs text-gray-500 font-normal">(optional)</span></h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="song_name" class="block text-sm font-medium text-gray-400 mb-2">Song Name</label>
+                        <input type="text" name="song_name" id="song_name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="artist_name" class="block text-sm font-medium text-gray-400 mb-2">Artist Name</label>
+                        <input type="text" name="artist_name" id="artist_name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="song_id" class="block text-sm font-medium text-gray-400 mb-2">Newgrounds Song ID</label>
+                        <input type="number" name="song_id" id="song_id" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="official_song_id" class="block text-sm font-medium text-gray-400 mb-2">Official Song ID</label>
+                        <input type="number" name="official_song_id" id="official_song_id" min="0" max="50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">0-50 for official GD songs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                {% if captcha_provider == 'recaptcha' and captcha_site_key %}
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% elif captcha_provider == 'hcaptcha' and captcha_site_key %}
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                <div class="h-captcha" data-sitekey="{{ captcha_site_key }}"></div>
+                {% else %}
+                <label class="block text-sm font-medium text-gray-400 mb-2">Anti-bot check</label>
+                <div class="flex items-center space-x-2">
+                    <span class="text-white">{{ captcha_a }} + {{ captcha_b }} =</span>
+                    <input type="number" name="captcha_answer" required class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white w-24">
+                </div>
+                {% endif %}
+            </div>
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Submit Level
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+(function() {
+    const cb = document.getElementById('is_verified')
+    const wrap = document.getElementById('verified_link_wrap')
+    const input = document.getElementById('verified_video_url')
+    function sync() {
+        const on = !!(cb && cb.checked)
+        if (wrap) wrap.style.display = on ? '' : 'none'
+        if (input) input.required = on
+    }
+    if (cb) cb.addEventListener('change', sync)
+    sync()
+})()
+</script>
+
+
+
+{% endblock %}

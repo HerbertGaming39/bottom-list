@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <h2 class="text-3xl font-bold text-white mb-8">Edit Profile</h2>
+        <form method="POST" action="" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-6">
+                <label for="bio" class="block text-sm font-medium text-gray-400 mb-2">Bio / About Me</label>
+                <textarea name="bio" id="bio" rows="4" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+            </div>
+            
+            <div class="mb-6">
+                <label for="youtube_link" class="block text-sm font-medium text-gray-400 mb-2">YouTube Channel URL</label>
+                <input type="url" name="youtube_link" id="youtube_link" value="{{ current_user.youtube_link or '' }}" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="https://youtube.com/@username">
+            </div>
+            
+            <div class="mb-6">
+                <label for="avatar_file" class="block text-sm font-medium text-gray-400 mb-2">Profile Picture</label>
+                <input type="file" name="avatar_file" id="avatar_file" accept="image/*" data-max-size="10485760" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div class="mb-6">
+                <label for="banner_file" class="block text-sm font-medium text-gray-400 mb-2">Profile Background</label>
+                <input type="file" name="banner_file" id="banner_file" accept="image/*" data-max-size="10485760" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="text-sm font-medium text-gray-400">Discord Account Link</div>
+                    <a href="{{ url_for('auth.discord_link') }}" class="text-blue-400 hover:text-blue-300 text-sm">
+                        {% if current_user.discord_id %}Relink{% else %}Link{% endif %}
+                    </a>
+                </div>
+                <div class="mt-2 text-sm text-gray-300">
+                    {% if current_user.discord_id %}
+                        Linked: {{ current_user.discord_tag or current_user.discord_username or current_user.discord_id }}
+                    {% else %}
+                        Not linked
+                    {% endif %}
+                </div>
+                {% if current_user.discord_id %}
+                <form method="POST" action="{{ url_for('auth.discord_unlink') }}" class="mt-3">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Unlink Discord</button>
+                </form>
+                {% endif %}
+            </div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                    Save Profile
+                </button>
+                <a href="{{ url_for('profile.profile') }}" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg text-center transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+
+        <div class="mt-10 border-t border-slate-700/60 pt-8">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-xl font-bold text-white">Equipped Shop Items</h3>
+                <a href="{{ url_for('shop.inventory') }}" class="text-blue-400 hover:text-blue-300 text-sm">Manage Inventory</a>
+            </div>
+            {% if equipped_items %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {% for item in equipped_items %}
+                <div class="bg-slate-800/30 rounded px-4 py-3 flex items-center gap-3">
+                    {% if item.image_filename %}
+                    <img src="{{ url_for('static', filename='shop_images/' ~ item.image_filename) }}" alt="" class="w-10 h-10 rounded object-contain bg-slate-700/50">
+                    {% endif %}
+                    <div>
+                        <div class="text-white text-sm font-semibold">{{ item.name }}</div>
+                        <div class="text-xs text-gray-400">{{ item.item_type }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No shop items equipped. <a href="{{ url_for('shop.shop_list') }}" class="text-blue-400 hover:text-blue-300">Browse the shop</a> to buy items, then equip them from your inventory.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="upload-progress" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 rounded-lg p-4 shadow-xl hidden z-50" style="min-width:280px">
+    <div class="text-sm text-white mb-2 font-semibold" id="upload-filename">Uploading...</div>
+    <div class="w-full bg-slate-800 rounded-full h-2">
+        <div id="upload-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-200" style="width:0%"></div>
+    </div>
+    <div class="text-xs text-gray-400 mt-1" id="upload-status">Starting...</div>
+</div>
+
+<script>
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const bar = document.getElementById('upload-progress');
+        const barFill = document.getElementById('upload-progress-bar');
+        const filename = document.getElementById('upload-filename');
+        const status = document.getElementById('upload-status');
+        bar.classList.remove('hidden');
+
+        const maxSize = parseInt(input.getAttribute('data-max-size') || '10485760');
+        if (file.size > maxSize) {
+            filename.textContent = file.name;
+            status.textContent = 'File too large (max 10MB)';
+            barFill.style.width = '100%';
+            barFill.classList.remove('bg-blue-600');
+            barFill.classList.add('bg-red-600');
+            setTimeout(() => bar.classList.add('hidden'), 3000);
+            return;
+        }
+        filename.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+        status.textContent = 'File selected - will upload on save';
+        barFill.style.width = '100%';
+        barFill.classList.remove('bg-red-600');
+        barFill.classList.add('bg-blue-600');
+        barFill.style.width = '100%';
+        setTimeout(() => bar.classList.add('hidden'), 2500);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Edit Page</h1>
+            <div class="text-sm text-gray-400 mt-1">
+                <a class="text-blue-400 hover:text-blue-300" href="{{ url_for('main.view_page', slug=page.slug) }}">/page/{{ page.slug }}</a>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.admin_pages') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Pages</a>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg">
+        <form action="{{ url_for('admin.admin_pages_edit', page_id=page.id) }}" method="POST" class="space-y-3">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="text-xs text-gray-400">Slug: <span class="text-gray-300">{{ page.slug }}</span></div>
+            <input type="text" name="title" value="{{ page.title }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" maxlength="200" required>
+            <label class="text-sm text-gray-300 flex items-center gap-2">
+                <input type="checkbox" name="is_html" class="h-4 w-4 accent-purple-600" {% if page.is_html %}checked{% endif %}>
+                Serve body as raw HTML
+            </label>
+            <textarea name="body" rows="18" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full font-mono" required>{{ page.body }}</textarea>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="submit" class="bg-green-700 hover:bg-green-600 text-white text-sm px-3 py-2 rounded">Save</button>
+                <a href="{{ url_for('admin.admin_pages_delete', page_id=page.id) }}" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Delete</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

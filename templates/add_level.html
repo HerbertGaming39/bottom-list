@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-3xl font-bold text-white">Add New Level</h2>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-white">&larr; Back to Admin</a>
+        </div>
+        
+        <form method="POST" action="" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-6">
+                <label for="name" class="block text-sm font-medium text-gray-400 mb-2">Level Name</label>
+                <input type="text" name="name" id="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="creator" class="block text-sm font-medium text-gray-400 mb-2">Creator</label>
+                    <input type="text" name="creator" id="creator" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="points_reward" class="block text-sm font-medium text-gray-400 mb-2">Points Reward</label>
+                    <input type="number" step="0.1" name="points_reward" id="points_reward" value="0.0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="video_url" class="block text-sm font-medium text-gray-400 mb-2">Verification Video URL</label>
+                <input type="url" name="video_url" id="video_url" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="thumbnail" class="block text-sm font-medium text-gray-400 mb-2">Thumbnail (image)</label>
+                <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Categories</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {% set cats = ['2.1','2.2','Medium','Long','XL','XXL+','Ship','Cube','Wave','Robot','UFO','Spider','Swing Copter','Dual','Timings','Memory','Nerve Control','Slow Paced','Fast Paced','High CPS','Chokepoints','buffer click abuse','buffer click','ball','spam','unballanced','hey lois do you remember the time i was in the bottom list'] %}
+                    {% for c in cats %}
+                    <label class="inline-flex items-center space-x-2 bg-slate-800 px-2 py-1 rounded">
+                        <input type="checkbox" name="categories" value="{{ c }}" class="text-blue-600 bg-slate-900 rounded">
+                        <span class="text-xs text-gray-300">{{ c }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="description" class="block text-sm font-medium text-gray-400 mb-2">Description</label>
+                <textarea name="description" id="description" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label for="gd_level_id" class="block text-sm font-medium text-gray-400 mb-2">GD Level ID</label>
+                    <input type="text" name="gd_level_id" id="gd_level_id" placeholder="e.g. 123456" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="song_id" class="block text-sm font-medium text-gray-400 mb-2">Custom Song ID</label>
+                    <input type="number" name="song_id" id="song_id" placeholder="e.g. 123456" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="official_song_id" class="block text-sm font-medium text-gray-400 mb-2">Official Song ID</label>
+                    <input type="number" name="official_song_id" id="official_song_id" placeholder="0-50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label for="list_type" class="block text-sm font-medium text-gray-400 mb-2">Target List</label>
+                <select name="list_type" id="list_type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="main">Main List</option>
+                    <option value="challenge">Challenge List</option>
+                    <option value="platformer">Platformer List</option>
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label for="difficulty" class="block text-sm font-medium text-gray-400 mb-2">Difficulty (Admin)</label>
+                <input type="text" name="difficulty" id="difficulty" placeholder="e.g. Easy / Normal / Hard / Insane / Extreme" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div class="mb-6">
+                <label for="position" class="block text-sm font-medium text-gray-400 mb-2">Place on List (Optional)</label>
+                <input type="number" name="position" id="position" min="1" placeholder="e.g. 20" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1">If set, inserts at that place and shifts others down. Leave empty to add at the end.</p>
+            </div>
+            
+            <div class="mb-8 flex items-center">
+                <input type="checkbox" name="is_verified" id="is_verified" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 bg-slate-800 border-slate-700">
+                <label for="is_verified" class="ml-2 text-white font-medium">Verify Level (Add to Main List)</label>
+                <p class="ml-4 text-sm text-gray-500">Uncheck to add to Unverified List.</p>
+            </div>
+
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Add Level
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

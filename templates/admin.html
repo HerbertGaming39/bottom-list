@@ -1,0 +1,1030 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col gap-1 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+                <div class="text-sm text-gray-400">Moderate records, manage levels, and site settings.</div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-lg p-2">
+                <span class="text-xs text-gray-400 font-semibold">VIEW:</span>
+                <button type="button" id="mode-baby" class="px-3 py-1 rounded text-xs font-medium transition-colors mode-btn bg-slate-700 text-gray-200 hover:bg-slate-600">Baby</button>
+                <button type="button" id="mode-easy" class="px-3 py-1 rounded text-xs font-medium transition-colors mode-btn bg-slate-700 text-gray-200 hover:bg-slate-600">Easy</button>
+                <button type="button" id="mode-advanced" class="px-3 py-1 rounded text-xs font-medium transition-colors mode-btn bg-blue-600 text-white">Advanced</button>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
+        <form action="{{ url_for('admin.admin_dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
+            <input type="text" name="q" value="{{ admin_q or '' }}" placeholder="Search…" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full sm:w-64">
+            <select name="type" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-white text-sm">
+                <option value="all" {{ 'selected' if admin_type == 'all' else '' }}>All</option>
+                <option value="users" {{ 'selected' if admin_type == 'users' else '' }}>Users</option>
+                <option value="levels" {{ 'selected' if admin_type == 'levels' else '' }}>Levels</option>
+                <option value="records" {{ 'selected' if admin_type == 'records' else '' }}>Records</option>
+                <option value="submissions" {{ 'selected' if admin_type == 'submissions' else '' }}>Submissions</option>
+            </select>
+            <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Search</button>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">Clear</a>
+        </form>
+        <div class="flex flex-wrap items-center gap-2">
+            {% if has_perm(current_user, 'manage_users') %}
+            <a href="{{ url_for('admin.admin_users') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Users</a>
+            {% endif %}
+            {% if has_perm(current_user, 'manage_levels') %}
+            <a href="{{ url_for('admin.add_level') }}" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Add Level</a>
+            {% endif %}
+            {% if has_perm(current_user, 'manage_pages') %}
+            <a href="{{ url_for('admin.admin_pages') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Pages</a>
+            {% endif %}
+            {% if has_perm(current_user, 'manage_events') %}
+            <a href="{{ url_for('admin.admin_events') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Events</a>
+            {% endif %}
+            {% if has_perm(current_user, 'manage_settings') %}
+            <a href="{{ url_for('admin.admin_shop') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Shop</a>
+            <a href="{{ url_for('admin.admin_shop_award') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Award Item</a>
+            <a href="{{ url_for('admin.admin_song_submissions') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Song Submissions</a>
+            <a href="{{ url_for('admin.admin_ui_templates') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">UI Templates</a>
+            <a href="{{ url_for('admin.admin_idbbl') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">IDBBL</a>
+            {% endif %}
+            {% if has_perm(current_user, 'manage_levels') %}
+                <a href="{{ url_for('admin.add_level') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors text-sm">
+                    + Add New Level
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div id="manage-levels" class="overflow-x-auto">
+            {% if has_perm(current_user, 'move_levels') %}
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="text-xs text-gray-400 self-center mr-1">Auto-number:</span>
+                {% for lt, label in [('main', 'Main'), ('challenge', 'Challenge'), ('platformer', 'Platformer')] %}
+                <form action="{{ url_for('admin.auto_number_levels') }}" method="POST" class="inline-block" onsubmit="return confirm('Renumber all verified {{ label }} levels sequentially?')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="list_type" value="{{ lt }}">
+                    <input type="hidden" name="is_verified" value="1">
+                    <button type="submit" class="text-xs px-2 py-1 rounded bg-emerald-800 text-emerald-200 hover:bg-emerald-700 transition-colors">{{ label }} (V)</button>
+                </form>
+                <form action="{{ url_for('admin.auto_number_levels') }}" method="POST" class="inline-block" onsubmit="return confirm('Renumber all unverified {{ label }} levels sequentially?')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="list_type" value="{{ lt }}">
+                    <input type="hidden" name="is_verified" value="0">
+                    <button type="submit" class="text-xs px-2 py-1 rounded bg-amber-800 text-amber-200 hover:bg-amber-700 transition-colors">{{ label }} (U)</button>
+                </form>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="text-gray-500 border-b border-gray-700">
+                        <th class="pb-2">ID</th>
+                        <th class="pb-2">Name</th>
+                        <th class="pb-2">List Type</th>
+                        <th class="pb-2">Position</th>
+                        <th class="pb-2">Status</th>
+                        <th class="pb-2">Points</th>
+                        <th class="pb-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    {% for level in levels %}
+                    <tr class="hover:bg-slate-800/30">
+                        <td class="py-2 text-gray-500">{{ level.id }}</td>
+                        <td class="py-2 text-white">{{ level.name }}</td>
+                        <td class="py-2">
+                            <span class="text-xs px-2 py-1 rounded {% if level.list_type == 'main' %}bg-blue-900 text-blue-300{% elif level.list_type == 'platformer' %}bg-indigo-900 text-indigo-300{% else %}bg-purple-900 text-purple-300{% endif %}">
+                                {{ level.list_type|title }}
+                            </span>
+                        </td>
+                        <td class="py-2 text-gray-300">
+                            {% if has_perm(current_user, 'move_levels') %}
+                            <form action="{{ url_for('admin.update_level_order') }}" method="POST" class="flex items-center space-x-2">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="level_id" value="{{ level.id }}">
+                                <input type="number" name="position" value="{{ level.position if level.position else '' }}" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs">
+                                <button type="submit" class="text-blue-400 hover:text-blue-300 text-xs">Set</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                        <td class="py-2">
+                            <span class="{{ 'text-green-400' if level.is_verified else 'text-yellow-400' }}">{{ 'Verified' if level.is_verified else 'Unverified' }}</span>
+                        </td>
+                        <td class="py-2 text-gray-300">{{ level.points_reward }}</td>
+                        <td class="py-2 flex items-center space-x-2">
+                            {% if has_perm(current_user, 'manage_levels') %}
+                            <a href="{{ url_for('admin.edit_level', level_id=level.id) }}" class="text-blue-400 hover:text-blue-300 text-xs bg-slate-800 px-2 py-1 rounded">Edit</a>
+                            <a href="{{ url_for('admin.delete_level', level_id=level.id) }}" class="text-red-400 hover:text-red-300 text-xs bg-slate-800 px-2 py-1 rounded" onclick="return confirm('Delete this level? ALL records for this level will also be deleted.')">Delete</a>
+                            {% if level.thumbnail_filename %}
+                            <form action="{{ url_for('admin.admin_delete_level_thumbnail', level_id=level.id) }}" method="POST" class="inline-block">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-yellow-300 hover:text-yellow-200 text-xs bg-slate-800 px-2 py-1 rounded">Delete Thumbnail</button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pending Records and Level Submissions -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 mt-8">
+        <!-- Pending Records -->
+        <div class="glass-panel p-6 rounded-lg">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                Pending Records
+                <span class="ml-0 bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-full">{{ pending_records|length }}</span>
+                <button type="button" class="ml-auto text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="pending-records">Hide</button>
+            </h2>
+            <div id="pending-records" class="space-y-2">
+                {% if has_perm(current_user, 'moderate_records') %}
+                <form action="{{ url_for('admin.bulk_approve_records') }}" method="POST" class="space-y-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label class="text-xs text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" id="select-all-pending-records" class="h-4 w-4 accent-green-600">
+                            Select all
+                        </label>
+                        <button type="submit" name="bulk_action" value="approve" class="bg-green-700 hover:bg-green-600 text-white text-sm px-3 py-2 rounded">Approve selected</button>
+                        <button type="submit" name="bulk_action" value="reject" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded" onclick="return confirm('Reject selected records?')">Reject selected</button>
+                        <button type="submit" name="bulk_action" value="clear_video" class="bg-yellow-700 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded" onclick="return confirm('Clear video URLs for selected records?')">Clear video selected</button>
+                    </div>
+                {% endif %}
+                {% for record in pending_records %}
+                <div class="bg-slate-800/30 rounded hover:bg-slate-800/50 transition-colors px-4 py-2 min-h-10 flex items-center justify-between admin-row">
+                    <div class="admin-row-info flex-1">
+                        <div class="text-white font-medium">{{ record.user.username }} <span class="text-gray-500 text-sm">&rarr;</span> {{ record.level.name }}</div>
+                        <div class="admin-extra-detail mt-1 text-xs text-gray-400">
+                            Device: <span class="text-gray-200 font-semibold">{{ record.device or 'unknown' }}</span>
+                            {% if record.video_url %}
+                            <a href="{{ record.video_url }}" target="_blank" class="ml-3 text-blue-400 hover:underline">Watch Proof</a>
+                            {% elif record.proof_image_filename %}
+                            <a href="{{ url_for('static', filename='record_proofs/' ~ record.proof_image_filename) }}" target="_blank" class="ml-3 text-blue-400 hover:underline">View Proof</a>
+                            {% else %}
+                            <span class="ml-3 text-gray-500">No proof</span>
+                            {% endif %}
+                            {% if record.beaten_on_vc %}<span class="ml-3 text-indigo-300">VC</span>{% endif %}
+                            {% if record.vc_proof_filename %}<a href="{{ url_for('static', filename='vc_proofs/' ~ record.vc_proof_filename) }}" target="_blank" class="ml-2 text-indigo-300 hover:underline">VC Proof</a>{% endif %}
+                            {% if record.rating_deco or record.rating_gameplay or record.rating_difficulty %}
+                                <span class="ml-3 text-gray-500">Ratings:</span>
+                                {% if record.rating_deco %}<span class="ml-1 text-gray-200">Deco {{ record.rating_deco }}</span>{% endif %}
+                                {% if record.rating_gameplay %}<span class="ml-1 text-gray-200">GP {{ record.rating_gameplay }}</span>{% endif %}
+                                {% if record.rating_difficulty %}<span class="ml-1 text-gray-200">Diff {{ record.rating_difficulty }}</span>{% endif %}
+                            {% endif %}
+                            {% if record.comment %}<span class="ml-2 text-gray-500">&quot;{{ record.comment }}&quot;</span>{% endif %}
+                        </div>
+                    </div>
+                    {% if has_perm(current_user, 'moderate_records') %}
+                    <div class="flex flex-wrap gap-2">
+                        <label class="admin-baby-hide inline-flex items-center gap-2 bg-slate-900/40 px-2 py-1 rounded">
+                            <input type="checkbox" name="record_ids" value="{{ record.id }}" class="h-4 w-4 accent-green-600 pending-record-checkbox">
+                            <span class="text-xs text-gray-200">Select</span>
+                        </label>
+                        <a href="{{ url_for('admin.approve_record', record_id=record.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="this.style.pointerEvents='none'">Approve</a>
+                        <a href="{{ url_for('admin.reject_record', record_id=record.id) }}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="this.style.pointerEvents='none'">Reject</a>
+                        <a href="{{ url_for('admin.admin_edit_record', record_id=record.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">Edit</a>
+                        <a href="{{ url_for('admin.clear_record_video', record_id=record.id) }}" class="admin-extra-detail bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition-colors">Clear Video</a>
+                        <a href="{{ url_for('admin.delete_record', record_id=record.id) }}" class="admin-extra-detail bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="return confirm('Delete this record permanently?')">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if has_perm(current_user, 'moderate_records') %}
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if has_perm(current_user, 'moderate_submissions') %}
+        <!-- Pending Level Submissions -->
+        <div class="glass-panel p-6 rounded-lg">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                Pending Level Submissions
+                <span class="ml-0 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">{{ pending_levels|length }}</span>
+                <button type="button" class="ml-auto text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="pending-submissions">Hide</button>
+            </h2>
+            <div id="pending-submissions" class="space-y-2">
+                {% for sub in pending_levels %}
+                <div class="bg-slate-800/30 rounded hover:bg-slate-800/50 transition-colors px-4 py-2 min-h-10 flex items-center justify-between admin-row">
+                    <div class="admin-row-info flex-1">
+                        <div class="text-white font-medium">{{ sub.name }} <span class="text-gray-500 text-sm">by</span> {{ sub.creator }}</div>
+                        <div class="admin-extra-detail mt-1 text-xs">
+                            <a href="{{ sub.video_url }}" target="_blank" class="text-blue-400 hover:underline">Watch Level Showcase</a>
+                            {% if sub.is_verified %}
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded bg-emerald-900/70 text-emerald-200">Verified</span>
+                            {% endif %}
+                            <span class="ml-2 text-gray-500">List: <span class="text-gray-200 font-semibold">{{ (sub.list_type or 'main')|title }}</span></span>
+                            {% if sub.proposed_position %}
+                            <span class="ml-2 text-gray-500">Proposed #: <span class="text-gray-200 font-semibold">{{ sub.proposed_position }}</span></span>
+                            {% endif %}
+                            {% if sub.gd_level_id %}
+                            <span class="ml-2 text-gray-500">GD ID: <span class="text-gray-200 font-semibold">{{ sub.gd_level_id }}</span></span>
+                            {% endif %}
+                            {% if sub.collaborators %}
+                            <span class="ml-2 text-gray-500">Collab: <span class="text-gray-200">{{ sub.collaborators }}</span></span>
+                            {% endif %}
+                            {% if sub.verified_video_url %}
+                            <a href="{{ sub.verified_video_url }}" target="_blank" class="ml-2 text-blue-400 hover:underline">Verification Link</a>
+                            {% endif %}
+                            <span class="ml-2 text-gray-500">Submitted by: {{ sub.user.username }}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ url_for('admin.approve_level_submission', sub_id=sub.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="this.style.pointerEvents='none'">Approve</a>
+                        <a href="{{ url_for('admin.reject_level_submission', sub_id=sub.id) }}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="this.style.pointerEvents='none'">Reject</a>
+                        <a href="{{ url_for('admin.delete_level_submission', sub_id=sub.id) }}" class="admin-extra-detail bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="return confirm('Delete this submission permanently?')">Delete</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if has_perm(current_user, 'moderate_records') and rejected_records %}
+    <!-- Rejected Records -->
+    <div class="glass-panel p-6 rounded-lg mb-6">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+            Rejected Records
+            <span class="ml-0 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">{{ rejected_records|length }}</span>
+            <button type="button" class="ml-auto text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="rejected-records">Hide</button>
+        </h2>
+        <div id="rejected-records" class="space-y-2">
+            {% for record in rejected_records %}
+            <div class="bg-slate-800/30 rounded hover:bg-slate-800/50 transition-colors px-4 py-2 min-h-10 flex items-center justify-between admin-row">
+                <div class="admin-row-info flex-1">
+                    <div class="text-white font-medium">{{ record.user.username }} <span class="text-gray-500 text-sm">&rarr;</span> {{ record.level.name }}</div>
+                    <div class="admin-extra-detail mt-1 text-xs text-gray-400">
+                        Device: <span class="text-gray-200 font-semibold">{{ record.device or 'unknown' }}</span>
+                        {% if record.video_url %}
+                        <a href="{{ record.video_url }}" target="_blank" class="ml-3 text-blue-400 hover:underline">Watch Proof</a>
+                        {% elif record.proof_image_filename %}
+                        <a href="{{ url_for('static', filename='record_proofs/' ~ record.proof_image_filename) }}" target="_blank" class="ml-3 text-blue-400 hover:underline">View Proof</a>
+                        {% endif %}
+                        <span class="ml-3 text-gray-500">{{ record.submitted_at.strftime('%Y-%m-%d %H:%M') if record.submitted_at else '' }}</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ url_for('admin.reapprove_record', record_id=record.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="this.style.pointerEvents='none'">Approve</a>
+                    <a href="{{ url_for('admin.admin_edit_record', record_id=record.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">Edit</a>
+                    <a href="{{ url_for('admin.delete_record', record_id=record.id) }}" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="return confirm('Delete this record permanently?')">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Approved Records and Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Approved Records (takes 3 columns) -->
+        <div class="glass-panel p-6 rounded-lg lg:col-span-3">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                Approved Records
+                <span class="ml-0 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">{{ approved_records|length }}</span>
+                {% if approved_pagination %}
+                <span class="text-xs text-gray-400 ml-2">
+                    Page {{ approved_pagination.page }} / {{ approved_pagination.pages or 1 }}
+                </span>
+                {% endif %}
+                <button type="button" class="ml-auto text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="approved-records">Hide</button>
+            </h2>
+            <div id="approved-records" class="space-y-2">
+                <form action="{{ url_for('admin.admin_dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="q" value="{{ admin_q or '' }}">
+                    <input type="hidden" name="type" value="{{ admin_type or 'all' }}">
+                    <input type="hidden" name="approved_page" value="1">
+                    <select name="approved_per_page" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-white text-sm">
+                        {% for n in [50, 100, 250, 500] %}
+                        <option value="{{ n }}" {% if (approved_per_page or 100) == n %}selected{% endif %}>{{ n }} / page</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-gray-200 text-sm px-3 py-2 rounded">Apply</button>
+                </form>
+                {% if has_perm(current_user, 'moderate_records') %}
+                <form action="{{ url_for('admin.bulk_approve_records') }}" method="POST" class="space-y-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label class="text-xs text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" id="select-all-approved-records" class="h-4 w-4 accent-green-600">
+                            Select all
+                        </label>
+                        <button type="submit" name="bulk_action" value="clear_video" class="bg-yellow-700 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded" onclick="return confirm('Clear video URLs for selected approved records?')">Clear video selected</button>
+                        <button type="submit" name="bulk_action" value="delete" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded" onclick="return confirm('Delete selected approved records? Points will be adjusted.')">Delete selected</button>
+                    </div>
+                {% endif %}
+                {% for record in approved_records %}
+                <div class="bg-slate-800/30 rounded hover:bg-slate-800/50 transition-colors px-4 py-2 min-h-10 flex items-center justify-between admin-row">
+                    <div class="admin-row-info flex-1">
+                        <div class="text-white font-medium">{{ record.user.username }} <span class="text-gray-500 text-sm">&rarr;</span> {{ record.level.name }}</div>
+                        <div class="admin-extra-detail mt-1 text-xs text-gray-400">
+                            Device: <span class="text-gray-200 font-semibold">{{ record.device or 'unknown' }}</span>
+                            <span class="ml-4 text-gray-500">{{ record.submitted_at.strftime('%Y-%m-%d') }}</span>
+                            {% if record.video_url %}
+                            <a href="{{ record.video_url }}" target="_blank" class="ml-4 text-blue-400 hover:underline">Watch Proof</a>
+                            {% elif record.proof_image_filename %}
+                            <a href="{{ url_for('static', filename='record_proofs/' ~ record.proof_image_filename) }}" target="_blank" class="ml-4 text-blue-400 hover:underline">View Proof</a>
+                            {% else %}
+                            <span class="ml-4 text-gray-500">No proof</span>
+                            {% endif %}
+                            {% if record.beaten_on_vc %}<span class="ml-3 text-indigo-300">VC</span>{% endif %}
+                            {% if record.vc_proof_filename %}<a href="{{ url_for('static', filename='vc_proofs/' ~ record.vc_proof_filename) }}" target="_blank" class="ml-2 text-indigo-300 hover:underline">VC Proof</a>{% endif %}
+                            {% if record.rating_deco or record.rating_gameplay or record.rating_difficulty %}
+                                <span class="ml-3 text-gray-500">Ratings:</span>
+                                {% if record.rating_deco %}<span class="ml-1 text-gray-200">Deco {{ record.rating_deco }}</span>{% endif %}
+                                {% if record.rating_gameplay %}<span class="ml-1 text-gray-200">GP {{ record.rating_gameplay }}</span>{% endif %}
+                                {% if record.rating_difficulty %}<span class="ml-1 text-gray-200">Diff {{ record.rating_difficulty }}</span>{% endif %}
+                            {% endif %}
+                            {% if record.comment %}<span class="ml-2 text-gray-500">&quot;{{ record.comment }}&quot;</span>{% endif %}
+                        </div>
+                    </div>
+                    {% if has_perm(current_user, 'moderate_records') %}
+                    <div class="flex flex-wrap gap-2">
+                        <label class="admin-baby-hide inline-flex items-center gap-2 bg-slate-900/40 px-2 py-1 rounded">
+                            <input type="checkbox" name="record_ids" value="{{ record.id }}" class="h-4 w-4 accent-green-600 approved-record-checkbox">
+                            <span class="text-xs text-gray-200">Select</span>
+                        </label>
+                        <a href="{{ url_for('admin.admin_edit_record', record_id=record.id) }}" class="admin-extra-detail bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">Edit</a>
+                        <a href="{{ url_for('admin.clear_record_video', record_id=record.id) }}" class="admin-extra-detail bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition-colors">Clear Video</a>
+                        <a href="{{ url_for('admin.delete_record', record_id=record.id) }}" class="admin-extra-detail bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors" onclick="return confirm('Delete this approved record? Points will be adjusted.')">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if has_perm(current_user, 'moderate_records') %}
+                </form>
+                {% endif %}
+                {% if approved_pagination and approved_pagination.pages > 1 %}
+                <div class="flex items-center justify-between gap-3 pt-2">
+                    <div class="text-xs text-gray-500">
+                        Showing {{ approved_records|length }} on this page
+                    </div>
+                    <div class="flex items-center gap-3">
+                        {% if approved_pagination.has_prev %}
+                        <a href="{{ url_for('admin.admin_dashboard', q=admin_q, type=admin_type, approved_page=approved_pagination.prev_num, approved_per_page=approved_per_page) }}#sec-approved" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Prev</a>
+                        {% endif %}
+                        {% if approved_pagination.has_next %}
+                        <a href="{{ url_for('admin.admin_dashboard', q=admin_q, type=admin_type, approved_page=approved_pagination.next_num, approved_per_page=approved_per_page) }}#sec-approved" class="text-blue-400 hover:text-blue-300 text-sm">Next &rarr;</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Stats Cards (each takes 1 column) -->
+        <div class="space-y-6">
+            <div class="glass-panel p-6 rounded-lg text-center">
+                <div class="text-sm text-gray-400 mb-2">Total Users</div>
+                <div class="text-3xl text-white font-bold">{{ total_users_count or 0 }}</div>
+            </div>
+            <div class="glass-panel p-6 rounded-lg text-center">
+                <div class="text-sm text-gray-400 mb-2">Total Levels</div>
+                <div class="text-3xl text-white font-bold">{{ total_levels_count or 0 }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if user_rank(current_user) == 'admin' %}
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Rank Permissions</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="rank-perms-panel">Hide</button>
+        </div>
+        <div id="rank-perms-panel">
+            <form action="{{ url_for('admin.admin_set_rank_permissions') }}" method="POST" class="space-y-6" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                {% for r, label in rank_list %}
+                    {% if r != 'admin' %}
+                    <div class="bg-slate-800/30 rounded px-4 py-4">
+                        <div class="text-white font-semibold mb-2">{{ label }}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {% for perm_key, perm_label in permission_defs %}
+                            <label class="text-sm text-gray-300 flex items-center gap-2">
+                                <input type="checkbox" name="perms_{{ r }}" value="{{ perm_key }}" class="h-4 w-4 accent-purple-600" {% if perm_key in (rank_permissions.get(r) or []) %}checked{% endif %}>
+                                {{ perm_label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_perm(current_user, 'manage_settings') %}
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Webhook</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="webhook-panel">Hide</button>
+        </div>
+        <div id="webhook-panel">
+            <div class="text-xs text-gray-400 mb-2">Announcements / public messages</div>
+            <form action="{{ url_for('admin.admin_set_webhook') }}" method="POST" class="flex flex-wrap items-center gap-2" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="url" name="webhook_url" value="{{ webhook_url or '' }}" placeholder="Discord webhook URL" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full md:flex-1">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+            <form action="{{ url_for('admin.admin_test_webhook') }}" method="POST" class="mt-3">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Send Announcement Test</button>
+            </form>
+            <div class="border-t border-slate-700/60 my-5"></div>
+            <div class="text-xs text-gray-400 mb-2">Logs (admin actions, points, moves, etc.)</div>
+            <form action="{{ url_for('admin.admin_set_log_webhook') }}" method="POST" class="flex flex-wrap items-center gap-2" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="url" name="log_webhook_url" value="{{ log_webhook_url or '' }}" placeholder="Discord logs webhook URL" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full md:flex-1">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+            <form action="{{ url_for('admin.admin_test_log_webhook') }}" method="POST" class="mt-3">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Send Log Test</button>
+            </form>
+            <div class="border-t border-slate-700/60 my-5"></div>
+            <div class="text-xs text-gray-400 mb-2">Site launch (startup embed)</div>
+            <form action="{{ url_for('admin.admin_set_site_launch_webhook') }}" method="POST" class="flex flex-wrap items-center gap-2" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="url" name="site_launch_webhook_url" value="{{ site_launch_webhook_url or '' }}" placeholder="Discord site launch webhook URL" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full md:flex-1">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+            <form action="{{ url_for('admin.admin_test_site_launch_webhook') }}" method="POST" class="mt-3">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Send Site Launch Test</button>
+            </form>
+            <div class="border-t border-slate-700/60 my-5"></div>
+            <div class="text-xs text-gray-400 mb-2">What should webhooks post?</div>
+            <form action="{{ url_for('admin.admin_set_webhook_events') }}" method="POST" class="space-y-4" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <div class="bg-slate-800/30 rounded px-4 py-4">
+                    <div class="text-white font-semibold mb-2">Announcements</div>
+                    <div class="text-xs text-gray-500 mb-3">If you select nothing, everything is allowed.</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {% for k, label in (announce_event_choices or []) %}
+                        <label class="text-sm text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" name="announce_events" value="{{ k }}" class="h-4 w-4 accent-purple-600" {% if k in (announce_events_selected or []) %}checked{% endif %}>
+                            {{ label }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <input type="text" name="announce_events_custom" value="{{ announce_events_custom or '' }}" placeholder="Custom types (comma-separated)" class="mt-3 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                </div>
+
+                <div class="bg-slate-800/30 rounded px-4 py-4">
+                    <div class="text-white font-semibold mb-2">Logs</div>
+                    <div class="text-xs text-gray-500 mb-3">If you select nothing, everything is allowed.</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {% for k, label in (log_event_choices or []) %}
+                        <label class="text-sm text-gray-300 flex items-center gap-2">
+                            <input type="checkbox" name="log_events" value="{{ k }}" class="h-4 w-4 accent-purple-600" {% if k in (log_events_selected or []) %}checked{% endif %}>
+                            {{ label }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <input type="text" name="log_events_custom" value="{{ log_events_custom or '' }}" placeholder="Custom types (comma-separated)" class="mt-3 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                </div>
+
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save Webhook Posting</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">CAPTCHA</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="recaptcha-panel">Hide</button>
+        </div>
+        <div id="recaptcha-panel">
+            <form action="{{ url_for('admin.admin_set_recaptcha') }}" method="POST" class="space-y-3" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <select name="captcha_provider" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    <option value="" {{ 'selected' if (captcha_provider or '') == '' else '' }}>Auto</option>
+                    <option value="recaptcha" {{ 'selected' if (captcha_provider or '') == 'recaptcha' else '' }}>reCAPTCHA</option>
+                    <option value="hcaptcha" {{ 'selected' if (captcha_provider or '') == 'hcaptcha' else '' }}>hCaptcha</option>
+                </select>
+                <div class="border-t border-slate-700/60 pt-3"></div>
+                <div class="text-xs text-gray-400">reCAPTCHA</div>
+                <input type="text" name="recaptcha_site_key" value="{{ recaptcha_site_key or '' }}" placeholder="reCAPTCHA site key" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                <div>
+                    <input type="password" name="recaptcha_secret_key" value="" placeholder="reCAPTCHA secret key (leave blank to keep current)" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    <div class="text-xs text-gray-400 mt-1">
+                        Secret is {{ 'set' if recaptcha_secret_set else 'not set' }}.
+                    </div>
+                </div>
+                <div class="border-t border-slate-700/60 pt-3"></div>
+                <div class="text-xs text-gray-400">hCaptcha</div>
+                <input type="text" name="hcaptcha_site_key" value="{{ hcaptcha_site_key or '' }}" placeholder="hCaptcha site key" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                <div>
+                    <input type="password" name="hcaptcha_secret_key" value="" placeholder="hCaptcha secret key (leave blank to keep current)" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    <div class="text-xs text-gray-400 mt-1">
+                        Secret is {{ 'set' if hcaptcha_secret_set else 'not set' }}.
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+            <div class="text-xs text-gray-500 mt-3">
+                If a provider has keys set, forms will use it instead of the math check.
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Guidelines</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="guidelines-panel">Hide</button>
+        </div>
+        <div id="guidelines-panel">
+            <form action="{{ url_for('admin.admin_set_guidelines') }}" method="POST" class="flex flex-wrap items-center gap-2" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="url" name="guidelines_url" value="{{ guidelines_url or '' }}" placeholder="Guidelines URL" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full md:flex-1">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Update</button>
+            </form>
+            <div class="text-xs text-gray-500 mt-3">
+                Clicking Update forces everyone (including admins/mods) to accept again.
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Auto Points</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="auto-points-panel">Hide</button>
+        </div>
+        <div id="auto-points-panel">
+            <form action="{{ url_for('admin.admin_set_auto_points') }}" method="POST" class="space-y-3" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="auto_points_enabled" class="h-4 w-4 accent-purple-600" {% if auto_points_enabled %}checked{% endif %}>
+                    Enable auto points when levels are reordered
+                </label>
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">Apply to</div>
+                    <select name="auto_points_scope" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        <option value="both" {{ 'selected' if (auto_points_scope or 'both') == 'both' else '' }}>Main + Challenge</option>
+                        <option value="main" {{ 'selected' if (auto_points_scope or '') == 'main' else '' }}>Main only</option>
+                        <option value="challenge" {{ 'selected' if (auto_points_scope or '') == 'challenge' else '' }}>Challenge only</option>
+                        <option value="platformer" {{ 'selected' if (auto_points_scope or '') == 'platformer' else '' }}>Platformer only</option>
+                        <option value="all" {{ 'selected' if (auto_points_scope or '') == 'all' else '' }}>All lists</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Main List (Verified)</div>
+                        <textarea name="auto_points_rules_main_verified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=500&#10;2-5=250&#10;6-10=100">{{ auto_points_rules_main_verified or '' }}</textarea>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Challenge List (Verified)</div>
+                        <textarea name="auto_points_rules_challenge_verified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=250&#10;2-5=125">{{ auto_points_rules_challenge_verified or '' }}</textarea>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Platformer List (Verified)</div>
+                        <textarea name="auto_points_rules_platformer_verified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=250&#10;2-5=125">{{ auto_points_rules_platformer_verified or '' }}</textarea>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Main List (Unverified)</div>
+                        <textarea name="auto_points_rules_main_unverified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=50&#10;2-10=25">{{ auto_points_rules_main_unverified or '' }}</textarea>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Challenge List (Unverified)</div>
+                        <textarea name="auto_points_rules_challenge_unverified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=25&#10;2-10=10">{{ auto_points_rules_challenge_unverified or '' }}</textarea>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Platformer List (Unverified)</div>
+                        <textarea name="auto_points_rules_platformer_unverified" rows="6" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="Example:&#10;1=25&#10;2-10=10">{{ auto_points_rules_platformer_unverified or '' }}</textarea>
+                    </div>
+                </div>
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="recalc_now" class="h-4 w-4 accent-purple-600">
+                    Recalculate points for all placed levels now
+                </label>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+            <div class="text-xs text-gray-500 mt-3">
+                Format: <span class="text-gray-400">position=points</span> or <span class="text-gray-400">start-end=points</span> (one per line).
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Discord OAuth</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="discord-oauth-panel">Hide</button>
+        </div>
+        <div id="discord-oauth-panel">
+            <div class="text-xs text-gray-500 mb-3">
+                Tutorial: <a href="{{ url_for('admin.admin_dashboard') }}" class="text-blue-400 hover:text-blue-300">How to set it up</a>
+            </div>
+            <form action="{{ url_for('admin.admin_set_discord_oauth') }}" method="POST" class="space-y-3" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="client_id" value="{{ discord_client_id or '' }}" placeholder="Client ID" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                <input type="url" name="redirect_uri" value="{{ discord_redirect_uri or '' }}" placeholder="Redirect URI" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                <div>
+                    <input type="password" name="client_secret" value="" placeholder="Client secret (leave blank to keep current)" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    <div class="text-xs text-gray-400 mt-1">
+                        Secret is {{ 'set' if discord_client_secret_set else 'not set' }}.
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">UI</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="ui-panel">Hide</button>
+        </div>
+        <div id="ui-panel">
+            <form action="{{ url_for('admin.admin_set_ui_settings') }}" method="POST" class="space-y-3" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="hide_categories_on_main_list" class="h-4 w-4 accent-purple-600" {% if hide_categories_on_main_list %}checked{% endif %}>
+                    Hide categories filter on the main list
+                </label>
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="year_recap_enabled" class="h-4 w-4 accent-purple-600" {% if year_recap_enabled %}checked{% endif %}>
+                    Enable /recap page for users
+                </label>
+                <label class="text-sm text-gray-300 flex items-center gap-2">
+                    <input type="checkbox" name="april_fools_enabled" class="h-4 w-4 accent-purple-600" {% if april_fools_enabled %}checked{% endif %}>
+                    Enable April Fools mode
+                </label>
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">Footer Discord link</div>
+                    <input type="url" name="footer_discord_url" value="{{ footer_discord_url or '' }}" placeholder="https://discord.gg/..." class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">Record proof required for top N (per list)</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-1">Main</div>
+                            <input type="number" name="record_proof_top_n_main" min="0" value="{{ record_proof_top_n_main or 30 }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 mb-1">Challenge</div>
+                            <input type="number" name="record_proof_top_n_challenge" min="0" value="{{ record_proof_top_n_challenge or 30 }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 mb-1">Platformer</div>
+                            <input type="number" name="record_proof_top_n_platformer" min="0" value="{{ record_proof_top_n_platformer or 10000 }}" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">Set to 0 to never require video proof.</div>
+                </div>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Maintenance</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="maintenance-panel">Hide</button>
+        </div>
+        <div id="maintenance-panel" class="space-y-5">
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" onsubmit="return confirm('Recalculate all user points now?')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="recalc_points">
+                <button type="submit" class="bg-emerald-700 hover:bg-emerald-600 text-white text-sm px-3 py-2 rounded">Recalculate all user points</button>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" onsubmit="return confirm('Backfill bcoins for existing users based on their approved records?')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="backfill_bcoins">
+                <button type="submit" class="bg-yellow-700 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded">Backfill Bcoins</button>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" onsubmit="return confirm('Create a database backup now?')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="backup_now">
+                <button type="submit" class="bg-green-700 hover:bg-green-600 text-white text-sm px-3 py-2 rounded">Create database backup now</button>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="set_auto_backup">
+                <div class="flex items-center gap-3">
+                    <label class="text-sm text-gray-300">Auto-backup interval (hours, 0=off):</label>
+                    <input type="number" name="auto_backup_interval_hours" value="{{ get_setting('auto_backup_interval_hours') or '24' }}" min="0" max="720" class="w-20 px-2 py-1 text-sm rounded bg-slate-800 border border-slate-600 text-white text-center">
+                    <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-xs px-3 py-2 rounded">Set</button>
+                </div>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" onsubmit="return confirm('Run schema check now?')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="ensure_schema">
+                <button type="submit" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Run schema check</button>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" class="space-y-3" onsubmit="return confirm('Expire old pending items? This will reject them.')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="expire_pending">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Older than (days)</div>
+                        <input type="number" name="days" min="1" value="14" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    </div>
+                    <label class="text-sm text-gray-300 flex items-center gap-2">
+                        <input type="checkbox" name="expire_records" class="h-4 w-4 accent-purple-600" checked>
+                        Pending records
+                    </label>
+                    <label class="text-sm text-gray-300 flex items-center gap-2">
+                        <input type="checkbox" name="expire_submissions" class="h-4 w-4 accent-purple-600" checked>
+                        Pending submissions
+                    </label>
+                </div>
+                <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Expire pending</button>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" class="space-y-3" onsubmit="return confirm('Clear proof for records in this date range?')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="clear_proof_range">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">From Date</div>
+                        <input type="date" name="from_date" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">To Date</div>
+                        <input type="date" name="to_date" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    </div>
+                    <button type="submit" class="bg-yellow-700 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded">Clear Proof in Range</button>
+                </div>
+            </form>
+
+            <form action="{{ url_for('admin.admin_dashboard') }}" method="POST" class="space-y-3" onsubmit="return confirm('Prune old logs? This cannot be undone.')" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="prune_logs">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Keep last (days)</div>
+                        <input type="number" name="log_days" min="1" value="60" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full">
+                    </div>
+                    <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Prune logs</button>
+                </div>
+                <div class="pt-2 flex flex-wrap gap-2">
+                    <a href="{{ url_for('admin.admin_ui_marketplace') }}" class="inline-block bg-purple-700 hover:bg-purple-600 text-white text-xs px-3 py-2 rounded">UI Marketplace</a>
+                    <a href="{{ url_for('admin.admin_custom_lists') }}" class="inline-block bg-blue-700 hover:bg-blue-600 text-white text-xs px-3 py-2 rounded">Manage Custom Lists</a>
+                    <a href="{{ url_for('admin.admin_map_packs') }}" class="inline-block bg-green-700 hover:bg-green-600 text-white text-xs px-3 py-2 rounded">Manage Map Packs</a>
+                    <a href="#sec-maintenance" class="inline-block bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-2 rounded">System Maintenance</a>
+                </div>
+                <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div class="bg-slate-900/40 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-gray-500 uppercase">Users</div>
+                        <div class="text-lg font-bold text-white">{{ users|length }}</div>
+                    </div>
+                    <div class="bg-slate-900/40 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-gray-500 uppercase">Verified Levels</div>
+                        <div class="text-lg font-bold text-white">{{ levels|length }}</div>
+                    </div>
+                    <div class="bg-slate-900/40 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-gray-500 uppercase">Pending Recs</div>
+                        <div class="text-lg font-bold text-yellow-500">{{ pending_records|length }}</div>
+                    </div>
+                    <div class="bg-slate-900/40 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-gray-500 uppercase">Pending Levels</div>
+                        <div class="text-lg font-bold text-blue-500">{{ pending_levels|length }}</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_perm(current_user, 'manage_news') %}
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">News</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="news-panel">Hide</button>
+        </div>
+        <div id="news-panel">
+            <form action="{{ url_for('admin.admin_news_create') }}" method="POST" class="space-y-3" data-require-puzzle="1">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="title" placeholder="Title" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" maxlength="200" required>
+                <textarea name="body" placeholder="Body" rows="4" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" required></textarea>
+                <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 text-white text-sm px-3 py-2 rounded">Post</button>
+            </form>
+            {% if news_posts %}
+            <div class="mt-4 space-y-2">
+                {% for post in news_posts %}
+                <div class="bg-slate-800/30 rounded px-4 py-3 flex items-start justify-between gap-4">
+                    <div>
+                        <div class="text-white font-semibold">{{ post.title }}</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                    <form action="{{ url_for('admin.admin_news_delete', post_id=post.id) }}" method="POST" onsubmit="return confirm('Delete this news post?')" data-require-puzzle="1">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="text-xs px-2 py-1 rounded bg-red-700 text-white hover:bg-red-600">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">Site Logs</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="site-logs-panel">Hide</button>
+        </div>
+        <div id="site-logs-panel" class="space-y-2 max-h-96 overflow-auto">
+            {% if logs %}
+                {% for entry in logs %}
+                <div class="bg-slate-800/30 rounded px-4 py-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm text-white font-semibold">{{ entry.kind }}</div>
+                        <div class="text-xs text-gray-400">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') if entry.created_at else '' }}</div>
+                    </div>
+                    <div class="text-sm text-gray-300 mt-1 break-words">{{ entry.body }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-sm text-gray-500">No logs yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold text-white">API Logs</h2>
+            <button type="button" class="text-xs px-2 py-1 rounded bg-slate-800 text-gray-200 hover:bg-slate-700 panel-toggle" data-panel="api-logs-panel">Hide</button>
+        </div>
+        <div id="api-logs-panel" class="space-y-2 max-h-96 overflow-auto">
+            {% if api_logs %}
+                {% for entry in api_logs %}
+                <div class="bg-slate-800/30 rounded px-4 py-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm text-white font-semibold">{{ entry.kind }}</div>
+                        <div class="text-xs text-gray-400">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') if entry.created_at else '' }}</div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">
+                        {{ entry.actor_user_id or 'anon' }}
+                    </div>
+                    <div class="text-sm text-gray-300 mt-1 break-words">{{ entry.body }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-sm text-gray-500">No API calls logged yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if has_perm(current_user, 'admin_db') %}
+    <div class="glass-panel p-6 rounded-lg mt-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-white">Database Editor</h2>
+            <a href="{{ url_for('admin.admin_db') }}" class="text-blue-400 hover:text-blue-300 text-sm">Open</a>
+        </div>
+        <p class="text-gray-400 text-sm">Browse and edit Users, Levels, Records, and Level Submissions.</p>
+    </div>
+    {% endif %}
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const graphs = {{ graphs|tojson }}
+const selectAllPending = document.getElementById('select-all-pending-records')
+if (selectAllPending) {
+    selectAllPending.addEventListener('change', () => {
+        const boxes = document.querySelectorAll('.pending-record-checkbox')
+        boxes.forEach(b => { b.checked = selectAllPending.checked })
+    })
+}
+const selectAllApproved = document.getElementById('select-all-approved-records')
+if (selectAllApproved) {
+    selectAllApproved.addEventListener('change', () => {
+        const boxes = document.querySelectorAll('.approved-record-checkbox')
+        boxes.forEach(b => { b.checked = selectAllApproved.checked })
+    })
+}
+function makeLineChart(canvasId, labels, data, label, color) {
+    const el = document.getElementById(canvasId)
+    if (!el || !window.Chart) return
+    el.width = 900
+    el.height = 150
+    el.style.width = '100%'
+    el.style.height = '150px'
+    new Chart(el, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label,
+                data,
+                borderColor: color,
+                backgroundColor: color,
+                pointRadius: 0,
+                tension: 0.25
+            }]
+        },
+        options: {
+            responsive: false,
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,0.15)' } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.15)' } }
+            }
+        }
+    })
+}
+makeLineChart('chart-submissions', (graphs.submissions || {}).labels || [], (graphs.submissions || {}).data || [], 'Submissions', '#a855f7')
+makeLineChart('chart-records', (graphs.records || {}).labels || [], (graphs.records || {}).data || [], 'Records', '#60a5fa')
+makeLineChart('chart-levels', (graphs.levels_total || {}).labels || [], (graphs.levels_total || {}).data || [], 'Total Levels', '#34d399')
+
+function setPanelHidden(id, hidden) {
+    const el = document.getElementById(id)
+    if (!el) return
+    el.style.display = hidden ? 'none' : ''
+    localStorage.setItem(`panel:${id}`, hidden ? '1' : '0')
+}
+function isPanelHidden(id) {
+    return localStorage.getItem(`panel:${id}`) === '1'
+}
+for (const btn of document.querySelectorAll('.panel-toggle')) {
+    const id = btn.dataset.panel
+    if (id && isPanelHidden(id)) {
+        setPanelHidden(id, true)
+        btn.textContent = 'Show'
+    }
+    btn.addEventListener('click', () => {
+        const hidden = !isPanelHidden(id)
+        setPanelHidden(id, hidden)
+        btn.textContent = hidden ? 'Show' : 'Hide'
+    })
+}
+
+// Admin panel mode switching (Baby, Easy, Advanced)
+(function() {
+    const babybtn = document.getElementById('mode-baby')
+    const easybtn = document.getElementById('mode-easy')
+    const advbtn = document.getElementById('mode-advanced')
+    
+    if (!babybtn || !easybtn || !advbtn) return
+    
+    const allModeBtns = document.querySelectorAll('.mode-btn')
+    
+    function setMode(mode) {
+        localStorage.setItem('admin_mode', mode)
+        updateMode(mode)
+        
+        // Update button styles
+        for (const btn of allModeBtns) {
+            btn.classList.remove('bg-blue-600', 'text-white')
+            btn.classList.add('bg-slate-700', 'text-gray-200')
+        }
+        
+        if (mode === 'baby') babybtn.classList.add('bg-blue-600', 'text-white')
+        else if (mode === 'easy') easybtn.classList.add('bg-blue-600', 'text-white')
+        else if (mode === 'advanced') advbtn.classList.add('bg-blue-600', 'text-white')
+    }
+    
+    function updateMode(mode) {
+        const extraDetails = document.querySelectorAll('.admin-extra-detail')
+        const babyHides = document.querySelectorAll('.admin-baby-hide')
+        
+        if (mode === 'baby') {
+            // Baby mode: Hide extra details and baby-hide items
+            extraDetails.forEach(el => el.style.display = 'none')
+            babyHides.forEach(el => el.style.display = 'none')
+        } else if (mode === 'easy') {
+            // Easy mode: Hide only extra details, show baby-hide items
+            extraDetails.forEach(el => el.style.display = 'none')
+            babyHides.forEach(el => el.style.display = '')
+        } else {
+            // Advanced mode: Show everything
+            extraDetails.forEach(el => el.style.display = '')
+            babyHides.forEach(el => el.style.display = '')
+        }
+    }
+    
+    // Attach event listeners
+    babybtn.addEventListener('click', function(e) {
+        e.preventDefault()
+        setMode('baby')
+    })
+    
+    easybtn.addEventListener('click', function(e) {
+        e.preventDefault()
+        setMode('easy')
+    })
+    
+    advbtn.addEventListener('click', function(e) {
+        e.preventDefault()
+        setMode('advanced')
+    })
+    
+    // Load saved mode or default to advanced
+    const savedMode = localStorage.getItem('admin_mode') || 'advanced'
+    setMode(savedMode)
+})()
+</script>
+{% endblock %}

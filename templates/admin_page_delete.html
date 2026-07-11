@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white">Delete Page</h1>
+        <a href="{{ url_for('admin.admin_pages_edit', page_id=page.id) }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Edit</a>
+    </div>
+
+    <div class="glass-panel p-6 rounded-lg space-y-4">
+        <div class="text-gray-200">
+            Delete <span class="text-white font-semibold">{{ page.title }}</span>?
+        </div>
+        <div class="text-sm text-gray-400">
+            <a class="text-blue-400 hover:text-blue-300" href="{{ url_for('main.view_page', slug=page.slug) }}">/page/{{ page.slug }}</a>
+        </div>
+        <form action="{{ url_for('admin.admin_pages_delete', page_id=page.id) }}" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Yes, delete</button>
+                <a href="{{ url_for('admin.admin_pages_edit', page_id=page.id) }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

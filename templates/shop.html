@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+            <img src="{{ url_for('main.bcoin_png') }}" alt="B" class="w-8 h-8">
+            Bcoin Shop
+        </h1>
+        <div class="flex items-center gap-2 text-sm">
+            <span class="text-gray-400">Your balance:</span>
+            <span class="text-yellow-400 font-bold flex items-center gap-1">
+                <img src="{{ url_for('main.bcoin_png') }}" alt="B" class="w-4 h-4">{{ current_user.bcoins or 0 }}
+            </span>
+            <a href="{{ url_for('shop.inventory') }}" class="text-blue-400 hover:text-blue-300 ml-3">My Inventory</a>
+            <a href="{{ url_for('shop.black_market') }}" class="text-purple-400 hover:text-purple-300 ml-3">Black Market</a>
+        </div>
+    </div>
+
+    <div class="glass-panel p-5 rounded-lg mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-xl font-bold text-white">Wheel of Fortune</h2>
+            <p class="text-sm text-gray-400">Spin once per day to win bcoins and rare items!</p>
+        </div>
+        <a href="{{ url_for('shop.wheel') }}" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-6 py-3 rounded-lg text-lg transition-all hover:scale-105">
+            SPIN!
+        </a>
+    </div>
+
+    {% if items %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for item in items %}
+        <div class="glass-panel p-5 rounded-lg flex flex-col">
+            {% if item.image_filename %}
+            <div class="mb-3 rounded overflow-hidden bg-slate-800/50 flex items-center justify-center h-40">
+                <img src="{{ url_for('static', filename='shop_images/' ~ item.image_filename) }}" alt="{{ item.name }}" class="max-h-full max-w-full object-contain">
+            </div>
+            {% endif %}
+            <div class="flex items-center justify-between gap-2 mt-1">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    {{ item.name }}
+                    {% if item.is_limited %}
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-600 text-purple-100">Limited</span>
+                    {% endif %}
+                </h3>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full
+                    {% if item.item_type == 'animated_avatar' %}bg-purple-600 text-purple-100
+                    {% elif item.item_type == 'background' %}bg-green-600 text-green-100
+                    {% else %}bg-blue-600 text-blue-100{% endif %}">
+                    {{ {'animated_avatar': 'Avatar', 'background': 'Background', 'profile_deco': 'Decoration'}[item.item_type] or item.item_type }}
+                </span>
+            </div>
+            <p class="text-sm text-gray-400 mt-1 flex-grow">{{ item.description or '' }}</p>
+            {% if item.is_limited and item.expires_at %}
+            <div class="mt-2 text-xs text-purple-300">
+                Expires {{ item.expires_at.strftime('%Y-%m-%d %H:%M') }} UTC
+            </div>
+            {% endif %}
+            <div class="mt-4 flex items-center justify-between">
+                <span class="text-yellow-400 font-bold flex items-center gap-1">
+                    <img src="{{ url_for('main.bcoin_png') }}" alt="B" class="w-4 h-4">{{ item.price }}
+                </span>
+                {% if item.id in owned_ids %}
+                <span class="text-green-400 text-sm font-semibold">Owned</span>
+                {% else %}
+                <form action="{{ url_for('shop.shop_buy', item_id=item.id) }}" method="POST">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm" {{ 'disabled' if (current_user.bcoins or 0) < item.price else '' }}>Buy</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-panel p-8 rounded-lg text-center">
+        <p class="text-gray-400">No items in the shop yet. Check back later!</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

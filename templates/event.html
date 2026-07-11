@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="glass-panel p-8 rounded-lg">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <h1 class="text-3xl font-bold text-white">{{ event.title }}</h1>
+            <div class="text-xs text-gray-400">
+                {% if event.starts_at %}{{ event.starts_at.strftime('%Y-%m-%d %H:%M') }}{% else %}TBA{% endif %}
+                {% if event.ends_at %}&rarr; {{ event.ends_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+            </div>
+        </div>
+        <div class="text-gray-200 leading-relaxed whitespace-pre-wrap">{{ event.body }}</div>
+    </div>
+</div>
+{% endblock %}

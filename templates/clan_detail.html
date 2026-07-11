@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <h1 class="text-4xl gd-header text-white">{{ clan.name }}</h1>
+                {% if is_owner %}
+                    <span class="text-xs bg-amber-600/20 text-amber-300 border border-amber-700/40 px-2 py-1 rounded-full">Owner</span>
+                {% elif is_member %}
+                    <span class="text-xs bg-emerald-600/20 text-emerald-300 border border-emerald-700/40 px-2 py-1 rounded-full">Member</span>
+                {% endif %}
+            </div>
+            <div class="text-sm text-gray-400">Owner: <span class="text-gray-200 font-semibold">{{ clan.owner.username if clan.owner else '—' }}</span></div>
+            {% if clan.description %}
+                <div class="text-gray-300 mt-3 max-w-3xl">{{ clan.description }}</div>
+            {% else %}
+                <div class="text-gray-500 mt-3">No description.</div>
+            {% endif %}
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ url_for('main.clans') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Back to Clans</a>
+            {% if not is_member and not current_user.clan %}
+                {% if pending_req %}
+                    <form method="POST" action="">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="cancel_request">
+                        <button type="submit" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Cancel Request</button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="request_join">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded">Request to Join</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+            {% if is_member and not is_owner %}
+                <form method="POST" action="" onsubmit="return confirm('Leave this clan?');">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="leave">
+                    <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Leave</button>
+                </form>
+            {% endif %}
+            {% if is_owner %}
+                <form method="POST" action="" onsubmit="return confirm('Disband this clan? This removes all members.');">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="disband">
+                    <button type="submit" class="bg-red-700 hover:bg-red-600 text-white text-sm px-3 py-2 rounded">Disband</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-panel p-6 rounded-lg">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="text-xl font-bold text-white">Members</div>
+                <div class="text-sm text-gray-400"><span class="text-gray-200 font-semibold">{{ members|length }}</span> total</div>
+            </div>
+            <div class="space-y-2">
+                {% for u in members %}
+                <div class="flex items-center justify-between gap-3 bg-slate-900/40 border border-slate-800 rounded px-3 py-2">
+                    <a href="{{ url_for('profile.user_profile', user_id=u.id) }}" class="text-gray-200 hover:text-white font-semibold">{{ u.username }}</a>
+                    <div class="flex items-center gap-2">
+                        {% if clan.owner_user_id == u.id %}
+                            <span class="text-xs text-amber-300 bg-amber-600/20 border border-amber-700/40 px-2 py-0.5 rounded-full">Owner</span>
+                        {% endif %}
+                        {% if is_owner and clan.owner_user_id != u.id %}
+                            <form method="POST" action="" class="inline-flex" onsubmit="return confirm('Kick {{ u.username }}?');">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="kick_member">
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <button type="submit" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">Kick</button>
+                            </form>
+                            <form method="POST" action="" class="inline-flex" onsubmit="return confirm('Transfer ownership to {{ u.username }}?');">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="transfer_owner">
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <button type="submit" class="text-xs bg-amber-700 hover:bg-amber-600 text-white px-2 py-1 rounded">Make Owner</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            {% if is_owner %}
+            <div class="glass-panel p-6 rounded-lg">
+                <div class="text-xl font-bold text-white mb-4">Clan Settings</div>
+                <form method="POST" action="" class="space-y-4">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="edit_description">
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-400 mb-2">Description</label>
+                        <textarea name="description" id="description" rows="4" maxlength="500" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Description">{{ clan.description or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded">Save</button>
+                </form>
+            </div>
+            <div class="glass-panel p-6 rounded-lg">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div class="text-xl font-bold text-white">Join Requests</div>
+                    <div class="text-sm text-gray-400"><span class="text-gray-200 font-semibold">{{ join_requests|length }}</span></div>
+                </div>
+                <div class="space-y-2">
+                    {% for r in join_requests %}
+                    <div class="flex items-center justify-between gap-3 bg-slate-900/40 border border-slate-800 rounded px-3 py-2">
+                        <a href="{{ url_for('profile.user_profile', user_id=user.id) }}" class="text-gray-200 hover:text-white font-semibold">{{ r.user.username }}</a>
+                        <div class="flex gap-2">
+                            <form method="POST" action="" class="inline-flex">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="accept_request">
+                                <input type="hidden" name="request_id" value="{{ r.id }}">
+                                <button type="submit" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded">Accept</button>
+                            </form>
+                            <form method="POST" action="" class="inline-flex">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="action" value="deny_request">
+                                <input type="hidden" name="request_id" value="{{ r.id }}">
+                                <button type="submit" class="text-xs bg-red-700 hover:bg-red-600 text-white px-2 py-1 rounded">Deny</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-gray-500">No pending requests.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="glass-panel p-6 rounded-lg">
+                <div class="text-xl font-bold text-white mb-2">How joining works</div>
+                <div class="text-gray-400 text-sm">Joining is by request only. A clan owner must accept your request.</div>
+                {% if pending_req %}
+                    <div class="mt-3 text-sm text-emerald-300">Your request is pending.</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

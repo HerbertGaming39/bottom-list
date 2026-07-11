@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-blue-400 hover:text-blue-300 text-sm">← Back to Admin Dashboard</a>
+        <h1 class="text-3xl font-bold text-white mt-4">Edit Record</h1>
+        <p class="text-gray-400 mt-2">Update record details for {{ record.user.username }} on "{{ record.level.name }}".</p>
+    </div>
+
+    <div class="glass-panel p-8 rounded-lg">
+        <form action="{{ url_for('admin.admin_edit_record', record_id=record.id) }}" method="POST" class="space-y-6">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Device</label>
+                    <select name="device" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                        <option value="pc" {% if record.device == 'pc' %}selected{% endif %}>PC</option>
+                        <option value="mobile" {% if record.device == 'mobile' %}selected{% endif %}>Mobile</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Status</label>
+                    <select name="status" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                        <option value="pending" {% if record.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if record.status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if record.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Video URL</label>
+                <input type="url" name="video_url" value="{{ record.video_url or '' }}" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <div class="mt-2">
+                    <button type="button" onclick="document.getElementsByName('video_url')[0].value=''" class="text-xs bg-yellow-700 hover:bg-yellow-600 text-white px-2 py-1 rounded">Clear Video</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Comment</label>
+                <textarea name="comment" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">{{ record.comment or '' }}</textarea>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 text-sm text-gray-300">
+                    <input type="checkbox" name="beaten_on_vc" class="h-4 w-4 accent-indigo-600" {% if record.beaten_on_vc %}checked{% endif %}>
+                    Beaten on VC
+                </label>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Save Changes</button>
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg text-center flex items-center justify-center transition-colors">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

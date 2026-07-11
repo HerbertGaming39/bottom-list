@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-12">
+    <h1 class="text-4xl md:text-5xl gd-header mb-4 text-white">Leaderboard</h1>
+    <p class="text-xl text-gray-400">
+        {% if (view or 'users') == 'clans' %}
+            Top clans on The Bottom List.
+        {% else %}
+            Top players on The Bottom List.
+        {% endif %}
+    </p>
+</div>
+
+<div class="flex items-center justify-center gap-2 mb-6">
+    <a href="{{ url_for('main.leaderboard', list='main', view=view or 'users') }}"
+       class="px-4 py-2 rounded-lg text-sm font-semibold {{ 'bg-blue-700 text-white' if (list_type or 'main') == 'main' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Main List
+    </a>
+    <a href="{{ url_for('main.leaderboard', list='challenge', view=view or 'users') }}"
+       class="px-4 py-2 rounded-lg text-sm font-semibold {{ 'bg-purple-700 text-white' if (list_type or '') == 'challenge' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Challenge List
+    </a>
+    <a href="{{ url_for('main.leaderboard', list='platformer', view=view or 'users') }}"
+       class="px-4 py-2 rounded-lg text-sm font-semibold {{ 'bg-indigo-700 text-white' if (list_type or '') == 'platformer' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Platformer
+    </a>
+    <a href="{{ url_for('main.leaderboard', list='all', view=view or 'users') }}"
+       class="px-4 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-700 text-white' if (list_type or '') == 'all' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Combined
+    </a>
+</div>
+
+<div class="flex items-center justify-center gap-2 mb-6">
+    <a href="{{ url_for('main.leaderboard', view='users', list=list_type or 'main') }}"
+       class="px-3 py-1.5 rounded-full text-xs font-semibold {{ 'bg-slate-100 text-slate-900' if (view or 'users') != 'clans' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Players
+    </a>
+    <a href="{{ url_for('main.leaderboard', view='clans', list=list_type or 'main') }}"
+       class="px-3 py-1.5 rounded-full text-xs font-semibold {{ 'bg-slate-100 text-slate-900' if (view or 'users') == 'clans' else 'bg-slate-800 text-gray-200 hover:bg-slate-700' }}">
+        Clans
+    </a>
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <div class="glass-panel overflow-hidden rounded-lg">
+        <table class="w-full text-left">
+            <thead class="bg-slate-900/50">
+                <tr>
+                    <th class="px-6 py-4 text-gray-400 font-bold uppercase tracking-wider text-sm">Rank</th>
+                    <th class="px-6 py-4 text-gray-400 font-bold uppercase tracking-wider text-sm">
+                        {% if (view or 'users') == 'clans' %}
+                            Clan
+                        {% else %}
+                            Player
+                        {% endif %}
+                    </th>
+                    <th class="px-6 py-4 text-gray-400 font-bold uppercase tracking-wider text-sm text-right">Points</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                {% if (view or 'users') == 'clans' %}
+                {% for clan in clans %}
+                <tr class="hover:bg-slate-800/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if loop.index == 1 %}
+                            <span class="text-2xl">🥇</span>
+                        {% elif loop.index == 2 %}
+                            <span class="text-2xl">🥈</span>
+                        {% elif loop.index == 3 %}
+                            <span class="text-2xl">🥉</span>
+                        {% else %}
+                            <span class="text-gray-500 font-bold ml-2">#{{ loop.index }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ url_for('main.clan_detail', clan_id=clan.id) }}" class="hover:underline">
+                            <div class="font-bold text-white text-lg">{{ clan.name }}</div>
+                            <div class="text-xs text-gray-500">{{ clan.lb_records or 0 }} records</div>
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <span class="font-bold text-green-400 text-xl">{{ (clan.lb_points or 0)|round(2) }}</span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="px-6 py-12 text-center text-gray-500">
+                        No clans yet.
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                {% for user in users %}
+                <tr class="hover:bg-slate-800/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if loop.index == 1 %}
+                            <span class="text-2xl">🥇</span>
+                        {% elif loop.index == 2 %}
+                            <span class="text-2xl">🥈</span>
+                        {% elif loop.index == 3 %}
+                            <span class="text-2xl">🥉</span>
+                        {% else %}
+                            <span class="text-gray-500 font-bold ml-2">#{{ loop.index }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ url_for('profile.user_profile', user_id=user.id) }}" class="hover:underline">
+                            <div class="font-bold text-white text-lg">{{ user.username }}</div>
+                            <div class="text-xs text-gray-500">{{ user.lb_records or 0 }} records</div>
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <span class="font-bold text-green-400 text-xl">{{ (user.lb_points or 0)|round(2) }}</span>
+                    </td>
+                </tr>
+                <tr class="bg-slate-900/30">
+                    <td colspan="3" class="px-6 pb-4">
+                        <details class="lb-details" data-user-id="{{ user.id }}" data-list="{{ list_type or 'main' }}">
+                            <summary class="cursor-pointer text-sm text-blue-400">View submissions</summary>
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-6 lb-details-body">
+                                <div class="text-xs text-gray-500">Loading…</div>
+                            </div>
+                        </details>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="px-6 py-12 text-center text-gray-500">
+                        No players yet.
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    function esc(s) {
+        return (s || '').toString().replace(/[&<>"']/g, function(c) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+        })
+    }
+    function fmtDate(iso) {
+        if (!iso) return ''
+        try { return iso.slice(0, 10) } catch (e) { return '' }
+    }
+    document.querySelectorAll('details.lb-details').forEach(function(d) {
+        d.addEventListener('toggle', async function() {
+            if (!d.open) return
+            if (d.getAttribute('data-loaded') === '1') return
+            const userId = d.getAttribute('data-user-id')
+            const list = d.getAttribute('data-list') || 'main'
+            const body = d.querySelector('.lb-details-body')
+            if (!body) return
+            body.innerHTML = '<div class="text-xs text-gray-500">Loading…</div>'
+            try {
+                const res = await fetch(`/leaderboard/user/${userId}/details?list=${encodeURIComponent(list)}&limit=40`)
+                const data = await res.json()
+                const recs = (data.records || [])
+                const subs = (data.submissions || [])
+                let left = ''
+                left += `<div><div class="text-xs text-gray-400 mb-2">Records (${recs.length})</div><div class="space-y-2">`
+                if (!recs.length) {
+                    left += `<div class="text-xs text-gray-500">No records.</div>`
+                } else {
+                    for (const r of recs) {
+                        left += `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded"><div class="text-sm text-white truncate">${esc(r.level_name)}</div><div class="text-xs text-gray-500 whitespace-nowrap">${esc(fmtDate(r.submitted_at))}</div></div>`
+                    }
+                }
+                left += `</div></div>`
+                let right = ''
+                right += `<div><div class="text-xs text-gray-400 mb-2">Level Submissions (${subs.length})</div><div class="space-y-2">`
+                if (!subs.length) {
+                    right += `<div class="text-xs text-gray-500">No levels submitted.</div>`
+                } else {
+                    for (const s of subs) {
+                        right += `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded"><div class="text-sm text-white truncate">${esc(s.name)}</div><div class="text-xs text-gray-500 whitespace-nowrap">${esc(s.status)}</div></div>`
+                    }
+                }
+                right += `</div></div>`
+                body.innerHTML = left + right
+                d.setAttribute('data-loaded', '1')
+            } catch (e) {
+                body.innerHTML = '<div class="text-xs text-red-400">Failed to load.</div>'
+            }
+        })
+    })
+})()
+</script>
+
+
+{% endblock %}

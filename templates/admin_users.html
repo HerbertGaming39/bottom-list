@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white">Manage Users</h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Admin</a>
+    </div>
+
+    <form action="{{ url_for('admin.admin_users') }}" method="GET" class="flex flex-wrap items-center gap-2 mb-6">
+        <input type="text" name="q" value="{{ admin_q or '' }}" placeholder="Search username or Discord tag…" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full sm:w-80">
+        <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">Search</button>
+        <a href="{{ url_for('admin.admin_users') }}" class="text-gray-400 hover:text-gray-300 text-sm">Clear</a>
+    </form>
+
+    <div class="glass-panel p-6 rounded-lg">
+        {% if users %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="text-gray-500 border-b border-gray-700">
+                        <th class="pb-3 pr-3">ID</th>
+                        <th class="pb-3 pr-3">Username</th>
+                        <th class="pb-3 pr-3">Rank</th>
+                        <th class="pb-3 pr-3">Points</th>
+                        <th class="pb-3 pr-3">Bcoins</th>
+                        <th class="pb-3 pr-3">Donor</th>
+                        <th class="pb-3 pr-3">Discord</th>
+                        <th class="pb-3 pr-3">Status</th>
+                        <th class="pb-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    {% for u in users %}
+                    <tr class="hover:bg-slate-800/30">
+                        <td class="py-3 pr-3 text-gray-500">{{ u.id }}</td>
+                        <td class="py-3 pr-3 text-white font-medium">{{ u.username }}</td>
+                        <td class="py-3 pr-3">
+                            <form action="{{ url_for('admin.admin_set_user_rank', user_id=u.id) }}" method="POST" class="flex items-center gap-1">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <select name="rank" class="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-white text-xs">
+                                    {% for r, label in [('member','Member'),('mod','Mod'),('admin','Admin')] %}
+                                    <option value="{{ r }}" {{ 'selected' if u.rank == r else '' }}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="text-blue-400 hover:text-blue-300 text-xs">Set</button>
+                            </form>
+                        </td>
+                        <td class="py-3 pr-3 text-gray-300">{{ u.points or 0 }}</td>
+                        <td class="py-3 pr-3 text-yellow-400">{{ u.bcoins or 0 }}</td>
+                        <td class="py-3 pr-3">
+                            {% if u.is_donor %}
+                            <span class="text-xs px-2 py-0.5 rounded bg-green-900 text-green-300">Donor</span>
+                            {% else %}
+                            <span class="text-xs text-gray-500">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 pr-3 text-xs text-gray-400">{{ u.discord_tag or u.discord_username or '—' }}</td>
+                        <td class="py-3 pr-3">
+                            {% if u.is_disabled %}
+                            <span class="text-red-400 text-xs">Disabled</span>
+                            {% else %}
+                            <span class="text-green-400 text-xs">Active</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 flex flex-wrap gap-1">
+                            <a href="{{ url_for('profile.user_profile', user_id=u.id) }}" class="text-blue-400 hover:text-blue-300 text-xs bg-slate-800 px-2 py-0.5 rounded">View</a>
+                            {% if has_perm(current_user, 'manage_users') %}
+                            <form action="{{ url_for('admin.toggle_disabled', user_id=u.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-yellow-400 hover:text-yellow-300 text-xs bg-slate-800 px-2 py-0.5 rounded">{{ 'Enable' if u.is_disabled else 'Disable' }}</button>
+                            </form>
+                            <form action="{{ url_for('admin.toggle_donor', user_id=u.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-green-400 hover:text-green-300 text-xs bg-slate-800 px-2 py-0.5 rounded">{{ 'Remove Donor' if u.is_donor else 'Make Donor' }}</button>
+                            </form>
+                            <a href="{{ url_for('admin.admin_user_edit', user_id=u.id) }}" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-gray-200 hover:text-white">Edit</a>
+                            <form action="{{ url_for('admin.reset_password', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('Reset password for {{ u.username }}?')">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-orange-400 hover:text-orange-300">Reset PW</button>
+                            </form>
+                            <form action="{{ url_for('admin.update_user_points', user_id=u.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <input type="number" name="points" value="{{ u.points or 0 }}" class="w-16 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-white text-xs text-center">
+                                <button type="submit" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-cyan-400 hover:text-cyan-300">Points</button>
+                            </form>
+                            <form action="{{ url_for('admin.admin_delete_user_media', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete user {{ u.username }} and ALL their records?')">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-red-400 hover:text-red-300 text-xs bg-slate-800 px-2 py-0.5 rounded">Delete</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if pagination and pagination.pages > 1 %}
+        <div class="flex items-center justify-between gap-3 pt-4">
+            <div class="text-xs text-gray-500">Page {{ pagination.page }} / {{ pagination.pages }}</div>
+            <div class="flex items-center gap-3">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.admin_users', q=admin_q, page=pagination.prev_num) }}" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Prev</a>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('admin.admin_users', q=admin_q, page=pagination.next_num) }}" class="text-blue-400 hover:text-blue-300 text-sm">Next &rarr;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-sm text-gray-500">No users found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

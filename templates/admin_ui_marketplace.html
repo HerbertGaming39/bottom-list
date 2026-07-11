@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-3xl font-bold text-white">UI Marketplace</h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-gray-400 hover:text-gray-300 text-sm">&larr; Back to Admin</a>
+    </div>
+    <div class="glass-panel p-6 rounded-lg mb-8">
+        <div class="text-sm text-gray-300 mb-3">{{ 'Edit' if edit_slug else 'Add' }} a marketplace template (admins only). Users can select these in Settings when using Custom UI.</div>
+        <form action="{{ url_for('admin.admin_ui_marketplace') }}" method="POST" class="space-y-3">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="{{ 'edit' if edit_slug else 'add' }}">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">Slug</div>
+                    <input type="text" name="slug" value="{{ edit_slug or '' }}" placeholder="e.g. neon_glow" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" maxlength="80" required {{ 'readonly' if edit_slug }}>
+                </div>
+                <div class="md:col-span-2 text-xs text-gray-500">
+                    Allowed: letters, numbers, -, _
+                    {% if edit_slug %}<br><span class="text-yellow-500">Slug cannot be changed once created.</span>{% endif %}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs text-gray-400 mb-1">Template HTML</div>
+                <textarea name="template_html" rows="14" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm w-full" placeholder="<nav class='glass-panel sticky top-0 z-50'>...</nav>
+<main class='container mx-auto px-4 py-8'>
+  {{ '{{ messages_html' }}|safe }}
+  {{ '{{ content_html' }}|safe }}
+</main>" required>{{ edit_body or '' }}</textarea>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded">{{ 'Update Template' if edit_slug else 'Add Template' }}</button>
+                {% if edit_slug %}
+                <a href="{{ url_for('admin.admin_ui_marketplace') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded">Cancel Edit</a>
+                {% else %}
+                <a href="{{ url_for('admin.admin_ui_marketplace') }}" class="text-gray-400 hover:text-gray-300 text-sm">Cancel</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    <div class="glass-panel p-6 rounded-lg">
+        <div class="text-sm font-semibold text-white mb-4">Existing Templates</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for slug in templates %}
+            <div class="bg-slate-800/40 rounded-lg p-4 border border-slate-700 flex flex-col justify-between">
+                <div class="text-white font-semibold mb-3">{{ slug }}</div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ url_for('admin.admin_ui_marketplace', edit=slug) }}" class="text-xs px-2 py-1 rounded bg-blue-700 text-white hover:bg-blue-600">Edit</a>
+                    <form action="{{ url_for('admin.admin_ui_marketplace') }}" method="POST" onsubmit="return confirm('Delete this template?')">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="slug" value="{{ slug }}">
+                        <button type="submit" class="text-xs px-2 py-1 rounded bg-red-700 text-white hover:bg-red-600">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full text-sm text-gray-500 py-4 text-center">No templates yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
