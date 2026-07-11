@@ -25,3 +25,24 @@ static/vc_proofs/
 static/profile_media/
 static/roulette_proofs/
 static/songs/
+static/level_thumbs/
+static/shop_images/
+
+# Server launch scripts
+kill.sh
+launch.sh
+laucnh.sh
+
+# Debug / dev scripts
+check_app.py
+fix_app.py
+fix_app2.py
+fix_templates.py
+fix_templates_v2.py
+init_db.py
+
+# Internal notes
+faq.txt
+
+# Entire static folder (uploaded content)
+static/
