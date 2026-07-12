@@ -415,6 +415,12 @@ def icon_png():
     return send_from_directory(os.path.join(current_app.root_path, 'templates'), 'icon.png')
 
 
+@main_bp.route('/favicon.png')
+def favicon_png():
+    from flask import current_app
+    return send_from_directory(os.path.join(current_app.root_path, 'templates'), 'favicon.png')
+
+
 @main_bp.route('/bcoin.png')
 def bcoin_png():
     from flask import current_app
