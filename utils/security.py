@@ -167,6 +167,9 @@ def add_security_headers(resp):
         # Remove Server header to prevent info leak
         if 'Server' in resp.headers:
             del resp.headers['Server']
+        # Remove X-Powered-By header
+        if 'X-Powered-By' in resp.headers:
+            del resp.headers['X-Powered-By']
         # Cache static assets aggressively (hashed filenames or versioned)
         if request.endpoint == 'static':
             resp.headers['Cache-Control'] = 'public, max-age=86400'
