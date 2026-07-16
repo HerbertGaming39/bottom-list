@@ -129,6 +129,15 @@ def add_security_headers(resp):
         resp.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
         resp.headers['Cross-Origin-Resource-Policy'] = 'same-site'
         resp.headers['Cross-Origin-Embedder-Policy'] = 'unsafe-none'
+        # Host header validation
+        host = request.host
+        if host:
+            import re
+            if not re.match(r'^[a-zA-Z0-9._-]+(:\d+)?$', host):
+                resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+                resp.data = b'Bad Request'
+                resp.status_code = 400
+                return resp
         if resp.mimetype and resp.mimetype.startswith('text/html'):
             resp.headers['Content-Security-Policy'] = (
                 "default-src 'self'; "
