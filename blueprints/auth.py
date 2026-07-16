@@ -24,7 +24,7 @@ from discord_webhooks import (
     get_discord_client_id, get_discord_client_secret, get_discord_redirect_uri
 )
 from utils.security import (
-    get_csrf_token, verify_captcha, trim_pw,
+    get_csrf_token, validate_csrf, verify_captcha, trim_pw,
     get_captcha_provider, get_captcha_site_key
 )
 
@@ -38,6 +38,9 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     if request.method == 'POST':
+        if not validate_csrf():
+            flash('Security check failed. Please refresh the page and try again.', 'danger')
+            return redirect(url_for('auth.login'))
         if request.form.get('website'):
             flash('Bot detected.', 'danger')
             return redirect(url_for('auth.login'))
