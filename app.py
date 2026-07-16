@@ -124,6 +124,14 @@ def load_user(user_id):
         return None
 
 
+@login_manager.unauthorized_handler
+def _unauthorized():
+    if request.path.startswith('/api/'):
+        abort(401)
+    flash('Please log in to access this page.', 'warning')
+    return redirect(url_for('auth.login', next=request.url))
+
+
 # ── DB bootstrap (once per process) ───────────────────────────────────────────
 _db_bootstrapped = False
 
