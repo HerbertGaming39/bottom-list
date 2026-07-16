@@ -461,6 +461,11 @@ def _handle_429(_e):
     return render_template('error.html', error_code=429, error_title='Too Many Requests', error_message='Please slow down and try again shortly.'), 429
 
 
+@app.errorhandler(405)
+def _handle_405(_e):
+    return render_template('error.html', error_code=405, error_title='Method Not Allowed', error_message='This action is not supported.'), 405
+
+
 # ── Shutdown hook ──────────────────────────────────────────────────────────────
 import functools
 atexit.register(functools.partial(announce_site_shutdown, app))
