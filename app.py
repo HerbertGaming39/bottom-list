@@ -219,7 +219,10 @@ def _rate_limit_requests():
         return
     if request.method == 'POST':
         if request.endpoint in ('auth.login', 'auth.register'):
-            if rate_limited(f'ep:{request.endpoint}', limit=15, window_seconds=60):
+            if rate_limited(f'ep:{request.endpoint}', limit=10, window_seconds=60):
+                abort(429)
+        elif request.endpoint == 'auth.discord_callback':
+            if rate_limited('ep:auth.discord_callback', limit=10, window_seconds=60):
                 abort(429)
         else:
             if rate_limited('post', limit=90, window_seconds=60):
