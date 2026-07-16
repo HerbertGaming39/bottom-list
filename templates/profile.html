@@ -22,7 +22,7 @@
                 {% endif %}
                 <h1 class="text-3xl font-bold {{ 'text-yellow-400' if user.is_donor else 'text-white' }}">{{ user.username }}{% if user.is_donor %} <span class="text-sm bg-yellow-600 text-black px-2 py-0.5 rounded font-bold uppercase align-middle">Donor</span>{% endif %}</h1>
             </div>
-            <p class="text-gray-400">Rank: {{ rank_label(user_rank(user)) }}</p>
+            <p class="text-gray-400">{% if is_self or (current_user.is_authenticated and has_perm(current_user, 'access_admin')) %}Rank: {{ rank_label(user_rank(user)) }}{% endif %}</p>
             {% if user.clan %}
             <p class="text-gray-400">Clan: <a href="{{ url_for('main.clan_detail', clan_id=user.clan.id) }}" class="text-gray-200 font-semibold hover:underline">{{ user.clan.name }}</a></p>
             {% endif %}
