@@ -439,6 +439,35 @@ def google_verify():
     return send_from_directory(os.path.join(current_app.root_path, 'templates'), 'googlea5c67195c29a4405.html')
 
 
+@main_bp.route('/robots.txt')
+def robots_txt():
+    content = "User-agent: *\nDisallow: /api/\nDisallow: /settings\nDisallow: /profile/edit\nSitemap: /sitemap.xml\n"
+    return Response(content, mimetype='text/plain')
+
+
+@main_bp.route('/sitemap.xml')
+def sitemap_xml():
+    from models import Level
+    from flask import url_for
+    base = request.host_url.rstrip('/')
+    urls = [
+        f'{base}/',
+        f'{base}/leaderboard',
+    ]
+    try:
+        levels = Level.query.filter_by(is_verified=True).order_by(Level.position.asc()).limit(500).all()
+        for lv in levels:
+            urls.append(f'{base}/level/{lv.id}')
+    except Exception:
+        pass
+    xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls:
+        xml_parts.append(f'  <url><loc>{u}</loc></url>')
+    xml_parts.append('</urlset>')
+    return Response('\n'.join(xml_parts), mimetype='application/xml')
+
+
 @main_bp.route('/assets/discordicon.png')
 def discord_icon_png():
     from flask import current_app
