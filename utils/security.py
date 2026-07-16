@@ -141,7 +141,7 @@ def add_security_headers(resp):
                 "https://www.youtube.com https://www.youtube-nocookie.com; "
                 "media-src 'self'; "
                 "font-src 'self' https://fonts.gstatic.com; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+                "script-src 'self' 'unsafe-inline' "
                 "https://hcaptcha.com https://*.hcaptcha.com "
                 "https://www.google.com https://www.recaptcha.net "
                 "https://www.youtube.com https://www.youtube-nocookie.com "
