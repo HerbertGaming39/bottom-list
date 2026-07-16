@@ -37,6 +37,10 @@ def profile():
 
 @profile_bp.route('/user/<int:user_id>')
 def user_profile(user_id):
+    from utils.security import rate_limited, client_ip
+    if not getattr(current_user, 'is_authenticated', False):
+        if rate_limited('profile_view', limit=30, window_seconds=60):
+            abort(429)
     user = User.query.get_or_404(user_id)
     is_self = getattr(current_user, 'is_authenticated', False) and int(getattr(current_user, 'id', 0)) == int(user.id)
 
