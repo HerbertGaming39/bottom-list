@@ -138,6 +138,11 @@ def add_security_headers(resp):
                 resp.data = b'Bad Request'
                 resp.status_code = 400
                 return resp
+        # Minimize OPTIONS response information disclosure
+        if request.method == 'OPTIONS':
+            resp.headers['Allow'] = resp.headers.get('Allow', 'GET, HEAD, OPTIONS')
+            resp.headers.pop('Server', None)
+            resp.headers.pop('X-Powered-By', None)
         if resp.mimetype and resp.mimetype.startswith('text/html'):
             resp.headers['Content-Security-Policy'] = (
                 "default-src 'self'; "
