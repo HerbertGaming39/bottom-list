@@ -12,9 +12,9 @@ from flask_login import login_required, current_user
 from config import db
 from models import (Level, Record, User, Clan, NewsPost, Event, MapPack,
                     CustomList, ClanJoinRequest, LevelSubmission)
-from settings_helpers import has_perm, get_user_rank, rank_label, year_recap_enabled
+from auxiliary.settings_helpers import has_perm, get_user_rank, rank_label, year_recap_enabled
 from utils.cache import cache_get, cache_set, cache_bust_prefixes
-from discord_webhooks import add_site_log
+from auxiliary.discord_webhooks import add_site_log
 import os
 
 main_bp = Blueprint('main', __name__)

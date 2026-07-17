@@ -12,7 +12,7 @@ from datetime import datetime
 from flask import has_request_context, request, current_app
 from flask_login import current_user
 
-import settings_helpers as sh
+import auxiliary.settings_helpers as sh
 from config import WEBHOOK_URL, LOG_WEBHOOK_URL  # re-exported for other modules
 
 # Event filter choice lists used by admin panel

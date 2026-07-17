@@ -13,15 +13,15 @@ from flask_login import login_required, current_user
 
 from config import db
 from models import User, Level, Record, LevelSubmission, MapPack, Clan, ShopItem, UiTemplate
-from settings_helpers import (has_perm, get_user_rank, rank_label, year_recap_enabled,
+from auxiliary.settings_helpers import (has_perm, get_user_rank, rank_label, year_recap_enabled,
                                record_proof_top_n_for_list,
                                auto_points_applies_to, get_auto_points_rules_text_for,
                                parse_auto_points_rules, points_for_position)
-from discord_webhooks import add_site_log, send_discord_message
+from auxiliary.discord_webhooks import add_site_log, send_discord_message
 from utils.security import (verify_captcha, get_captcha_provider, get_captcha_site_key,
                              trim_pw, save_uploaded_file,
                              _ALLOWED_IMAGE_EXTS, _ALLOWED_AUDIO_EXTS)
-from points import (sum_approved_points_for_user, sum_approved_points_by_list_for_user,
+from auxiliary.points import (sum_approved_points_for_user, sum_approved_points_by_list_for_user,
                     recalc_user_points_for_users)
 
 profile_bp = Blueprint('profile', __name__)

@@ -20,7 +20,7 @@ from config import create_app, db
 app = create_app()
 app.app_context().push()
 
-from settings_helpers import get_setting
+from auxiliary.settings_helpers import get_setting
 from utils.security import decrypt_token
 from models import User, Level, Record, LevelSubmission, SongSubmission, SparkyImage, GuessGameScore, ShopItem, MarketListing, Clan
 import discord

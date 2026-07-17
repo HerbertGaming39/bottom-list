@@ -15,12 +15,12 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from config import db, bcrypt
 from models import User
-from settings_helpers import (
+from auxiliary.settings_helpers import (
     needs_guidelines_acceptance, get_guidelines_url,
     get_guidelines_reset_ts
 )
-from discord_webhooks import add_site_log, discord_oauth_ready
-from discord_webhooks import (
+from auxiliary.discord_webhooks import add_site_log, discord_oauth_ready
+from auxiliary.discord_webhooks import (
     get_discord_client_id, get_discord_client_secret, get_discord_redirect_uri
 )
 from utils.security import (

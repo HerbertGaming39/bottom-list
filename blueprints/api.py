@@ -18,8 +18,8 @@ from config import db
 from models import (User, Level, Record, LevelSubmission, Clan, ClanJoinRequest,
                      Event, MapPack, CustomList, ShopItem, MarketListing,
                      SongSubmission, NewsPost, UserPurchase, Page, Clue, SiteLog)
-from settings_helpers import has_perm, get_setting
-from discord_webhooks import add_site_log
+from auxiliary.settings_helpers import has_perm, get_setting
+from auxiliary.discord_webhooks import add_site_log
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 

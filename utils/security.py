@@ -15,7 +15,7 @@ import json
 from flask import request, session, abort, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
-from settings_helpers import get_setting
+from auxiliary.settings_helpers import get_setting
 
 _RATE_LIMIT: dict = {}
 _RATE_LIMIT_LOCK = threading.Lock()

@@ -19,14 +19,14 @@ from models import (User, Level, Record, LevelSubmission, SiteLog, Page, Event,
                     Setting, CustomList, MapPack, NewsPost, SongSubmission,
                      Clan, ClanJoinRequest, ShopItem, UserPurchase, UiTemplate, SparkyImage,
                      MarketListing, Setting, GuessGameScore)
-from settings_helpers import (
+from auxiliary.settings_helpers import (
     has_perm, get_user_rank, rank_label, RANKS, PERMISSIONS,
     get_rank_permissions, get_guidelines_url, record_proof_top_n,
     record_proof_top_n_for_list, auto_points_enabled, auto_points_scope,
     get_auto_points_rules_text_for, auto_points_rules_key,
     parse_auto_points_rules, points_for_position, get_setting, set_setting
 )
-from discord_webhooks import (
+from auxiliary.discord_webhooks import (
     add_site_log, send_discord_message, post_discord_webhook,
     post_discord_webhook_payload, get_event_filter_set, save_event_filter,
     discord_log_payload, get_discord_client_id, get_discord_client_secret,
@@ -34,7 +34,7 @@ from discord_webhooks import (
     _ANNOUNCE_WEBHOOK_EVENT_CHOICES, _LOG_WEBHOOK_EVENT_CHOICES,
     WEBHOOK_URL, LOG_WEBHOOK_URL
 )
-from points import (recalc_all_user_points, recalc_user_points_for_users,
+from auxiliary.points import (recalc_all_user_points, recalc_user_points_for_users,
                     auto_points_recalc_all)
 from utils.security import (save_uploaded_file, _ALLOWED_IMAGE_EXTS, _ALLOWED_AUDIO_EXTS,
                              get_captcha_provider, get_captcha_site_key,

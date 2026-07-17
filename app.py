@@ -20,14 +20,14 @@ from jinja2 import pass_context
 from markupsafe import Markup
 
 from config import create_app, db, login_manager
-from schema import ensure_schema
-from settings_helpers import (
+from auxiliary.schema import ensure_schema
+from auxiliary.settings_helpers import (
     get_setting, has_perm, get_user_rank, rank_label,
     RANKS, PERMISSIONS, get_rank_permissions,
     get_guidelines_url, get_guidelines_reset_ts,
 )
 from models import UiTemplate
-from discord_webhooks import announce_site_launch, announce_site_shutdown, add_site_log
+from auxiliary.discord_webhooks import announce_site_launch, announce_site_shutdown, add_site_log
 from utils.security import (
     get_csrf_token, validate_csrf, add_security_headers,
     get_captcha_provider, get_captcha_site_key,

@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 
 from config import db
 from models import Level, Record, LevelSubmission, MapPack, User, Clan
-from settings_helpers import get_setting
+from auxiliary.settings_helpers import get_setting
 
 recap_bp = Blueprint('recap', __name__)
 
