@@ -664,7 +664,7 @@ def export_my_data():
 @login_required
 def block_user(user_id):
     from utils.security import validate_csrf
-    validate_csrf(request.form.get('_csrf_token'))
+    validate_csrf()
     if user_id == current_user.id:
         flash('You cannot block yourself.', 'warning')
         return redirect(url_for('profile.user_profile', user_id=user_id))
@@ -681,7 +681,7 @@ def block_user(user_id):
 @login_required
 def unblock_user(user_id):
     from utils.security import validate_csrf
-    validate_csrf(request.form.get('_csrf_token'))
+    validate_csrf()
     block = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user_id).first()
     if block:
         db.session.delete(block)
