@@ -541,10 +541,12 @@ def leaderboard():
     view = (request.args.get('view') or 'users').strip().lower()
     list_type = (request.args.get('list') or 'main').strip().lower()
     users, clans, view, list_type = leaderboard_rows(view, list_type, sort_by, filter_device, filter_status)
+    blocked_ids = set()
     if getattr(current_user, 'is_authenticated', False):
-        users = filter_blocked_from_leaderboard(users, current_user.id)
+        blocked_ids = _blocked_user_ids()
     return render_template('leaderboard.html', users=users, clans=clans, view=view, sort_by=sort_by,
-                           filter_device=filter_device, filter_status=filter_status, list_type=list_type)
+                           filter_device=filter_device, filter_status=filter_status, list_type=list_type,
+                           blocked_ids=blocked_ids)
 
 
 # ── Roulette page ─────────────────────────────────────────────────────────────

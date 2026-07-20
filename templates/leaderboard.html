@@ -1,6 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .blocked-blur {
+        filter: blur(8px);
+        user-select: none;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+    .blocked-blur:hover {
+        filter: blur(4px);
+    }
+    .blocked-label {
+        display: none;
+    }
+    .blocked-blur .blocked-label {
+        display: inline;
+    }
+</style>
 <div class="text-center mb-12">
     <h1 class="text-4xl md:text-5xl gd-header mb-4 text-white">Leaderboard</h1>
     <p class="text-xl text-gray-400">
@@ -92,7 +109,7 @@
                 {% endfor %}
                 {% else %}
                 {% for user in users %}
-                <tr class="hover:bg-slate-800/50 transition-colors">
+                <tr class="hover:bg-slate-800/50 transition-colors {{ 'blocked-blur' if user.id in blocked_ids }}">
                     <td class="px-6 py-4 whitespace-nowrap">
                         {% if loop.index == 1 %}
                             <span class="text-2xl">🥇</span>
@@ -106,7 +123,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <a href="{{ url_for('profile.user_profile', user_id=user.id) }}" class="hover:underline">
-                            <div class="font-bold text-white text-lg">{{ user.username }}</div>
+                            <div class="font-bold text-white text-lg">{{ user.username }} <span class="blocked-label text-xs text-red-400 font-normal">(blocked)</span></div>
                             <div class="text-xs text-gray-500">{{ user.lb_records or 0 }} records</div>
                         </a>
                     </td>
