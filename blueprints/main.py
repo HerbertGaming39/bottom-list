@@ -12,13 +12,20 @@ from sqlalchemy import func, desc, asc, nullslast
 
 from config import db
 from models import (Level, Record, User, Clan, NewsPost, Event, MapPack,
-                    CustomList, ClanJoinRequest, LevelSubmission)
+                    CustomList, ClanJoinRequest, LevelSubmission, UserBlock)
 from auxiliary.settings_helpers import has_perm, get_user_rank, rank_label, year_recap_enabled
 from utils.cache import cache_get, cache_set, cache_bust_prefixes
 from auxiliary.discord_webhooks import add_site_log
 import os
 
 main_bp = Blueprint('main', __name__)
+
+
+def _blocked_user_ids():
+    """Return set of user IDs blocked by the current user."""
+    if not getattr(current_user, 'is_authenticated', False):
+        return set()
+    return {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user.id).all()}
 
 SORT_OPTIONS = {
     'position': ('Default', Level.position.asc().nullslast()),
@@ -127,6 +134,10 @@ def home():
         if levels is None:
             levels = Level.query.filter_by(is_verified=True, list_type='main').order_by(Level.position).all()
             cache_set('levels:main:verified', levels, 20)
+        blocked_ids = _blocked_user_ids()
+        if blocked_ids:
+            blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()}
+            levels = [lv for lv in levels if lv.creator.lower() not in blocked_names]
         if selected_cats:
             levels = [lv for lv in levels if has_all_categories(lv, selected_cats)]
         total = len(levels)
@@ -136,19 +147,30 @@ def home():
         levels_page = levels[start:start + per_page]
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='main', is_verified=True)
+        blocked_ids = _blocked_user_ids()
+        blocked_names = set()
+        if blocked_ids:
+            blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()}
         if selected_cats:
             all_levels = base_q.all()
             all_levels = [lv for lv in all_levels if has_all_categories(lv, selected_cats)]
+            if blocked_names:
+                all_levels = [lv for lv in all_levels if lv.creator.lower() not in blocked_names]
             total = len(all_levels)
             pages = max(1, (total + per_page - 1) // per_page)
             page = min(page, pages)
             start = (page - 1) * per_page
             levels_page = all_levels[start:start + per_page]
         else:
+            if blocked_names:
+                base_q = base_q.filter(~Level.creator.in_(
+                    [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+                ))
             total_q = base_q.count()
             total = total_q
             pages = max(1, (total + per_page - 1) // per_page)
             page = min(page, pages)
+            start = (page - 1) * per_page
             levels_page = base_q.offset(start).limit(per_page).all()
 
     news_posts = cache_get('news:latest5')
@@ -171,16 +193,27 @@ def challenge_list():
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
+    blocked_ids = _blocked_user_ids()
+    blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()} if blocked_ids else set()
     if sort == 'position':
-        pagination = Level.query.filter_by(is_verified=True, list_type='challenge').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
-        levels_page = pagination.items
-        has_prev = pagination.has_prev
-        has_next = pagination.has_next
-        prev_num = pagination.prev_num
-        next_num = pagination.next_num
-        total_pages = pagination.pages
+        levels = Level.query.filter_by(is_verified=True, list_type='challenge').order_by(Level.position).all()
+        if blocked_names:
+            levels = [lv for lv in levels if lv.creator.lower() not in blocked_names]
+        total = len(levels)
+        total_pages = max(1, (total + 39) // 40)
+        page = min(page, total_pages)
+        start = (page - 1) * 40
+        levels_page = levels[start:start + 40]
+        has_prev = page > 1
+        has_next = page < total_pages
+        prev_num = page - 1
+        next_num = page + 1
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='challenge', is_verified=True)
+        if blocked_names:
+            base_q = base_q.filter(~Level.creator.in_(
+                [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+            ))
         total = base_q.count()
         total_pages = max(1, (total + 39) // 40)
         page = min(page, total_pages)
@@ -201,16 +234,27 @@ def platformer_list():
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
+    blocked_ids = _blocked_user_ids()
+    blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()} if blocked_ids else set()
     if sort == 'position':
-        pagination_obj = Level.query.filter_by(is_verified=True, list_type='platformer').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
-        levels_page = pagination_obj.items
-        has_prev = pagination_obj.has_prev
-        has_next = pagination_obj.has_next
-        prev_num = pagination_obj.prev_num
-        next_num = pagination_obj.next_num
-        total_pages = pagination_obj.pages
+        levels = Level.query.filter_by(is_verified=True, list_type='platformer').order_by(Level.position).all()
+        if blocked_names:
+            levels = [lv for lv in levels if lv.creator.lower() not in blocked_names]
+        total = len(levels)
+        total_pages = max(1, (total + 39) // 40)
+        page = min(page, total_pages)
+        start = (page - 1) * 40
+        levels_page = levels[start:start + 40]
+        has_prev = page > 1
+        has_next = page < total_pages
+        prev_num = page - 1
+        next_num = page + 1
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='platformer', is_verified=True)
+        if blocked_names:
+            base_q = base_q.filter(~Level.creator.in_(
+                [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+            ))
         total = base_q.count()
         total_pages = max(1, (total + 39) // 40)
         page = min(page, total_pages)
@@ -490,13 +534,15 @@ def custom_lists():
 
 @main_bp.route('/leaderboard')
 def leaderboard():
-    from blueprints.leaderboard import leaderboard_rows
+    from blueprints.leaderboard import leaderboard_rows, filter_blocked_from_leaderboard
     sort_by = request.args.get('sort', 'points')
     filter_device = request.args.get('device', '')
     filter_status = request.args.get('status', '')
     view = (request.args.get('view') or 'users').strip().lower()
     list_type = (request.args.get('list') or 'main').strip().lower()
     users, clans, view, list_type = leaderboard_rows(view, list_type, sort_by, filter_device, filter_status)
+    if getattr(current_user, 'is_authenticated', False):
+        users = filter_blocked_from_leaderboard(users, current_user.id)
     return render_template('leaderboard.html', users=users, clans=clans, view=view, sort_by=sort_by,
                            filter_device=filter_device, filter_status=filter_status, list_type=list_type)
 

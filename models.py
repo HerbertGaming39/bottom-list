@@ -256,3 +256,13 @@ class UserPurchase(db.Model):
     purchased_at = db.Column(db.DateTime, default=utcnow)
     user = db.relationship('User', backref=db.backref('purchases', lazy=True, cascade="all, delete-orphan"))
     item = db.relationship('ShopItem', backref=db.backref('purchases', lazy=True))
+
+
+class UserBlock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    blocker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    blocked_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    blocker = db.relationship('User', foreign_keys=[blocker_id], backref=db.backref('blocking', lazy=True))
+    blocked = db.relationship('User', foreign_keys=[blocked_id], backref=db.backref('blocked_by', lazy=True))
+    __table_args__ = (db.UniqueConstraint('blocker_id', 'blocked_id', name='uq_user_block'),)

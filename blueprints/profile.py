@@ -12,7 +12,7 @@ from flask import (Blueprint, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 
 from config import db
-from models import User, Level, Record, LevelSubmission, MapPack, Clan, ShopItem
+from models import User, Level, Record, LevelSubmission, MapPack, Clan, ShopItem, UserBlock
 from auxiliary.settings_helpers import (has_perm, get_user_rank, rank_label, year_recap_enabled,
                                record_proof_top_n_for_list,
                                auto_points_applies_to, get_auto_points_rules_text_for,
@@ -112,6 +112,9 @@ def user_profile(user_id):
 
     equipped_ids = [id for id in [user.equipped_avatar_item_id, user.equipped_background_item_id, user.equipped_deco_item_id] if id]
     equipped_items = {i.id: i for i in ShopItem.query.filter(ShopItem.id.in_(equipped_ids)).all()} if equipped_ids else {}
+    blocked_user_ids = set()
+    if getattr(current_user, 'is_authenticated', False):
+        blocked_user_ids = {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user.id).all()}
     return render_template('profile.html',
                            user=user,
                            records=records,
@@ -144,7 +147,8 @@ def user_profile(user_id):
                            approved_record_notifs=approved_record_notifs,
                            rejected_record_notifs=rejected_record_notifs,
                            approved_submission_notifs=approved_submission_notifs,
-                           rejected_submission_notifs=rejected_submission_notifs)
+                           rejected_submission_notifs=rejected_submission_notifs,
+                           blocked_user_ids=blocked_user_ids)
 
 
 # ── Edit profile ──────────────────────────────────────────────────────────────
@@ -654,3 +658,44 @@ def export_my_data():
         payload['submissions'].append({'id': s.id, 'name': s.name, 'creator': s.creator, 'video_url': s.video_url, 'status': s.status, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None})
     data = json.dumps(payload, default=str)
     return Response(data, mimetype='application/json', headers={'Content-Disposition': 'attachment; filename="my_data_export.json"'})
+
+
+@profile_bp.route('/user/<int:user_id>/block', methods=['POST'])
+@login_required
+def block_user(user_id):
+    from utils.security import validate_csrf
+    validate_csrf(request.form.get('_csrf_token'))
+    if user_id == current_user.id:
+        flash('You cannot block yourself.', 'warning')
+        return redirect(url_for('profile.user_profile', user_id=user_id))
+    target = User.query.get_or_404(user_id)
+    existing = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user_id).first()
+    if not existing:
+        db.session.add(UserBlock(blocker_id=current_user.id, blocked_id=user_id))
+        db.session.commit()
+        flash(f'Blocked {target.username}.', 'success')
+    return redirect(url_for('profile.user_profile', user_id=user_id))
+
+
+@profile_bp.route('/user/<int:user_id>/unblock', methods=['POST'])
+@login_required
+def unblock_user(user_id):
+    from utils.security import validate_csrf
+    validate_csrf(request.form.get('_csrf_token'))
+    block = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user_id).first()
+    if block:
+        db.session.delete(block)
+        db.session.commit()
+        flash('User unblocked.', 'success')
+    return redirect(url_for('profile.user_profile', user_id=user_id))
+
+
+@profile_bp.route('/settings/blocked')
+@login_required
+def blocked_users():
+    blocks = UserBlock.query.filter_by(blocker_id=current_user.id).all()
+    blocked_users_list = [b.blocked for b in blocks]
+    all_blocked = blocked_users_list + [current_user]
+    equipped_ids = [u.equipped_avatar_item_id for u in all_blocked if u.equipped_avatar_item_id]
+    equipped_items = {i.id: i for i in ShopItem.query.filter(ShopItem.id.in_(equipped_ids)).all()} if equipped_ids else {}
+    return render_template('blocked_users.html', blocked_users_list=blocked_users_list, equipped_items=equipped_items)

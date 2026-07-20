@@ -74,6 +74,20 @@
             {% if current_user.id != user.id %}
             <div class="mt-4">
                 <a href="{{ url_for('profile.user_stats', user_id=user.id) }}" class="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition-colors">Stats</a>
+                {% if current_user.is_authenticated %}
+                {% set is_blocked = user.id in blocked_user_ids %}
+                {% if is_blocked %}
+                <form action="{{ url_for('profile.unblock_user', user_id=user.id) }}" method="POST" class="inline-block ml-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-sm bg-green-700 hover:bg-green-600 px-3 py-1 rounded text-white transition-colors">Unblock</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('profile.block_user', user_id=user.id) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Block this user? Their levels will be hidden from your lists.')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-sm bg-red-700 hover:bg-red-600 px-3 py-1 rounded text-white transition-colors">Block</button>
+                </form>
+                {% endif %}
+                {% endif %}
             </div>
             {% endif %}
         </div>

@@ -4,7 +4,7 @@ blueprints/leaderboard.py – Leaderboard logic and API endpoints.
 from flask import Blueprint, request, jsonify
 
 from config import db
-from models import User, Clan, Level, Record
+from models import User, Clan, Level, Record, UserBlock
 
 from utils.cache import cache_get, cache_set
 
@@ -94,6 +94,16 @@ def leaderboard_rows(view: str, list_type: str, sort_by: str, filter_device: str
     return out
 
 
+def filter_blocked_from_leaderboard(users, current_user_id):
+    """Remove blocked users from a leaderboard user list."""
+    if not current_user_id:
+        return users
+    blocked_ids = {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user_id).all()}
+    if not blocked_ids:
+        return users
+    return [u for u in users if u.id not in blocked_ids]
+
+
 @leaderboard_bp.route('/leaderboard/user/<int:user_id>/details')
 def leaderboard_user_details(user_id):
     list_type = (request.args.get('list') or 'main').strip().lower()
@@ -137,6 +147,9 @@ def api_leaderboard_users():
     filter_status = request.args.get('status', '')
     list_type = (request.args.get('list') or 'main').strip().lower()
     users, _clans, _view, list_type = leaderboard_rows('users', list_type, sort_by, filter_device, filter_status)
+    from flask_login import current_user
+    if getattr(current_user, 'is_authenticated', False):
+        users = filter_blocked_from_leaderboard(users, current_user.id)
     data = []
     for u in users:
         clan_id = getattr(u, 'clan_id', None)
