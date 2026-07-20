@@ -26,7 +26,7 @@ from auxiliary.settings_helpers import (
     RANKS, PERMISSIONS, get_rank_permissions,
     get_guidelines_url, get_guidelines_reset_ts,
 )
-from models import UiTemplate
+
 from auxiliary.discord_webhooks import announce_site_launch, announce_site_shutdown, add_site_log
 from utils.security import (
     get_csrf_token, validate_csrf, add_security_headers,
@@ -57,7 +57,7 @@ logging.getLogger('waitress').setLevel(logging.ERROR)
 def _notify_discord_error(title: str, body: str):
     """Send an error summary to the Discord logs webhook (best-effort)."""
     try:
-        from discord_webhooks import send_discord_log_message
+        from auxiliary.discord_webhooks import send_discord_log_message
         send_discord_log_message(f'[{title}] {body}'[:1900])
     except Exception:
         pass
@@ -159,7 +159,7 @@ _last_backup_check_ts = 0
 def _do_auto_backup():
     """Create an automatic database backup if enough time has passed."""
     try:
-        from settings_helpers import get_setting, set_setting
+        from auxiliary.settings_helpers import get_setting, set_setting
         interval_hours = int(float(str(get_setting('auto_backup_interval_hours') or '24').strip() or '0'))
     except Exception:
         interval_hours = 24
@@ -365,19 +365,10 @@ def _enforce_account_state_and_guidelines():
 
 
 # ── Jinja2 globals & context processors ───────────────────────────────────────
-def get_ui_template(slug: str):
-    if slug in ('new', 'new2'):
-        return None
-    try:
-        return UiTemplate.query.filter_by(slug=slug, is_active=True).first()
-    except Exception:
-        return None
-
 app.jinja_env.globals['csrf_token']          = get_csrf_token
 app.jinja_env.globals['get_setting']         = get_setting
 app.jinja_env.globals['get_captcha_provider'] = get_captcha_provider
 app.jinja_env.globals['get_captcha_site_key'] = get_captcha_site_key
-app.jinja_env.globals['get_ui_template']     = get_ui_template
 
 @app.template_filter('evaluate')
 @pass_context

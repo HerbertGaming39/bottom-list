@@ -17,7 +17,7 @@ from sqlalchemy.exc import OperationalError
 from config import db
 from models import (User, Level, Record, LevelSubmission, SiteLog, Page, Event,
                     Setting, CustomList, MapPack, NewsPost, SongSubmission,
-                     Clan, ClanJoinRequest, ShopItem, UserPurchase, UiTemplate, SparkyImage,
+                     Clan, ClanJoinRequest, ShopItem, UserPurchase, SparkyImage,
                      MarketListing, Setting, GuessGameScore)
 from auxiliary.settings_helpers import (
     has_perm, get_user_rank, rank_label, RANKS, PERMISSIONS,
@@ -344,7 +344,7 @@ def add_level():
         for idx, lv in enumerate(ordered, start=1):
             lv.position = idx
 
-        from settings_helpers import auto_points_applies_to
+        from auxiliary.settings_helpers import auto_points_applies_to
         if auto_points_applies_to(lt):
             rules = parse_auto_points_rules(get_auto_points_rules_text_for(lt, bool(is_verified)))
             for lv in ordered:
@@ -488,7 +488,7 @@ def update_level_order():
             send_discord_message(f'"{level_name}" by {level_author} moved to place {new_pos} by {current_user.username}', event_type='level_moved')
             add_site_log('level_move', f'{current_user.username} moved "{level_name}" to place {new_pos}.', actor_user_id=current_user.id)
 
-        from settings_helpers import auto_points_applies_to
+        from auxiliary.settings_helpers import auto_points_applies_to
         if auto_points_applies_to(level.list_type):
             all_in_list = Level.query.filter(Level.list_type == level.list_type, Level.is_verified == bool(level.is_verified), Level.position.isnot(None)).order_by(Level.position).all()
             rules = parse_auto_points_rules(get_auto_points_rules_text_for(level.list_type, bool(level.is_verified)))
@@ -498,7 +498,7 @@ def update_level_order():
         db.session.commit()
         from utils.cache import cache_bust_prefixes
         cache_bust_prefixes(['levels:', 'lb:'])
-        from settings_helpers import auto_points_applies_to
+        from auxiliary.settings_helpers import auto_points_applies_to
         if auto_points_applies_to(level.list_type):
             recalc_all_user_points()
         flash('Level position updated.', 'success')
@@ -518,7 +518,7 @@ def auto_number_levels():
         Level.list_type == list_type,
         Level.is_verified == is_verified,
     ).order_by(db.func.coalesce(Level.position, 999999).asc(), Level.id.asc()).all()
-    from settings_helpers import auto_points_applies_to, parse_auto_points_rules, get_auto_points_rules_text_for, points_for_position
+    from auxiliary.settings_helpers import auto_points_applies_to, parse_auto_points_rules, get_auto_points_rules_text_for, points_for_position
     for idx, lv in enumerate(levels, start=1):
         lv.position = idx
     db.session.commit()
@@ -1165,7 +1165,7 @@ def admin_test_site_launch_webhook():
 @login_required
 def admin_set_webhook_events():
     _require_perm('manage_settings')
-    from discord_webhooks import _parse_event_filter_text
+    from auxiliary.discord_webhooks import _parse_event_filter_text
     announce = [str(v or '').strip().lower() for v in request.form.getlist('announce_events')]
     announce_extra = _parse_event_filter_text((request.form.get('announce_events_custom') or '').strip())
     log = [str(v or '').strip().lower() for v in request.form.getlist('log_events')]
@@ -1280,7 +1280,7 @@ def admin_maintenance():
 
     elif action == 'ensure_schema':
         try:
-            from schema import ensure_schema
+            from auxiliary.schema import ensure_schema
             ensure_schema()
             flash('Schema check complete.', 'success')
         except Exception:
@@ -1326,7 +1326,7 @@ def admin_maintenance():
         try:
             hours = request.form.get('auto_backup_interval_hours', '24').strip()
             hours = max(0, min(720, int(float(hours))))
-            from settings_helpers import set_setting
+            from auxiliary.settings_helpers import set_setting
             set_setting('auto_backup_interval_hours', str(hours))
             add_site_log('admin_action', f'{current_user.username} set auto-backup interval to {hours}h.', actor_user_id=current_user.id, send_to_discord=False)
             flash(f'Auto-backup interval set to {hours} hours.', 'success')
@@ -1756,55 +1756,6 @@ def delete_song_submission(sub_id):
     return redirect(url_for('admin.admin_song_submissions'))
 
 
-# ── UI Marketplace ────────────────────────────────────────────────────────────
-
-@admin_bp.route('/admin/ui-marketplace', methods=['GET', 'POST'])
-@login_required
-def admin_ui_marketplace():
-    _require_perm('manage_settings')
-    tpl_dir = os.path.join(current_app.root_path, 'templates', 'ui_marketplace')
-    os.makedirs(tpl_dir, exist_ok=True)
-    templates = [name[:-5] for name in os.listdir(tpl_dir) if name.endswith('.html')]
-
-    if request.method == 'POST':
-        action = (request.form.get('action') or 'add').strip().lower()
-        slug = (request.form.get('slug') or '').strip().lower()
-        if action == 'delete':
-            try:
-                p = os.path.join(tpl_dir, f'{slug}.html')
-                if os.path.exists(p):
-                    os.remove(p)
-                flash('Template deleted.', 'success')
-            except Exception:
-                flash('Could not delete template.', 'danger')
-            return redirect(url_for('admin.admin_ui_marketplace'))
-        import re
-        body = (request.form.get('template_html') or '').strip()
-        if not re.match(r'^[a-z0-9_-]{3,80}$', slug or ''):
-            flash('Slug must be 3-80 chars: a-z, 0-9, -, _.', 'danger')
-            return redirect(url_for('admin.admin_ui_marketplace'))
-        if len(body) < 1 or len(body) > 20000 or '{{ content_html' not in body:
-            flash('Template must include {{ content_html }} and be under 20k characters.', 'danger')
-            return redirect(url_for('admin.admin_ui_marketplace'))
-        try:
-            with open(os.path.join(tpl_dir, f'{slug}.html'), 'w', encoding='utf-8') as f:
-                f.write(body)
-            flash(f'Marketplace template {"updated" if action == "edit" else "added"}.', 'success')
-        except Exception:
-            flash('Could not save template.', 'danger')
-        return redirect(url_for('admin.admin_ui_marketplace'))
-
-    edit_slug = request.args.get('edit')
-    edit_body = ''
-    if edit_slug:
-        try:
-            with open(os.path.join(tpl_dir, f'{edit_slug}.html'), 'r', encoding='utf-8') as f:
-                edit_body = f.read()
-        except Exception:
-            pass
-    return render_template('admin_ui_marketplace.html', templates=templates, edit_slug=edit_slug, edit_body=edit_body)
-
-
 # ── Shop editor ───────────────────────────────────────────────────────────────
 
 @admin_bp.route('/admin/shop')
@@ -1924,69 +1875,6 @@ def admin_shop_award():
     return render_template('admin_shop_award.html', users=users, items=items)
 
 
-# ── UI Templates ──────────────────────────────────────────────────────────────
-
-@admin_bp.route('/admin/ui-templates')
-@login_required
-def admin_ui_templates():
-    _require_perm('manage_settings')
-    templates = UiTemplate.query.order_by(UiTemplate.name).all()
-    return render_template('admin_ui_templates.html', templates=templates)
-
-
-@admin_bp.route('/admin/ui-templates/create', methods=['POST'])
-@login_required
-def admin_ui_templates_create():
-    _require_perm('manage_settings')
-    name = (request.form.get('name') or '').strip()
-    slug = (request.form.get('slug') or '').strip().lower().replace(' ', '_')
-    html_content = (request.form.get('html_content') or '').strip()
-    if not name or not slug or not html_content:
-        flash('Name, slug, and HTML content are required.', 'danger')
-        return redirect(url_for('admin.admin_ui_templates'))
-    if slug in ('new', 'new2', 'custom'):
-        flash('Slug cannot be "new", "new2", or "custom".', 'danger')
-        return redirect(url_for('admin.admin_ui_templates'))
-    existing = UiTemplate.query.filter_by(slug=slug).first()
-    if existing:
-        flash(f'Template with slug "{slug}" already exists.', 'danger')
-        return redirect(url_for('admin.admin_ui_templates'))
-    t = UiTemplate(name=name, slug=slug, html_content=html_content, is_active=True)
-    db.session.add(t)
-    db.session.commit()
-    add_site_log('ui_template', f'UI template "{name}" created.', actor_user_id=current_user.id)
-    flash(f'UI template "{name}" created.', 'success')
-    return redirect(url_for('admin.admin_ui_templates'))
-
-
-@admin_bp.route('/admin/ui-templates/<int:tmpl_id>/edit', methods=['POST'])
-@login_required
-def admin_ui_templates_edit(tmpl_id):
-    _require_perm('manage_settings')
-    t = UiTemplate.query.get_or_404(tmpl_id)
-    old_name = t.name
-    t.name = (request.form.get('name') or '').strip()
-    t.html_content = (request.form.get('html_content') or '').strip()
-    t.is_active = request.form.get('is_active') == 'on'
-    db.session.commit()
-    add_site_log('ui_template', f'UI template "{old_name}" edited.', actor_user_id=current_user.id)
-    flash(f'UI template "{t.name}" updated.', 'success')
-    return redirect(url_for('admin.admin_ui_templates'))
-
-
-@admin_bp.route('/admin/ui-templates/<int:tmpl_id>/delete', methods=['POST'])
-@login_required
-def admin_ui_templates_delete(tmpl_id):
-    _require_perm('manage_settings')
-    t = UiTemplate.query.get_or_404(tmpl_id)
-    User.query.filter_by(ui_version=t.slug).update({'ui_version': None})
-    db.session.delete(t)
-    db.session.commit()
-    add_site_log('ui_template', f'UI template "{t.name}" deleted.', actor_user_id=current_user.id)
-    flash(f'UI template "{t.name}" deleted.', 'success')
-    return redirect(url_for('admin.admin_ui_templates'))
-
-
 # ── IDBBL / Sparky ────────────────────────────────────────────────────────────
 
 @admin_bp.route('/admin/idbbl')
@@ -2070,7 +1958,7 @@ MODEL_MAP = {
     'Page': Page, 'Event': Event, 'Clan': Clan, 'ClanJoinRequest': ClanJoinRequest,
     'NewsPost': NewsPost, 'Setting': Setting, 'SiteLog': SiteLog,
     'CustomList': CustomList, 'MapPack': MapPack,
-    'ShopItem': ShopItem, 'UserPurchase': UserPurchase, 'UiTemplate': UiTemplate, 'SparkyImage': SparkyImage, 'GuessGameScore': GuessGameScore,
+    'ShopItem': ShopItem, 'UserPurchase': UserPurchase, 'SparkyImage': SparkyImage, 'GuessGameScore': GuessGameScore,
 }
 
 

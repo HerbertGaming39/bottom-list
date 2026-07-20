@@ -12,7 +12,7 @@ from flask import (Blueprint, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 
 from config import db
-from models import User, Level, Record, LevelSubmission, MapPack, Clan, ShopItem, UiTemplate
+from models import User, Level, Record, LevelSubmission, MapPack, Clan, ShopItem
 from auxiliary.settings_helpers import (has_perm, get_user_rank, rank_label, year_recap_enabled,
                                record_proof_top_n_for_list,
                                auto_points_applies_to, get_auto_points_rules_text_for,
@@ -215,22 +215,6 @@ def settings():
             flash('API token regenerated.', 'success')
             return redirect(url_for('profile.settings'))
 
-        ui_version = (request.form.get('ui_version') or '').strip().lower()
-        valid_templates = set(t.slug for t in UiTemplate.query.filter_by(is_active=True).all())
-        if ui_version not in ('new', 'new2') and ui_version not in valid_templates:
-            ui_version = 'new'
-        current_user.ui_version = ui_version
-
-        accent = (request.form.get('theme_accent') or '').strip()
-        if accent and not re.match(r'^#[0-9a-fA-F]{6}$', accent):
-            accent = ''
-        current_user.theme_accent = accent or None
-
-        accent_bg = (request.form.get('theme_accent_bg') or '').strip()
-        if accent_bg and not re.match(r'^#[0-9a-fA-F]{6}$', accent_bg):
-            accent_bg = ''
-        current_user.theme_accent_bg = accent_bg or None
-
         db.session.commit()
         add_site_log('settings_edit', f'{current_user.username} edited settings.', actor_user_id=current_user.id)
         flash('Settings saved.', 'success')
@@ -242,8 +226,7 @@ def settings():
             pass
         return resp
 
-    ui_templates = UiTemplate.query.filter_by(is_active=True).order_by(UiTemplate.name).all()
-    return render_template('settings.html', ui_templates=ui_templates, market_templates=[], market_preview='', user_preview='', easy_script='', template_html='')
+    return render_template('settings.html')
 
 
 # ── Record submission ─────────────────────────────────────────────────────────

@@ -1,444 +1,944 @@
 <!DOCTYPE html>
-{% set _ui_cookie = request.cookies.get('ui_version') if request and request.cookies else None %}
-{% set _ui_user = (current_user.ui_version if current_user.is_authenticated and current_user.ui_version else None) %}
-{% set ui_version = (_ui_user or _ui_cookie or 'new') %}
-{% set ui_version = ('new' if ui_version == 'old' else ui_version) %}
-{% set accent = (current_user.theme_accent if current_user.is_authenticated and current_user.theme_accent else '') %}
-{% set accent_bg = (current_user.theme_accent_bg if current_user.is_authenticated and current_user.theme_accent_bg else '') %}
-<html lang="en" data-ui="{{ ui_version|e }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Bottom List</title>
     <link rel="icon" type="image/png" href="{{ url_for('main.favicon_png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    slate: {
+                        50: '#f8f8f8', 100: '#e8e8e8', 200: '#d4d4d4', 300: '#b0b0b0',
+                        400: '#999', 500: '#777', 600: '#555', 700: '#3a3a3a',
+                        800: '#2a2a2a', 900: '#1a1a1a', 950: '#111'
+                    },
+                    blue: {
+                        300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e3a5f', 900: '#1a2a4a'
+                    },
+                    green: { 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d' },
+                    yellow: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04', 300: '#fde68a' },
+                    red: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 100: '#fca5a5' },
+                    purple: { 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce' },
+                    indigo: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+                    gray: { 200: '#d4d4d4', 300: '#c8c8c8', 400: '#999', 500: '#777', 600: '#555', 700: '#3a3a3a', 800: '#2a2a2a', 900: '#1a1a1a' },
+                    emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857' }
+                }
+            }
+        }
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --accent: {{ (accent if accent else '#60a5fa')|e }};
-            --accent-bg: {{ (accent_bg if accent_bg else (accent if accent else '#60a5fa'))|e }};
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        html, body { height: 100%; }
         body {
-            background-color: #0f0f13;
-            background-image: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1a1a1a;
             color: #e2e8f0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
+            overflow-x: hidden;
         }
-        html[data-ui="new"] body {
-            background-color: #070812;
-            background-image: radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--accent-bg), transparent 78%) 0%, transparent 55%),
-                              radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--accent-bg), transparent 84%) 0%, transparent 55%),
-                              linear-gradient(135deg, #070812 0%, #0b1020 100%);
-        }
-        html[data-ui="new2"] body {
-            background-color: #06070f;
-            background-image: radial-gradient(1200px 600px at 15% 10%, color-mix(in srgb, var(--accent-bg), transparent 72%) 0%, transparent 60%),
-                              radial-gradient(1000px 800px at 85% 20%, color-mix(in srgb, var(--accent-bg), transparent 78%) 0%, transparent 65%),
-                              linear-gradient(135deg, #06070f 0%, #0a0f1f 100%);
-        }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        html[data-ui="new"] .glass-panel {
-            background: rgba(15, 23, 42, 0.62);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
-        }
-        html[data-ui="new2"] .glass-panel {
-            background: rgba(12, 18, 32, 0.64);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.50);
-            backdrop-filter: blur(14px);
-            border-radius: 16px;
-            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-        }
-        html[data-ui="new2"] .glass-panel:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 38px 120px rgba(0, 0, 0, 0.55);
-        }
-        html[data-ui="new2"] nav.glass-panel {
-            background: rgba(10, 16, 30, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            backdrop-filter: blur(10px);
-        }
-        html[data-ui="new2"] .nav-link:hover {
-            color: var(--accent) !important;
-            text-shadow: 0 0 14px color-mix(in srgb, var(--accent), transparent 40%);
-        }
-        html[data-ui="new2"] .gd-header {
-            letter-spacing: 0.06em;
-            text-shadow:
-                3px 3px 0 #000,
-                0 0 18px color-mix(in srgb, var(--accent), transparent 60%);
-        }
-        html[data-ui="new2"] .rounded {
-            border-radius: 14px !important;
-        }
-        html[data-ui="new2"] .rounded-lg {
-            border-radius: 18px !important;
-        }
-        .gd-header {
-            font-family: 'Russo One', sans-serif;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            text-shadow: 
-                3px 3px 0 #000,
-                -1px -1px 0 #000,  
-                1px -1px 0 #000,
-                -1px 1px 0 #000,
-                1px 1px 0 #000;
-        }
-        .nav-link {
-            transition: all 0.2s;
-        }
-        .nav-link:hover {
-            color: var(--accent);
-            text-shadow: 0 0 10px color-mix(in srgb, var(--accent), transparent 50%);
-        }
-        .bg-blue-500, .bg-blue-600, .bg-blue-700,
-        .bg-indigo-600, .bg-indigo-700,
-        .bg-purple-600, .bg-purple-700 {
-            background-color: var(--accent) !important;
-        }
-        .hover\:bg-blue-600:hover, .hover\:bg-blue-700:hover,
-        .hover\:bg-indigo-600:hover, .hover\:bg-indigo-700:hover,
-        .hover\:bg-purple-600:hover, .hover\:bg-purple-700:hover {
-            background-color: var(--accent) !important;
-            filter: brightness(1.08);
-        }
-        .text-blue-300, .text-blue-400, .text-blue-500,
-        .text-indigo-300, .text-indigo-400, .text-indigo-500,
-        .text-purple-300, .text-purple-400, .text-purple-500 {
-            color: var(--accent) !important;
-        }
-        .hover\:text-blue-300:hover, .hover\:text-blue-400:hover,
-        .hover\:text-indigo-300:hover, .hover\:text-indigo-400:hover,
-        .hover\:text-purple-300:hover, .hover\:text-purple-400:hover {
-            color: var(--accent) !important;
-            filter: brightness(1.12);
-        }
-        .border-blue-500, .border-indigo-500, .border-purple-500 {
-            border-color: var(--accent) !important;
-        }
-        .focus\:ring-blue-500:focus, .focus\:ring-indigo-500:focus, .focus\:ring-purple-500:focus {
-            --tw-ring-color: var(--accent) !important;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f0f13; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
         *:focus-visible {
-            outline: 2px solid var(--accent, #60a5fa);
+            outline: 2px solid #60a5fa;
             outline-offset: 2px;
         }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* ── Navbar ─────────────────────────────────────────────── */
+        .navbar {
+            background-color: #2a2a2a;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .navbar-left { display: flex; align-items: center; gap: 8px; }
+        .logo-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-right: 12px;
+        }
+        .logo-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; }
+        .logo-brand h1 {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            font-size: 24px;
+            color: #fff;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* Desktop nav links */
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-links > a, .nav-links > .nav-dropdown > summary {
+            color: #999;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 400;
+            white-space: nowrap;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: color 0.15s, background 0.15s;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-links > a:hover, .nav-links > .nav-dropdown > summary:hover {
+            color: #ddd;
+            background: rgba(255,255,255,0.05);
+        }
+        .nav-chevron { font-size: 10px; }
+
+        /* Dropdown menu */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown > summary::-webkit-details-marker { display: none; }
+        .nav-dropdown > summary { list-style: none; }
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 200px;
+            background: #2f2f2f;
+            border-radius: 10px;
+            padding: 6px 0;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+            z-index: 200;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .nav-dropdown[open] > .dropdown-menu { display: block; }
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.12s, color 0.12s;
+        }
+        .dropdown-menu a:hover { background: #3a3a3a; color: #e0e0e0; }
+        .dropdown-sep { height: 1px; background: #3a3a3a; margin: 4px 0; }
+
+        /* Search bar */
+        .search-form { position: relative; }
+        .search-form input {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            font-size: 14px;
+            padding: 8px 14px 8px 34px;
+            border-radius: 8px;
+            width: 240px;
+            transition: border-color 0.15s, width 0.2s;
+        }
+        .search-form input::placeholder { color: #666; }
+        .search-form input:focus { outline: none; border-color: #60a5fa; width: 300px; }
+        .search-form svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            fill: #666;
+        }
+
+        /* Right side */
+        .navbar-right { display: flex; align-items: center; gap: 12px; }
+        .bcoin-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fbbf24;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .bcoin-link:hover { background: rgba(251,191,36,0.1); }
+        .bcoin-link img { width: 20px; height: 20px; }
+        .shop-link {
+            color: #fbbf24;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .shop-link:hover { background: rgba(251,191,36,0.1); }
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .nav-btn-green { background: #16a34a; color: #fff; }
+        .nav-btn-green:hover { background: #15803d; }
+
+        /* User avatar */
+        .avatar-container { position: relative; }
+        .avatar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3a3a3a;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        .avatar-btn:hover { background: #454545; }
+        .avatar-btn svg { width: 20px; height: 20px; fill: #888; }
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            width: 240px;
+            background: #2f2f2f;
+            border-radius: 10px;
+            padding: 6px 0;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+            z-index: 200;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .user-dropdown.open { display: block; }
+        .user-dropdown a {
+            display: block;
+            padding: 10px 20px;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.12s, color 0.12s;
+        }
+        .user-dropdown a:hover { background: #3a3a3a; color: #e0e0e0; }
+        .user-dropdown .dd-header {
+            padding: 10px 20px 4px;
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .user-dropdown .dd-bcoin {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            color: #fbbf24;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .user-dropdown .dd-bcoin img { width: 16px; height: 16px; }
+        .user-dropdown .dd-sep { height: 1px; background: #3a3a3a; margin: 4px 0; }
+
+        /* Mobile hamburger */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 26px;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        /* Mobile slide-out menu */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 300;
+        }
+        .mobile-overlay.open { display: block; }
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            max-width: 85vw;
+            height: 100%;
+            background: #222;
+            z-index: 301;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.25s ease;
+            padding: 20px 0;
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+        .mobile-menu.open { transform: translateX(0); }
+        .mobile-menu .mm-section {
+            padding: 6px 20px;
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 15px;
+            transition: background 0.12s, color 0.12s;
+        }
+        .mobile-menu a:hover { background: #2a2a2a; color: #fff; }
+        .mobile-menu .mm-sep { height: 1px; background: #333; margin: 8px 20px; }
+        .mobile-menu .mm-search {
+            padding: 12px 20px;
+        }
+        .mobile-menu .mm-search input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+        }
+        .mobile-menu .mm-search input::placeholder { color: #666; }
+        .mobile-menu .mm-search input:focus { outline: none; border-color: #60a5fa; }
+
+        /* ── Glass panel (used by child templates) ──────────────── */
+        .glass-panel {
+            background: #222;
+            backdrop-filter: none;
+            border: 1px solid #333;
+            border-radius: 10px;
+        }
+
+        /* ── Global child-template overrides ────────────────────── */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Oswald', sans-serif; font-weight: 600; }
+
+        /* Override Tailwind bg colors used by child templates */
+        .bg-slate-800 { background-color: #2a2a2a !important; }
+        [class*="bg-slate-800/"] { background-color: rgba(42,42,42,0.5) !important; }
+        .bg-slate-700 { background-color: #333 !important; }
+        .bg-slate-900 { background-color: #1a1a1a !important; }
+        [class*="bg-slate-900/"] { background-color: rgba(26,26,26,0.5) !important; }
+        .bg-slate-100 { background-color: #e0e0e0 !important; }
+        .bg-black { background-color: #000 !important; }
+        .bg-blue-600 { background-color: #2563eb !important; }
+        .bg-blue-700 { background-color: #1d4ed8 !important; }
+        .bg-blue-900 { background-color: #1a2a4a !important; }
+        .bg-purple-700 { background-color: #7e22ce !important; }
+        .bg-indigo-700 { background-color: #4338ca !important; }
+
+        /* Override Tailwind text colors */
+        .text-white { color: #fff !important; }
+        .text-gray-300 { color: #c8c8c8 !important; }
+        .text-gray-400 { color: #999 !important; }
+        .text-gray-500 { color: #777 !important; }
+        .text-gray-600 { color: #555 !important; }
+        .text-slate-900 { color: #1a1a1a !important; }
+        .text-blue-300 { color: #93c5fd !important; }
+        .text-blue-400 { color: #60a5fa !important; }
+        .text-green-400 { color: #4ade80 !important; }
+        .text-yellow-400 { color: #facc15 !important; }
+        .text-red-400 { color: #f87171 !important; }
+        .text-red-500 { color: #ef4444 !important; }
+        .text-emerald-400 { color: #34d399 !important; }
+        .text-purple-400 { color: #c084fc !important; }
+        .text-black { color: #1a1a1a !important; }
+
+        /* Override Tailwind border colors */
+        .border-blue-500 { border-color: #3b82f6 !important; }
+        .border-blue-700 { border-color: #1d4ed8 !important; }
+        .border-slate-700 { border-color: #3a3a3a !important; }
+        .border-gray-700 { border-color: #333 !important; }
+        .border-gray-800 { border-color: #333 !important; }
+        .border-gray-700\/50 { border-color: rgba(51,51,51,0.5) !important; }
+
+        /* Override Tailwind hover colors */
+        [class*="hover\:bg-slate-800"]:hover { background-color: rgba(42,42,42,0.5) !important; }
+        [class*="hover\:bg-slate-700"]:hover { background-color: #333 !important; }
+        .hover\:bg-blue-700:hover { background-color: #1d4ed8 !important; }
+        .hover\:text-blue-300:hover { color: #93c5fd !important; }
+        .hover\:text-blue-400:hover { color: #60a5fa !important; }
+
+        /* Override Tailwind dividers */
+        .divide-y > * + * { border-top: 1px solid #2a2a2a !important; }
+        .divide-gray-800 > * + * { border-color: #333 !important; }
+
+        /* Links in content */
+        .main-area a { color: #60a5fa; text-decoration: none; transition: color 0.15s; }
+        .main-area a:hover { color: #93c5fd; }
+
+        /* Tables */
+        .main-area table { border-collapse: collapse; }
+        .main-area thead { background: #1a1a1a; }
+        .main-area th { color: #888; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .main-area td { border-color: #333; }
+        .main-area tbody tr { border-bottom: 1px solid #2a2a2a; }
+        .main-area tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* Form inputs */
+        input, select, textarea {
+            background: #1a1a1a !important;
+            border: 1px solid #444 !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            padding: 10px 14px !important;
+            font-size: 14px !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none !important;
+            border-color: #60a5fa !important;
+        }
+
+        /* Flash messages */
+        .flash-msg { border-radius: 8px !important; }
+
+        /* Details/summary */
+        details summary { cursor: pointer; }
+        details summary::-webkit-details-marker { display: none; }
+
+        /* gd-header (used by leaderboard) */
+        .gd-header {
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Donor badge */
+        [class*="bg-yellow-600"] { background: #ca8a04 !important; color: #fff !important; }
+
+        /* Tailwind gradient overrides */
+        .from-purple-300 { --tw-gradient-from: #c084fc !important; }
+        .to-purple-600 { --tw-gradient-to: #9333ea !important; }
+        .from-slate-900 { --tw-gradient-from: #1a1a1a !important; }
+        .to-slate-900 { --tw-gradient-to: #1a1a1a !important; }
+        .from-purple-500 { --tw-gradient-from: #a855f7 !important; }
+        .to-indigo-500 { --tw-gradient-to: #6366f1 !important; }
+
+        /* More Tailwind overrides for child templates */
+        .bg-slate-600 { background-color: #444 !important; }
+        .bg-emerald-600 { background-color: #059669 !important; }
+        .bg-emerald-700 { background-color: #047857 !important; }
+        .bg-indigo-600 { background-color: #4f46e5 !important; }
+        .bg-indigo-700 { background-color: #4338ca !important; }
+        .bg-red-600 { background-color: #dc2626 !important; }
+        .bg-red-700 { background-color: #b91c1c !important; }
+        .bg-red-800 { background-color: #991b1b !important; }
+
+        [class*="hover\:bg-purple-700"]:hover { background-color: #7e22ce !important; }
+        [class*="hover\:bg-red-700"]:hover { background-color: #b91c1c !important; }
+        [class*="hover\:bg-red-800"]:hover { background-color: #991b1b !important; }
+        [class*="hover\:bg-emerald-700"]:hover { background-color: #047857 !important; }
+        [class*="hover\:bg-indigo-700"]:hover { background-color: #4338ca !important; }
+        [class*="hover\:bg-slate-600"]:hover { background-color: #444 !important; }
+
+        .text-purple-300 { color: #c084fc !important; }
+        .text-purple-600 { color: #9333ea !important; }
+        .text-emerald-400 { color: #34d399 !important; }
+        .text-indigo-400 { color: #818cf8 !important; }
+
+        .border-slate-800 { border-color: #2a2a2a !important; }
+        .border-slate-700 { border-color: #3a3a3a !important; }
+
+        /* Accent-purple overrides */
+        .accent-purple-600 { accent-color: #9333ea !important; }
+
+        /* Opacity overrides */
+        .opacity-50 { opacity: 0.5 !important; }
+        .opacity-60 { opacity: 0.6 !important; }
+        .disabled\:opacity-50:disabled { opacity: 0.5 !important; }
+        .disabled\:pointer-events-none:disabled { pointer-events: none !important; }
+
+        /* Rounded-lg override (ensure consistent) */
+        .rounded { border-radius: 6px !important; }
+        .rounded-lg { border-radius: 10px !important; }
+        .rounded-full { border-radius: 9999px !important; }
+
+        /* Aspect ratio for embedded video */
+        .aspect-w-16 { position: relative; width: 100%; padding-bottom: 56.25%; }
+        .aspect-h-9 { position: absolute; inset: 0; height: 100%; }
+
+        /* ── Main content ───────────────────────────────────────── */
+        .main-area {
+            background-color: #1a1a1a;
+            min-height: calc(100vh - 70px);
+            padding: 32px 24px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Flash messages */
+        .flash-msg {
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+        .flash-success { background: rgba(34,197,94,0.1); border-color: #22c55e; color: #86efac; }
+        .flash-danger { background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; }
+        .flash-info { background: rgba(96,165,250,0.1); border-color: #60a5fa; color: #93c5fd; }
+        .flash-warning { background: rgba(234,179,8,0.1); border-color: #eab308; color: #fde047; }
+
+        /* ── Footer ─────────────────────────────────────────────── */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: #111;
+            padding: 20px 24px;
+            margin-top: 32px;
+        }
+        .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .footer-text { font-size: 12px; color: #555; }
+        .footer-links { display: flex; align-items: center; gap: 14px; }
+        .footer-links a { color: #60a5fa; text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .footer-links a img { width: 16px; height: 16px; }
+
+        /* ── Cookie consent ─────────────────────────────────────── */
+        .cookie-banner {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+            background: #111; border-top: 1px solid #333;
+            padding: 14px 24px; display: none;
+        }
+        .cookie-banner.show { display: block; }
+        .cookie-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .cookie-inner .cookie-text { font-size: 13px; color: #999; }
+        .cookie-inner .cookie-text a { color: #60a5fa; }
+        .cookie-btns { display: flex; gap: 8px; }
+        .cookie-btns button {
+            padding: 7px 16px; border-radius: 6px; font-size: 13px; border: none; cursor: pointer;
+        }
+        .cb-decline { background: #333; color: #ccc; }
+        .cb-decline:hover { background: #444; }
+        .cb-accept { background: #60a5fa; color: #fff; }
+        .cb-accept:hover { background: #3b82f6; }
+
+        /* ── Notification consent ────────────────────────────────── */
+        .notif-banner {
+            position: fixed; bottom: 16px; right: 16px; z-index: 400;
+            background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+            padding: 16px; width: 300px; display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+        .notif-banner.show { display: block; }
+        .notif-banner .nb-title { font-size: 14px; font-weight: 600; color: #fff; }
+        .notif-banner .nb-desc { font-size: 12px; color: #888; margin-top: 4px; }
+        .notif-banner .nb-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+        .notif-banner .nb-btns button {
+            padding: 5px 12px; border-radius: 5px; font-size: 12px; border: none; cursor: pointer;
+        }
+        .nb-deny { background: #333; color: #ccc; }
+        .nb-allow { background: #60a5fa; color: #fff; }
+
+        /* ── Puzzle modal ────────────────────────────────────────── */
+        .puzzle-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 600;
+            display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .puzzle-overlay.open { display: flex; }
+        .puzzle-box {
+            background: #222; border-radius: 12px; padding: 24px; max-width: 400px; width: 100%;
+            border: 1px solid #333;
+        }
+        .puzzle-box .puzzle-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .puzzle-box .puzzle-head span { font-size: 16px; font-weight: 700; color: #fff; }
+        .puzzle-box .puzzle-close { background: none; border: none; color: #888; cursor: pointer; font-size: 14px; }
+        .puzzle-box .puzzle-close:hover { color: #fff; }
+        .puzzle-box .puzzle-info { font-size: 13px; color: #888; margin-bottom: 8px; }
+        .puzzle-box .puzzle-info b { color: #fff; }
+        .puzzle-box .puzzle-instr { font-size: 13px; color: #aaa; margin-bottom: 14px; }
+        .puzzle-box .puzzle-instr b { color: #60a5fa; }
+        .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .puzzle-grid button {
+            height: 44px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; cursor: pointer;
+        }
+        .puzzle-grid button:hover { border-color: #60a5fa; }
+        .puzzle-error { display: none; font-size: 13px; color: #f87171; margin-top: 10px; }
+        .puzzle-error.show { display: block; }
+
+        /* ── Mobile responsive ───────────────────────────────────── */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 16px; min-height: 60px; }
+            .navbar-left { gap: 4px; }
+            .logo-brand h1 { font-size: 20px; }
+            .logo-icon { width: 32px; height: 32px; }
+            .nav-links-desktop { display: none !important; }
+            .search-desktop { display: none !important; }
+            .bcoin-link span, .shop-link { display: none; }
+            .hamburger { display: block; }
+            .main-area { padding: 20px 16px; }
+            .footer-inner { flex-direction: column; gap: 8px; text-align: center; }
+            .cookie-inner { flex-direction: column; text-align: center; }
+        }
+        @media (min-width: 769px) {
+            .nav-links-mobile { display: none !important; }
+        }
     </style>
+    {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col overflow-x-hidden">
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[60] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:font-bold focus:outline-none">
-    Skip to content
-</a>
-{% set messages_html %}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="mb-8">
-                {% for category, message in messages %}
-                    <div class="p-4 mb-4 rounded-md {% if category == 'success' %}bg-green-900/50 text-green-200 border border-green-700{% elif category == 'danger' %}bg-red-900/50 text-red-200 border border-red-700{% else %}bg-blue-900/50 text-blue-200 border border-blue-700{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-{% endset %}
-{% set content_html %}{% block content %}{% endblock %}{% endset %}
-{% set _ui_template = get_ui_template(ui_version) %}
-{% if _ui_template %}
-    {{ _ui_template.html_content|evaluate }}
-{% else %}
-    <nav class="glass-panel sticky top-0 z-50 shadow-lg" role="navigation" aria-label="Main navigation">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <details class="relative lg:hidden">
-                        <summary class="list-none cursor-pointer nav-link px-3 py-2 rounded-md text-sm font-medium" aria-haspopup="listbox">The List</summary>
-                        <div class="absolute left-0 mt-2 w-64 glass-panel rounded shadow-lg p-2">
-                            <div class="px-3 py-2 text-xs text-gray-400">Choose a list</div>
-                            <a href="{{ url_for('main.home') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Main List</a>
-                            <a href="{{ url_for('main.challenge_list') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Challenge List</a>
-                            <a href="{{ url_for('main.platformer_list') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Platformer List</a>
-                            <a href="{{ url_for('main.unverified_list') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Unverified List</a>
-                            <a href="{{ url_for('main.leaderboard') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Leaderboard</a>
-                        </div>
-                    </details>
-                    <a href="{{ url_for('main.home') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">The List</a>
-                    <a href="{{ url_for('main.challenge_list') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Challenge</a>
-                    <a href="{{ url_for('main.platformer_list') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Platformer</a>
-                    <a href="{{ url_for('main.unverified_list') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Unverified</a>
-                    <a href="{{ url_for('main.leaderboard') }}" class="hidden lg:inline nav-link px-3 py-2 rounded-md text-sm font-medium">Leaderboard</a>
-                    
-                    <form action="{{ url_for('main.home') }}" method="GET" class="hidden lg:block relative">
-                        <label for="search-desktop" class="sr-only">Search levels, players, clans</label>
-                        <input id="search-desktop" type="text" name="q" value="{{ request.args.get('q') or '' }}" placeholder="Search levels, players, clans..." aria-label="Search levels, players, clans" class="bg-slate-800 text-white text-sm rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </form>
-                </div>
-                <div class="flex items-center gap-2">
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('shop.inventory') }}" class="hidden lg:inline-flex items-center gap-1 text-yellow-400 hover:text-yellow-300 px-3 py-2 rounded-md text-sm font-semibold" aria-label="Inventory - {{ current_user.bcoins or 0 }} B-Coins">
-                            <img src="{{ url_for('main.bcoin_png') }}" alt="" class="w-4 h-4">{{ current_user.bcoins or 0 }}
-                        </a>
-                        <a href="{{ url_for('profile.submit_record') }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm">
-                            <span class="sm:hidden">Record</span>
-                            <span class="hidden sm:inline">Submit Record</span>
-                        </a>
-                        <a href="{{ url_for('profile.submit_level') }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm">
-                            <span class="sm:hidden">Level</span>
-                            <span class="hidden sm:inline">Submit Level</span>
-                        </a>
+<body>
+    <a href="#main-content" class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to content</a>
 
-                        <a href="{{ url_for('shop.black_market') }}" class="hidden lg:inline text-purple-400 hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Black Market</a>
-                    {% endif %}
-                    <details class="relative">
-                        <summary class="list-none cursor-pointer bg-slate-800 px-3 py-2 rounded text-white text-sm">Menu</summary>
-                    <div class="absolute right-0 mt-2 w-64 glass-panel rounded shadow-lg p-3 space-y-2">
-                        <div class="px-3 py-1 text-xs text-gray-400 border-b border-slate-700/50 mb-1">Other</div>
-                        <a href="{{ url_for('main.custom_lists') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Custom Lists</a>
-                        <a href="{{ url_for('main.clans') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Clans</a>
-                        <a href="{{ url_for('main.roulette') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Roulette</a>
-                        <a href="{{ url_for('main.events_list') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Events</a>
-                        <a href="{{ url_for('main.map_packs') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Map Packs</a>
-                        {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('shop.black_market') }}" class="block nav-link px-3 py-2 rounded-md text-sm text-purple-400">Black Market</a>
-                        {% endif %}
-                        <a href="{{ url_for('main.leaderboard') }}" class="block nav-link px-3 py-2 rounded-md text-sm lg:hidden">Leaderboard</a>
-                        <form action="{{ url_for('main.home') }}" method="GET" class="relative lg:hidden">
-                            <label for="search-mobile" class="sr-only">Search levels, players, clans</label>
-                            <input id="search-mobile" type="text" name="q" value="{{ request.args.get('q') or '' }}" placeholder="Search levels, players, clans..." aria-label="Search levels, players, clans" class="bg-slate-800 text-white text-sm rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </form>
-                        <div class="border-t border-slate-700 pt-2">
-                            {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('shop.inventory') }}" class="block nav-link px-3 py-2 rounded-md text-sm flex items-center gap-2">
-                                    <img src="{{ url_for('main.bcoin_png') }}" alt="" class="w-4 h-4 inline-block">
-                                    <span class="text-yellow-400 font-bold">{{ current_user.bcoins or 0 }}</span>
-                                </a>
-                                <a href="{{ url_for('shop.shop_list') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Shop</a>
-                                <a href="{{ url_for('profile.profile') }}" class="block nav-link px-3 py-2 rounded-md text-sm">{{ current_user.username }}</a>
-                                <a href="{{ url_for('profile.unbeaten_levels') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Unbeaten + Recommendations</a>
-                                <a href="{{ url_for('profile.settings') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Settings</a>
-                                {% if has_perm(current_user, 'access_admin') %}
-                                    {% set r = user_rank(current_user) %}
-                                    <a href="{{ url_for('admin.admin_dashboard') }}" class="block {{ 'text-red-400 hover:text-red-300' if r == 'admin' else 'text-purple-400 hover:text-purple-300' }} px-3 py-2 rounded-md text-sm">{{ 'Admin' if r == 'admin' else 'Staff Panel' }}</a>
-                                {% endif %}
-                                <a href="{{ url_for('auth.logout') }}" class="block text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm">Logout</a>
-                            {% else %}
-                                <a href="{{ url_for('auth.login') }}" class="block nav-link px-3 py-2 rounded-md text-sm">Login</a>
-                                <a href="{{ url_for('auth.register') }}" class="block bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm">Register</a>
-                            {% endif %}
-                        </div>
+    <!-- ── Navbar ──────────────────────────────────────────────── -->
+    <header class="navbar" role="banner">
+        <div class="navbar-left">
+            <a href="{{ url_for('main.home') }}" class="logo-brand">
+                <img src="{{ url_for('main.favicon_png') }}" alt="Logo" class="logo-icon">
+                <h1>The Bottom List</h1>
+            </a>
+
+            <!-- Desktop nav -->
+            <nav class="nav-links nav-links-desktop" role="navigation" aria-label="Main navigation">
+                <details class="nav-dropdown">
+                    <summary>The List <span class="nav-chevron">&#9662;</span></summary>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('main.home') }}">Main List</a>
+                        <a href="{{ url_for('main.challenge_list') }}">Challenge List</a>
+                        <a href="{{ url_for('main.platformer_list') }}">Platformer List</a>
+                        <a href="{{ url_for('main.unverified_list') }}">Unverified List</a>
+                        <div class="dropdown-sep"></div>
+                        <a href="{{ url_for('main.custom_lists') }}">Custom Lists</a>
                     </div>
-                    </details>
-                </div>
-            </div>
+                </details>
+                <a href="{{ url_for('main.roulette') }}">Roulette</a>
+                <a href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
+                <a href="{{ url_for('main.map_packs') }}">Map Packs</a>
+            </nav>
+
+            <!-- Desktop search -->
+            <form action="{{ url_for('main.home') }}" method="GET" class="search-form search-desktop">
+                <label for="search-desktop-input" class="sr-only" style="position:absolute;left:-9999px;">Search levels, players, clans</label>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+                <input id="search-desktop-input" type="text" name="q" value="{{ request.args.get('q') or '' }}" placeholder="Search levels, players, clans...">
+            </form>
         </div>
-    </nav>
 
-    <main id="main-content" class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
-        {{ messages_html|safe }}
-        {{ content_html|safe }}
+        <div class="navbar-right">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('shop.inventory') }}" class="bcoin-link" aria-label="{{ current_user.bcoins or 0 }} B-Coins">
+                <img src="{{ url_for('main.bcoin_png') }}" alt="B">
+                <span>{{ current_user.bcoins or 0 }}</span>
+            </a>
+            <a href="{{ url_for('shop.shop_list') }}" class="shop-link">Shop</a>
+            <a href="{{ url_for('profile.submit_record') }}" class="nav-btn nav-btn-green">Submit Record</a>
+            {% endif %}
+
+            <div class="avatar-container">
+                <button class="avatar-btn" id="avatarBtn" aria-label="User menu">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z"/></svg>
+                </button>
+                <div class="user-dropdown" id="userDropdown">
+                    {% if current_user.is_authenticated %}
+                        <div class="dd-header">Signed in as</div>
+                        <a href="{{ url_for('profile.profile') }}" style="color:#fff;font-weight:600;">{{ current_user.username }}</a>
+                        <div class="dd-sep"></div>
+                        <div class="dd-bcoin">
+                            <img src="{{ url_for('main.bcoin_png') }}" alt="B">
+                            {{ current_user.bcoins or 0 }} B-Coins
+                        </div>
+                        <a href="{{ url_for('profile.profile') }}">Profile</a>
+                        <a href="{{ url_for('profile.unbeaten_levels') }}">Unbeaten + Recommendations</a>
+                        <a href="{{ url_for('main.clans') }}">Clans</a>
+                        <a href="{{ url_for('profile.settings') }}">Settings</a>
+                        {% if has_perm(current_user, 'access_admin') %}
+                            {% set r = user_rank(current_user) %}
+                            <a href="{{ url_for('admin.admin_dashboard') }}" style="{% if r == 'admin' %}color:#f87171{% else %}color:#c084fc{% endif %}">{{ 'Admin' if r == 'admin' else 'Staff Panel' }}</a>
+                        {% endif %}
+                        <div class="dd-sep"></div>
+                        <a href="{{ url_for('auth.logout') }}" style="color:#888;">Sign out</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}">Log in</a>
+                        <a href="{{ url_for('auth.register') }}" style="color:#60a5fa;font-weight:600;">Register</a>
+                        <div class="dd-sep"></div>
+                        <a href="{{ url_for('main.clans') }}">Clans</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">&#9776;</button>
+        </div>
+    </header>
+
+    <!-- ── Mobile slide-out menu ────────────────────────────────── -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <div class="mobile-menu" id="mobileMenu" role="navigation" aria-label="Mobile navigation">
+        <div class="mm-section">Lists</div>
+        <a href="{{ url_for('main.home') }}">Main List</a>
+        <a href="{{ url_for('main.challenge_list') }}">Challenge List</a>
+        <a href="{{ url_for('main.platformer_list') }}">Platformer List</a>
+        <a href="{{ url_for('main.unverified_list') }}">Unverified List</a>
+        <a href="{{ url_for('main.custom_lists') }}">Custom Lists</a>
+        <div class="mm-sep"></div>
+        <div class="mm-section">Browse</div>
+        <a href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
+        <a href="{{ url_for('main.roulette') }}">Roulette</a>
+        <a href="{{ url_for('main.map_packs') }}">Map Packs</a>
+        <div class="mm-sep"></div>
+        <div class="mm-search">
+            <form action="{{ url_for('main.home') }}" method="GET">
+                <label for="mobile-search-input" class="sr-only" style="position:absolute;left:-9999px;">Search levels, players, clans</label>
+                <input id="mobile-search-input" type="text" name="q" value="{{ request.args.get('q') or '' }}" placeholder="Search levels, players, clans...">
+            </form>
+        </div>
+        <div class="mm-sep"></div>
+        {% if current_user.is_authenticated %}
+            <div class="mm-section">Account</div>
+            <a href="{{ url_for('profile.profile') }}">{{ current_user.username }}</a>
+            <a href="{{ url_for('profile.unbeaten_levels') }}">Unbeaten + Recommendations</a>
+            <a href="{{ url_for('shop.shop_list') }}">Shop</a>
+            <a href="{{ url_for('shop.black_market') }}">Black Market</a>
+            <a href="{{ url_for('main.clans') }}">Clans</a>
+            <a href="{{ url_for('profile.submit_record') }}">Submit Record</a>
+            <a href="{{ url_for('profile.submit_level') }}">Submit Level</a>
+            <a href="{{ url_for('profile.settings') }}">Settings</a>
+            {% if has_perm(current_user, 'access_admin') %}
+                {% set r = user_rank(current_user) %}
+                <a href="{{ url_for('admin.admin_dashboard') }}" style="{% if r == 'admin' %}color:#f87171{% else %}color:#c084fc{% endif %}">{{ 'Admin' if r == 'admin' else 'Staff Panel' }}</a>
+            {% endif %}
+            <div class="mm-sep"></div>
+            <a href="{{ url_for('auth.logout') }}" style="color:#888;">Sign out</a>
+        {% else %}
+            <div class="mm-section">Account</div>
+            <a href="{{ url_for('auth.login') }}">Log in</a>
+            <a href="{{ url_for('auth.register') }}" style="color:#60a5fa;">Register</a>
+        {% endif %}
+    </div>
+
+    <!-- ── Main content ────────────────────────────────────────── -->
+    <main id="main-content" class="main-area" role="main">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
-    <footer class="mt-auto border-t border-slate-800/60 bg-slate-950/30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-400 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="text-xs text-gray-500">Made for the community</div>
-                {% if footer_discord_url %}
-                <a href="{{ footer_discord_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 inline-flex items-center gap-2" aria-label="Join our Discord server (opens in new tab)">
-                <img src="{{ url_for('main.discord_icon_png') }}" alt="Discord icon" class="w-5 h-5">
-                <span>Discord</span>
+    <!-- ── Footer ──────────────────────────────────────────────── -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-text">Made for the community</div>
+            {% if footer_discord_url %}
+            <div class="footer-links">
+                <a href="{{ footer_discord_url }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('main.discord_icon_png') }}" alt="Discord">
+                    Discord
                 </a>
-                {% else %}
-                <span class="text-gray-500 inline-flex items-center gap-2 opacity-70">
-                    <img src="{{ url_for('main.discord_icon_png') }}" alt="Discord icon" class="w-5 h-5">
-                    <span>Discord link not set</span>
+            </div>
+            {% else %}
+            <div class="footer-links">
+                <span style="color:#555;font-size:12px;display:flex;align-items:center;gap:6px;">
+                    <img src="{{ url_for('main.discord_icon_png') }}" alt="Discord" style="width:16px;height:16px;opacity:0.5;">
+                    Discord link not set
                 </span>
-                {% endif %}
             </div>
-            <div class="text-xs text-gray-500 flex items-center justify-between">
-                <span>the bottom list is in no way affiliated with RobTopGamesAB &reg;</span>
-                <a href="{{ url_for('main.privacy') }}" class="text-blue-400 hover:text-blue-300">Privacy Policy</a>
-            </div>
+            {% endif %}
+        </div>
+        <div style="max-width:1100px;margin:10px auto 0;display:flex;justify-content:space-between;">
+            <span style="font-size:11px;color:#444;">the bottom list is in no way affiliated with RobTopGamesAB &reg;</span>
+            <a href="{{ url_for('main.privacy') }}" style="font-size:11px;color:#60a5fa;text-decoration:none;">Privacy Policy</a>
         </div>
     </footer>
-{% endif %}
 
-    <div id="cookie-consent" class="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 border-t border-slate-700 px-4 py-4 shadow-2xl hidden">
-        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="text-sm text-gray-300">
+    <!-- ── Cookie consent ──────────────────────────────────────── -->
+    <div class="cookie-banner" id="cookieBanner">
+        <div class="cookie-inner">
+            <div class="cookie-text">
                 This site uses minimal cookies for essential functionality (session, theme preference).
-                <a href="{{ url_for('main.privacy') }}" class="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>
+                <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-                <button id="cookie-decline" class="px-4 py-2 rounded bg-slate-700 text-sm text-gray-200 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Decline</button>
-                <button id="cookie-accept" class="px-4 py-2 rounded bg-blue-600 text-sm text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">Accept</button>
+            <div class="cookie-btns">
+                <button id="cookieDecline" class="cb-decline">Decline</button>
+                <button id="cookieAccept" class="cb-accept">Accept</button>
             </div>
         </div>
     </div>
 
+    <!-- ── Notification consent ─────────────────────────────────── -->
     {% if current_user.is_authenticated %}
-    <div id="notif-consent" class="fixed bottom-4 right-4 z-40 bg-slate-900/95 border border-slate-700 rounded-lg px-4 py-3 shadow-xl w-80 hidden">
-        <div class="text-sm font-semibold text-white">Enable notifications?</div>
-        <div class="text-xs text-gray-400 mt-1">
-            Allow browser notifications for some events (like roulette rooms). You can change this later in your browser.
-        </div>
-        <div class="mt-3 flex justify-end gap-2">
-            <button id="notif-deny" class="px-3 py-1 rounded bg-slate-700 text-xs text-gray-200 hover:bg-slate-600">No thanks</button>
-            <button id="notif-allow" class="px-3 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-500">Allow</button>
+    <div class="notif-banner" id="notifBanner">
+        <div class="nb-title">Enable notifications?</div>
+        <div class="nb-desc">Allow browser notifications for some events (like roulette rooms). You can change this later in your browser.</div>
+        <div class="nb-btns">
+            <button id="notifDeny" class="nb-deny">No thanks</button>
+            <button id="notifAllow" class="nb-allow">Allow</button>
         </div>
     </div>
     {% endif %}
 
-    <div id="ui-chooser" class="fixed inset-0 hidden items-center justify-center z-50">
-        <div class="absolute inset-0 bg-black/80"></div>
-        <div class="relative glass-panel p-6 rounded-lg w-[95%] max-w-3xl">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <div class="text-2xl font-bold text-white">Choose UI</div>
-                    <div class="text-sm text-gray-300 mt-1">Pick Nova or Aurora UI.</div>
-                </div>
-                <button id="ui-close" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded text-sm">Close</button>
+    <!-- ── Puzzle confirmation modal ────────────────────────────── -->
+    <div class="puzzle-overlay" id="puzzleModal">
+        <div class="puzzle-box">
+            <div class="puzzle-head">
+                <span>Confirm Action</span>
+                <button class="puzzle-close" id="puzzleClose">Close</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <div class="bg-slate-900/40 border border-slate-700 rounded-lg p-4">
-                    <div class="text-white font-semibold">Nova UI</div>
-                    <div class="text-xs text-gray-400 mt-1">Cleaner panels + stronger contrast</div>
-                    <div class="mt-4 rounded-lg overflow-hidden border border-slate-800">
-                        <div class="h-24 bg-gradient-to-br from-indigo-950 to-slate-900"></div>
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <button data-ui-preview="new" class="ui-preview bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded text-sm">Preview</button>
-                        <button data-ui-use="new" class="ui-use bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">Use</button>
-                    </div>
-                </div>
-                <div class="bg-slate-900/40 border border-slate-700 rounded-lg p-4">
-                    <div class="text-white font-semibold">Aurora UI</div>
-                    <div class="text-xs text-gray-400 mt-1">Deeper glow + elevated panels</div>
-                    <div class="mt-4 rounded-lg overflow-hidden border border-slate-800">
-                        <div class="h-24 bg-gradient-to-br from-purple-950 to-slate-900"></div>
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <button data-ui-preview="new2" class="ui-preview bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded text-sm">Preview</button>
-                        <button data-ui-use="new2" class="ui-use bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">Use</button>
-                    </div>
-                </div>
+            <div class="puzzle-info">Solve the puzzle to continue. Steps left: <b id="puzzleLeft">10</b></div>
+            <div class="puzzle-instr">Click: <b id="puzzleTarget">square</b></div>
+            <div class="puzzle-grid" id="puzzleGrid">
+                <button type="button" class="puzzle-shape" data-shape="square" style="border-radius:4px;"></button>
+                <button type="button" class="puzzle-shape" data-shape="circle" style="border-radius:50%;"></button>
+                <button type="button" class="puzzle-shape" data-shape="triangle" style="clip-path:polygon(50% 0%,0% 100%,100% 100%);border-radius:4px;"></button>
+                <button type="button" class="puzzle-shape" data-shape="diamond" style="clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);border-radius:4px;"></button>
+                <button type="button" class="puzzle-shape" data-shape="hex" style="clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);border-radius:4px;"></button>
             </div>
-            <div class="mt-5 text-xs text-gray-400">You can change this later from Settings.</div>
+            <div class="puzzle-error" id="puzzleError">Wrong shape.</div>
         </div>
     </div>
 
-    <div id="puzzle-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50 p-4">
-        <div class="glass-panel rounded-lg p-6 max-w-lg w-full">
-            <div class="flex items-center justify-between gap-3 mb-3">
-                <div class="text-lg font-bold text-white">Confirm Action</div>
-                <button type="button" id="puzzle-close" class="text-gray-300 hover:text-white text-sm">Close</button>
-            </div>
-            <div class="text-sm text-gray-400 mb-4">
-                Solve the puzzle to continue. Steps left: <span id="puzzle-left" class="text-white font-bold">10</span>
-            </div>
-            <div class="text-sm text-gray-300 mb-3">
-                Click: <span id="puzzle-target" class="text-blue-300 font-bold">square</span>
-            </div>
-            <div id="puzzle-grid" class="grid grid-cols-5 gap-3">
-                <button type="button" class="puzzle-shape h-12 rounded bg-slate-900/60 border border-slate-700" data-shape="square"></button>
-                <button type="button" class="puzzle-shape h-12 rounded-full bg-slate-900/60 border border-slate-700" data-shape="circle"></button>
-                <button type="button" class="puzzle-shape h-12 bg-slate-900/60 border border-slate-700" data-shape="triangle" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border-radius: 8px;"></button>
-                <button type="button" class="puzzle-shape h-12 bg-slate-900/60 border border-slate-700" data-shape="diamond" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); border-radius: 8px;"></button>
-                <button type="button" class="puzzle-shape h-12 bg-slate-900/60 border border-slate-700" data-shape="hex" style="clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border-radius: 8px;"></button>
-            </div>
-            <div id="puzzle-error" class="hidden text-sm text-red-400 mt-3">Wrong shape.</div>
-        </div>
-    </div>
-
+    <!-- ── Scripts ──────────────────────────────────────────────── -->
     <script>
-        (function() {
-            function getCookie(name) {
-                const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&') + '=([^;]*)'))
-                return match ? decodeURIComponent(match[1]) : ''
+    (function() {
+        /* Avatar dropdown */
+        var avatarBtn = document.getElementById('avatarBtn');
+        var userDD = document.getElementById('userDropdown');
+        if (avatarBtn && userDD) {
+            avatarBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDD.classList.toggle('open');
+            });
+        }
+
+        /* Close dropdowns on outside click */
+        document.addEventListener('click', function() {
+            if (userDD) userDD.classList.remove('open');
+            document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.removeAttribute('open'); });
+        });
+        document.querySelectorAll('.nav-dropdown > summary').forEach(function(s) {
+            s.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var dd = s.parentElement;
+                var wasOpen = dd.hasAttribute('open');
+                document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.removeAttribute('open'); });
+                if (!wasOpen) dd.setAttribute('open', '');
+            });
+        });
+
+        /* Hamburger mobile menu */
+        var hamburger = document.getElementById('hamburgerBtn');
+        var overlay = document.getElementById('mobileOverlay');
+        var mobileMenu = document.getElementById('mobileMenu');
+        function openMobile() {
+            overlay.classList.add('open');
+            mobileMenu.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobile() {
+            overlay.classList.remove('open');
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        if (hamburger) hamburger.addEventListener('click', openMobile);
+        if (overlay) overlay.addEventListener('click', closeMobile);
+
+        /* Cookie consent */
+        var cb = document.getElementById('cookieBanner');
+        if (cb && !document.cookie.match(/(?:^|; )cookie_consent=/)) {
+            cb.classList.add('show');
+            document.getElementById('cookieAccept').addEventListener('click', function() {
+                document.cookie = 'cookie_consent=accepted; max-age=' + (365*24*60*60) + '; path=/; SameSite=Lax';
+                cb.classList.remove('show');
+            });
+            document.getElementById('cookieDecline').addEventListener('click', function() {
+                document.cookie = 'cookie_consent=declined; max-age=' + (365*24*60*60) + '; path=/; SameSite=Lax';
+                cb.classList.remove('show');
+            });
+        }
+
+        /* Notification consent */
+        var nb = document.getElementById('notifBanner');
+        if (nb && 'Notification' in window && Notification.permission === 'default' && !localStorage.getItem('notif_consent_dismissed')) {
+            nb.classList.add('show');
+            document.getElementById('notifDeny').addEventListener('click', function() {
+                nb.classList.remove('show');
+                localStorage.setItem('notif_consent_dismissed', '1');
+            });
+            document.getElementById('notifAllow').addEventListener('click', function() {
+                Notification.requestPermission();
+                nb.classList.remove('show');
+                localStorage.setItem('notif_consent_dismissed', '1');
+            });
+        }
+
+        /* Puzzle modal */
+        var puzzleModal = document.getElementById('puzzleModal');
+        var puzzleClose = document.getElementById('puzzleClose');
+        var shapes = ['square', 'circle', 'triangle', 'diamond', 'hex'];
+        var puzzleSteps = 10;
+        var puzzleCurrent = '';
+
+        function newPuzzleRound() {
+            puzzleCurrent = shapes[Math.floor(Math.random() * shapes.length)];
+            document.getElementById('puzzleTarget').textContent = puzzleCurrent;
+            document.getElementById('puzzleLeft').textContent = puzzleSteps;
+            document.getElementById('puzzleError').classList.remove('show');
+        }
+
+        if (puzzleClose) puzzleClose.addEventListener('click', function() {
+            puzzleModal.classList.remove('open');
+        });
+
+        document.querySelectorAll('.puzzle-shape').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (btn.getAttribute('data-shape') === puzzleCurrent) {
+                    puzzleSteps--;
+                    if (puzzleSteps <= 0) {
+                        puzzleModal.classList.remove('open');
+                        puzzleSteps = 10;
+                        document.dispatchEvent(new Event('puzzle-solved'));
+                    } else {
+                        newPuzzleRound();
+                    }
+                } else {
+                    document.getElementById('puzzleError').classList.add('show');
+                }
+            });
+        });
+
+        window.showPuzzle = function(callback) {
+            puzzleSteps = 10;
+            newPuzzleRound();
+            puzzleModal.classList.add('open');
+            if (callback) {
+                document.addEventListener('puzzle-solved', function handler() {
+                    document.removeEventListener('puzzle-solved', handler);
+                    callback();
+                });
             }
-            function setCookie(name, value, days) {
-                const d = new Date()
-                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000))
-                document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/; SameSite=Lax`
-            }
-            const root = document.documentElement
-            const chooser = document.getElementById('ui-chooser')
-            const closeBtn = document.getElementById('ui-close')
-            const chosen = getCookie('ui_version')
-            const hasUserPref = Boolean({{ (current_user.is_authenticated and current_user.ui_version)|tojson }})
-            if (!chosen && !hasUserPref && chooser) {
-                chooser.classList.remove('hidden')
-                chooser.classList.add('flex')
-            }
-            function hideChooser() {
-                if (!chooser) return
-                chooser.classList.add('hidden')
-                chooser.classList.remove('flex')
-            }
-            if (closeBtn) closeBtn.addEventListener('click', hideChooser)
-            for (const btn of document.querySelectorAll('.ui-preview')) {
-                btn.addEventListener('click', () => {
-                    const v = btn.getAttribute('data-ui-preview') || 'new'
-                    root.setAttribute('data-ui', v)
-                })
-            }
-            for (const btn of document.querySelectorAll('.ui-use')) {
-                btn.addEventListener('click', () => {
-                    const v = btn.getAttribute('data-ui-use') || 'new'
-                    setCookie('ui_version', v, 365)
-                    root.setAttribute('data-ui', v)
-                    hideChooser()
-                    try { window.location.reload() } catch (e) {}
-                })
-            }
-        })()
-        ;(function() {
-            var ck = document.getElementById('cookie-consent')
-            if (ck && !document.cookie.match(/(?:^|; )cookie_consent=/)) {
-                ck.classList.remove('hidden')
-                document.getElementById('cookie-accept')?.addEventListener('click', function() {
-                    document.cookie = 'cookie_consent=accepted; max-age=' + (365*24*60*60) + '; path=/; SameSite=Lax'
-                    ck.classList.add('hidden')
-                })
-                document.getElementById('cookie-decline')?.addEventListener('click', function() {
-                    document.cookie = 'cookie_consent=declined; max-age=' + (365*24*60*60) + '; path=/; SameSite=Lax'
-                    ck.classList.add('hidden')
-                })
-            }
-        })()
-        ;(function() {
-            if (!('Notification' in window)) return
-            const consent = document.getElementById('notif-consent')
-            if (!consent) return
-            if (Notification.permission === 'granted' || Notification.permission === 'denied') return
-            if (localStorage.getItem('notif_consent_dismissed')) return
-            consent.classList.remove('hidden')
-            document.getElementById('notif-deny')?.addEventListener('click', () => {
-                consent.classList.add('hidden')
-                localStorage.setItem('notif_consent_dismissed', '1')
-            })
-            document.getElementById('notif-allow')?.addEventListener('click', () => {
-                Notification.requestPermission()
-                consent.classList.add('hidden')
-                localStorage.setItem('notif_consent_dismissed', '1')
-            })
-        })()
+        };
+    })();
     </script>
-    {% block scripts %}
-
-
-
-{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

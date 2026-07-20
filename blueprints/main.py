@@ -8,6 +8,7 @@ import random
 from flask import (Blueprint, render_template, redirect, url_for, flash,
                    request, abort, session, jsonify, send_file, send_from_directory, Response, make_response, send_file as flask_send_file)
 from flask_login import login_required, current_user
+from sqlalchemy import func, desc, asc, nullslast
 
 from config import db
 from models import (Level, Record, User, Clan, NewsPost, Event, MapPack,
@@ -18,6 +19,50 @@ from auxiliary.discord_webhooks import add_site_log
 import os
 
 main_bp = Blueprint('main', __name__)
+
+SORT_OPTIONS = {
+    'position': ('Default', Level.position.asc().nullslast()),
+    'enjoy': ('Enjoyment', None),
+    'deco': ('Deco', None),
+    'gp': ('Gameplay', None),
+    'players': ('Players', None),
+}
+
+def _sorted_levels_query(base_query, sort_key, list_type=None, is_verified=True):
+    """Extend *base_query* with the requested sort. Returns an SQLAlchemy query."""
+    q = base_query
+    if list_type is not None:
+        q = q.filter(Level.list_type == list_type)
+    if is_verified is not None:
+        q = q.filter(Level.is_verified == is_verified)
+
+    if sort_key == 'position' or sort_key not in SORT_OPTIONS:
+        return q.order_by(Level.position.asc().nullslast(), Level.id.asc())
+
+    # Subqueries for computed columns
+    _avg_rating = lambda col: (
+        db.session.query(Record.level_id, func.avg(col).label('val'))
+        .filter(Record.status == 'approved', col.isnot(None))
+        .group_by(Record.level_id)
+        .subquery()
+    )
+    _count_sq = (
+        db.session.query(Record.level_id, func.count(Record.id).label('val'))
+        .filter(Record.status == 'approved')
+        .group_by(Record.level_id)
+        .subquery()
+    )
+
+    sq_map = {
+        'enjoy': _avg_rating(Record.rating_difficulty),
+        'deco': _avg_rating(Record.rating_deco),
+        'gp': _avg_rating(Record.rating_gameplay),
+        'players': _count_sq,
+    }
+    sq = sq_map[sort_key]
+    q = q.outerjoin(sq, sq.c.level_id == Level.id)
+    q = q.order_by(desc(func.coalesce(sq.c.val, 0)), Level.position.asc().nullslast(), Level.id.asc())
+    return q
 
 
 # ── Home / Main list ──────────────────────────────────────────────────────────
@@ -38,7 +83,7 @@ def home():
         'Technical', 'Consistency', 'Endurance', 'Straight Fly', 'Click Pattern',
         'Low Refresh Friendly',
     ]
-    from settings_helpers import get_setting
+    from auxiliary.settings_helpers import get_setting
     hide_categories = str(get_setting('hide_categories_on_main_list') or '').strip().lower() in ('1', 'true', 'yes', 'on')
 
     def has_all_categories(level, cats):
@@ -51,6 +96,9 @@ def home():
                 return False
         return True
 
+    sort = (request.args.get('sort') or 'position').strip().lower()
+    if sort not in SORT_OPTIONS:
+        sort = 'position'
     is_search = bool(query or selected_cats)
 
     if query:
@@ -70,50 +118,115 @@ def home():
         resp = make_response(render_template('index.html', levels=base, users=users, clans=clans, map_packs=map_packs_res,
                                search_query=q, is_search=is_search, all_categories=all_categories,
                                selected_cats=selected_cats, news_posts=news_posts, events=events,
-                               hide_categories_on_main_list=hide_categories, pagination=None))
+                               hide_categories_on_main_list=hide_categories, pagination=None,
+                               current_sort=sort))
         return resp
 
-    levels = cache_get('levels:main:verified')
-    if levels is None:
-        levels = Level.query.filter_by(is_verified=True, list_type='main').order_by(Level.position).all()
-        cache_set('levels:main:verified', levels, 20)
-    if selected_cats:
-        levels = [lv for lv in levels if has_all_categories(lv, selected_cats)]
+    if sort == 'position':
+        levels = cache_get('levels:main:verified')
+        if levels is None:
+            levels = Level.query.filter_by(is_verified=True, list_type='main').order_by(Level.position).all()
+            cache_set('levels:main:verified', levels, 20)
+        if selected_cats:
+            levels = [lv for lv in levels if has_all_categories(lv, selected_cats)]
+        total = len(levels)
+        pages = max(1, (total + per_page - 1) // per_page)
+        page = min(page, pages)
+        start = (page - 1) * per_page
+        levels_page = levels[start:start + per_page]
+    else:
+        base_q = _sorted_levels_query(Level.query, sort, list_type='main', is_verified=True)
+        if selected_cats:
+            all_levels = base_q.all()
+            all_levels = [lv for lv in all_levels if has_all_categories(lv, selected_cats)]
+            total = len(all_levels)
+            pages = max(1, (total + per_page - 1) // per_page)
+            page = min(page, pages)
+            start = (page - 1) * per_page
+            levels_page = all_levels[start:start + per_page]
+        else:
+            total_q = base_q.count()
+            total = total_q
+            pages = max(1, (total + per_page - 1) // per_page)
+            page = min(page, pages)
+            levels_page = base_q.offset(start).limit(per_page).all()
+
     news_posts = cache_get('news:latest5')
     if news_posts is None:
         news_posts = NewsPost.query.order_by(NewsPost.created_at.desc()).limit(5).all()
         cache_set('news:latest5', news_posts, 20)
     events = Event.query.filter_by(is_published=True).order_by(Event.starts_at.desc().nullslast(), Event.created_at.desc()).limit(3).all()
-    total = len(levels)
-    pages = max(1, (total + per_page - 1) // per_page)
-    page = min(page, pages)
-    start = (page - 1) * per_page
-    levels_page = levels[start:start + per_page]
     pagination = {'page': page, 'pages': pages, 'has_prev': page > 1, 'has_next': page < pages,
                   'prev_num': page - 1, 'next_num': page + 1}
     resp = make_response(render_template('index.html', levels=levels_page, users=[], clans=[], map_packs=[],
                            is_search=is_search, all_categories=all_categories, selected_cats=selected_cats,
                            news_posts=news_posts, events=events, hide_categories_on_main_list=hide_categories,
-                           pagination=pagination))
+                           pagination=pagination, current_sort=sort))
     return resp
 
 
 @main_bp.route('/challenges')
 def challenge_list():
     page = max(1, request.args.get('page', 1, type=int))
-    pagination = Level.query.filter_by(is_verified=True, list_type='challenge').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
-    return render_template('challenge_list.html', levels=pagination.items, pagination=pagination)
+    sort = (request.args.get('sort') or 'position').strip().lower()
+    if sort not in SORT_OPTIONS:
+        sort = 'position'
+    if sort == 'position':
+        pagination = Level.query.filter_by(is_verified=True, list_type='challenge').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
+        levels_page = pagination.items
+        has_prev = pagination.has_prev
+        has_next = pagination.has_next
+        prev_num = pagination.prev_num
+        next_num = pagination.next_num
+        total_pages = pagination.pages
+    else:
+        base_q = _sorted_levels_query(Level.query, sort, list_type='challenge', is_verified=True)
+        total = base_q.count()
+        total_pages = max(1, (total + 39) // 40)
+        page = min(page, total_pages)
+        start = (page - 1) * 40
+        levels_page = base_q.offset(start).limit(40).all()
+        has_prev = page > 1
+        has_next = page < total_pages
+        prev_num = page - 1
+        next_num = page + 1
+    pagination = {'page': page, 'pages': total_pages, 'has_prev': has_prev, 'has_next': has_next,
+                  'prev_num': prev_num, 'next_num': next_num}
+    return render_template('challenge_list.html', levels=levels_page, pagination=pagination, current_sort=sort)
 
 
 @main_bp.route('/platformer')
 def platformer_list():
     page = max(1, request.args.get('page', 1, type=int))
-    pagination_obj = Level.query.filter_by(is_verified=True, list_type='platformer').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
-    return render_template('index.html', levels=pagination_obj.items, is_search=False, all_categories=[],
+    sort = (request.args.get('sort') or 'position').strip().lower()
+    if sort not in SORT_OPTIONS:
+        sort = 'position'
+    if sort == 'position':
+        pagination_obj = Level.query.filter_by(is_verified=True, list_type='platformer').order_by(Level.position).paginate(page=page, per_page=40, error_out=False)
+        levels_page = pagination_obj.items
+        has_prev = pagination_obj.has_prev
+        has_next = pagination_obj.has_next
+        prev_num = pagination_obj.prev_num
+        next_num = pagination_obj.next_num
+        total_pages = pagination_obj.pages
+    else:
+        base_q = _sorted_levels_query(Level.query, sort, list_type='platformer', is_verified=True)
+        total = base_q.count()
+        total_pages = max(1, (total + 39) // 40)
+        page = min(page, total_pages)
+        start = (page - 1) * 40
+        levels_page = base_q.offset(start).limit(40).all()
+        has_prev = page > 1
+        has_next = page < total_pages
+        prev_num = page - 1
+        next_num = page + 1
+    pagination = {'page': page, 'pages': total_pages, 'has_prev': has_prev, 'has_next': has_next,
+                  'prev_num': prev_num, 'next_num': next_num}
+    return render_template('index.html', levels=levels_page, is_search=False, all_categories=[],
                            selected_cats=[], news_posts=[], hide_categories_on_main_list=True,
                            show_home_header=False, list_title='Platformer List',
                            empty_message='No platformer levels verified yet.', list_accent='purple',
-                           pagination=pagination_obj)
+                           pagination=pagination, current_sort=sort)
 
 
 @main_bp.route('/unverified')

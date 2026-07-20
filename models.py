@@ -46,12 +46,6 @@ class User(UserMixin, db.Model):
     equipped_deco_item_id = db.Column(db.Integer, db.ForeignKey('shop_item.id'), nullable=True)
     api_token = db.Column(db.String(128), unique=True, nullable=True)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
-    ui_version = db.Column(db.String(20), nullable=True)
-    ui_template_slug = db.Column(db.String(80), nullable=True)
-    ui_custom_mode = db.Column(db.String(20), nullable=True)
-    ui_custom_script = db.Column(db.Text, nullable=True)
-    theme_accent = db.Column(db.String(32), nullable=True)
-    theme_accent_bg = db.Column(db.String(32), nullable=True)
     last_seen_at = db.Column(db.DateTime, nullable=True)
     guidelines_accepted_at = db.Column(db.DateTime, nullable=True)
     register_ip = db.Column(db.String(100), nullable=True)
@@ -234,14 +228,6 @@ class Clue(db.Model):
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=utcnow)
 
-
-class UiTemplate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(80), unique=True, nullable=False)
-    html_content = db.Column(db.Text, nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=utcnow)
 
 class SparkyImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
