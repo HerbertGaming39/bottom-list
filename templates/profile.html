@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 
+{% block head %}
+{% set eq_bg = equipped_items.get(user.equipped_background_item_id) if user.equipped_background_item_id else None %}
+{% if eq_bg %}
+<style>.main-area { background-color: transparent !important; }</style>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 {% if profile_blurred %}
 <style>.profile-blur { filter: blur(8px); opacity: 0.5; pointer-events: none; user-select: none; transition: filter 0.3s, opacity 0.3s; }

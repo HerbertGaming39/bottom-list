@@ -157,7 +157,9 @@
             transform: translateY(-50%);
             width: 16px;
             height: 16px;
-            fill: #666;
+            fill: #888;
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* Right side */
@@ -197,6 +199,8 @@
         }
         .nav-btn-green { background: #16a34a; color: #fff; }
         .nav-btn-green:hover { background: #15803d; }
+        .nav-btn-purple { background: #7c3aed; color: #fff; }
+        .nav-btn-purple:hover { background: #6d28d9; }
 
         /* User avatar */
         .avatar-container { position: relative; }
@@ -648,6 +652,7 @@
             </a>
             <a href="{{ url_for('shop.shop_list') }}" class="shop-link">Shop</a>
             <a href="{{ url_for('profile.submit_record') }}" class="nav-btn nav-btn-green">Submit Record</a>
+            <a href="{{ url_for('profile.submit_level') }}" class="nav-btn nav-btn-purple">Submit Level</a>
             {% endif %}
 
             <div class="avatar-container">
