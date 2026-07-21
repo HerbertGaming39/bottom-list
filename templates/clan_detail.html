@@ -109,7 +109,7 @@
                 <div class="space-y-2">
                     {% for r in join_requests %}
                     <div class="flex items-center justify-between gap-3 bg-slate-900/40 border border-slate-800 rounded px-3 py-2">
-                        <a href="{{ url_for('profile.user_profile', user_id=user.id) }}" class="text-gray-200 hover:text-white font-semibold">{{ r.user.username }}</a>
+                        <a href="{{ url_for('profile.user_profile', user_id=r.user.id) }}" class="text-gray-200 hover:text-white font-semibold">{{ r.user.username }}</a>
                         <div class="flex gap-2">
                             <form method="POST" action="" class="inline-flex">
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
