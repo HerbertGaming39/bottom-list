@@ -29,9 +29,7 @@
             <p class="text-gray-400">{% if is_self or (current_user.is_authenticated and has_perm(current_user, 'access_admin')) %}Rank: {{ rank_label(user_rank(user)) }}{% endif %}</p>
             {% if user.clan %}
             <p class="text-gray-400">Clan: <a href="{{ url_for('main.clan_detail', clan_id=user.clan.id) }}" class="text-gray-200 font-semibold hover:underline">{{ user.clan.name }}</a></p>
-{% endif %}
-
-{% endblock %}
+            {% endif %}
 
             <div class="flex space-x-4 mt-3">
                 {% if user.youtube_link %}
@@ -150,8 +148,8 @@
                     <span class="text-gray-400">({{ record_completion_percentage }}%)</span>
                     <span class="text-gray-500">Record Completion</span>
                 </div>
-                {% endif %}
-                
+{% endif %}
+
                 {% if total_submissions_count > 0 %}
                 <div class="text-sm">
                     <span class="text-purple-400 font-bold">{{ approved_submissions_count }}/{{ total_submissions_count }}</span>
@@ -373,4 +371,4 @@
 </div>
 {% endif %}
 
-
+{% endblock %}
