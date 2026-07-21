@@ -57,6 +57,19 @@ class User(UserMixin, db.Model):
     scheduled_deletion_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=utcnow)
 
+    @property
+    def avatar_url(self):
+        """Return the resolved avatar image URL (equipped item > uploaded file > None)."""
+        from flask import url_for
+        if self.equipped_avatar_item_id:
+            from models import ShopItem
+            item = ShopItem.query.get(self.equipped_avatar_item_id)
+            if item and item.image_filename:
+                return url_for('static', filename='shop_images/' + item.image_filename)
+        if self.avatar_filename:
+            return url_for('static', filename='profile_media/' + self.avatar_filename)
+        return None
+
 class NewsPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -263,6 +276,18 @@ class UserBlock(db.Model):
     blocker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     blocked_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow)
+    block_options = db.Column(db.Text, nullable=True, default='{}')
     blocker = db.relationship('User', foreign_keys=[blocker_id], backref=db.backref('blocking', lazy=True))
     blocked = db.relationship('User', foreign_keys=[blocked_id], backref=db.backref('blocked_by', lazy=True))
     __table_args__ = (db.UniqueConstraint('blocker_id', 'blocked_id', name='uq_user_block'),)
+
+    @property
+    def options(self):
+        import json
+        try:
+            return json.loads(self.block_options or '{}')
+        except Exception:
+            return {}
+
+    def has_option(self, key):
+        return self.options.get(key, True)

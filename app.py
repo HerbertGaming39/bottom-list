@@ -405,6 +405,7 @@ def _inject_rank_helpers():
         'disable_thumbnails': disable_thumbs,
         'footer_discord_url': str(get_setting('footer_discord_url') or '').strip(),
         'april_fools_enabled': _setting_truthy('april_fools_enabled'),
+        'current_user_avatar_url': getattr(current_user, 'avatar_url', None) if getattr(current_user, 'is_authenticated', False) else None,
     }
 
 

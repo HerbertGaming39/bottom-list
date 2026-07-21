@@ -95,13 +95,22 @@ def leaderboard_rows(view: str, list_type: str, sort_by: str, filter_device: str
 
 
 def filter_blocked_from_leaderboard(users, current_user_id):
-    """Remove blocked users from a leaderboard user list."""
+    """Remove users blocked with hide_leaderboard from a leaderboard user list."""
     if not current_user_id:
         return users
-    blocked_ids = {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user_id).all()}
-    if not blocked_ids:
+    import json
+    blocks = UserBlock.query.filter_by(blocker_id=current_user_id).all()
+    hide_ids = set()
+    for b in blocks:
+        try:
+            opts = json.loads(b.block_options or '{}')
+        except Exception:
+            opts = {}
+        if opts.get('hide_leaderboard', True):
+            hide_ids.add(b.blocked_id)
+    if not hide_ids:
         return users
-    return [u for u in users if u.id not in blocked_ids]
+    return [u for u in users if u.id not in hide_ids]
 
 
 @leaderboard_bp.route('/leaderboard/user/<int:user_id>/details')

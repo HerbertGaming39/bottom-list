@@ -113,8 +113,12 @@ def user_profile(user_id):
     equipped_ids = [id for id in [user.equipped_avatar_item_id, user.equipped_background_item_id, user.equipped_deco_item_id] if id]
     equipped_items = {i.id: i for i in ShopItem.query.filter(ShopItem.id.in_(equipped_ids)).all()} if equipped_ids else {}
     blocked_user_ids = set()
+    profile_blurred = False
     if getattr(current_user, 'is_authenticated', False):
         blocked_user_ids = {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user.id).all()}
+        block_entry = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user.id).first()
+        if block_entry:
+            profile_blurred = block_entry.has_option('hide_profile')
     return render_template('profile.html',
                            user=user,
                            records=records,
@@ -148,7 +152,8 @@ def user_profile(user_id):
                            rejected_record_notifs=rejected_record_notifs,
                            approved_submission_notifs=approved_submission_notifs,
                            rejected_submission_notifs=rejected_submission_notifs,
-                           blocked_user_ids=blocked_user_ids)
+                            blocked_user_ids=blocked_user_ids,
+                            profile_blurred=profile_blurred)
 
 
 # ── Edit profile ──────────────────────────────────────────────────────────────
@@ -663,15 +668,25 @@ def export_my_data():
 @profile_bp.route('/user/<int:user_id>/block', methods=['POST'])
 @login_required
 def block_user(user_id):
+    import json
     from utils.security import validate_csrf
     validate_csrf()
     if user_id == current_user.id:
         flash('You cannot block yourself.', 'warning')
         return redirect(url_for('profile.user_profile', user_id=user_id))
     target = User.query.get_or_404(user_id)
+    options = json.dumps({
+        'hide_levels': bool(request.form.get('hide_levels')),
+        'hide_leaderboard': bool(request.form.get('hide_leaderboard')),
+        'hide_profile': bool(request.form.get('hide_profile')),
+    })
     existing = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user_id).first()
-    if not existing:
-        db.session.add(UserBlock(blocker_id=current_user.id, blocked_id=user_id))
+    if existing:
+        existing.block_options = options
+        db.session.commit()
+        flash(f'Block settings updated for {target.username}.', 'success')
+    else:
+        db.session.add(UserBlock(blocker_id=current_user.id, blocked_id=user_id, block_options=options))
         db.session.commit()
         flash(f'Blocked {target.username}.', 'success')
     return redirect(url_for('profile.user_profile', user_id=user_id))
@@ -690,12 +705,30 @@ def unblock_user(user_id):
     return redirect(url_for('profile.user_profile', user_id=user_id))
 
 
+@profile_bp.route('/user/<int:user_id>/update-block', methods=['POST'])
+@login_required
+def update_block(user_id):
+    import json
+    from utils.security import validate_csrf
+    validate_csrf()
+    block = UserBlock.query.filter_by(blocker_id=current_user.id, blocked_id=user_id).first()
+    if block:
+        block.block_options = json.dumps({
+            'hide_levels': bool(request.form.get('hide_levels')),
+            'hide_leaderboard': bool(request.form.get('hide_leaderboard')),
+            'hide_profile': bool(request.form.get('hide_profile')),
+        })
+        db.session.commit()
+        flash('Block settings updated.', 'success')
+    return redirect(url_for('profile.blocked_users'))
+
+
 @profile_bp.route('/settings/blocked')
 @login_required
 def blocked_users():
     blocks = UserBlock.query.filter_by(blocker_id=current_user.id).all()
-    blocked_users_list = [b.blocked for b in blocks]
-    all_blocked = blocked_users_list + [current_user]
-    equipped_ids = [u.equipped_avatar_item_id for u in all_blocked if u.equipped_avatar_item_id]
+    blocked_users_list = [{'user': b.blocked, 'options': b.options} for b in blocks]
+    all_users = [entry['user'] for entry in blocked_users_list] + [current_user]
+    equipped_ids = [u.equipped_avatar_item_id for u in all_users if u.equipped_avatar_item_id]
     equipped_items = {i.id: i for i in ShopItem.query.filter(ShopItem.id.in_(equipped_ids)).all()} if equipped_ids else {}
     return render_template('blocked_users.html', blocked_users_list=blocked_users_list, equipped_items=equipped_items)

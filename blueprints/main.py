@@ -22,10 +22,28 @@ main_bp = Blueprint('main', __name__)
 
 
 def _blocked_user_ids():
-    """Return set of user IDs blocked by the current user."""
+    """Return dict {blocked_user_id: block_options_dict} for the current user."""
     if not getattr(current_user, 'is_authenticated', False):
-        return set()
-    return {b.blocked_id for b in UserBlock.query.filter_by(blocker_id=current_user.id).all()}
+        return {}
+    import json
+    blocks = UserBlock.query.filter_by(blocker_id=current_user.id).all()
+    result = {}
+    for b in blocks:
+        try:
+            result[b.blocked_id] = json.loads(b.block_options or '{}')
+        except Exception:
+            result[b.blocked_id] = {}
+    return result
+
+def _blocked_creator_names(opts_dict):
+    """Given {user_id: options} dict, return {username_lower: options} for users with hide_levels."""
+    if not opts_dict:
+        return {}
+    ids = [uid for uid, opts in opts_dict.items() if opts.get('hide_levels', True)]
+    if not ids:
+        return {}
+    users = User.query.filter(User.id.in_(ids)).all()
+    return {u.username.lower(): opts_dict[u.id] for u in users}
 
 SORT_OPTIONS = {
     'position': ('Default', Level.position.asc().nullslast()),
@@ -134,9 +152,9 @@ def home():
         if levels is None:
             levels = Level.query.filter_by(is_verified=True, list_type='main').order_by(Level.position).all()
             cache_set('levels:main:verified', levels, 20)
-        blocked_ids = _blocked_user_ids()
-        if blocked_ids:
-            blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()}
+        blocked_opts = _blocked_user_ids()
+        if blocked_opts:
+            blocked_names = _blocked_creator_names(blocked_opts)
             levels = [lv for lv in levels if lv.creator.lower() not in blocked_names]
         if selected_cats:
             levels = [lv for lv in levels if has_all_categories(lv, selected_cats)]
@@ -147,10 +165,8 @@ def home():
         levels_page = levels[start:start + per_page]
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='main', is_verified=True)
-        blocked_ids = _blocked_user_ids()
-        blocked_names = set()
-        if blocked_ids:
-            blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()}
+        blocked_opts = _blocked_user_ids()
+        blocked_names = _blocked_creator_names(blocked_opts)
         if selected_cats:
             all_levels = base_q.all()
             all_levels = [lv for lv in all_levels if has_all_categories(lv, selected_cats)]
@@ -162,9 +178,10 @@ def home():
             start = (page - 1) * per_page
             levels_page = all_levels[start:start + per_page]
         else:
-            if blocked_names:
+            hide_ids = [uid for uid, opts in blocked_opts.items() if opts.get('hide_levels', True)]
+            if hide_ids:
                 base_q = base_q.filter(~Level.creator.in_(
-                    [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+                    [u.username for u in User.query.filter(User.id.in_(hide_ids)).all()]
                 ))
             total_q = base_q.count()
             total = total_q
@@ -193,8 +210,8 @@ def challenge_list():
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
-    blocked_ids = _blocked_user_ids()
-    blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()} if blocked_ids else set()
+    blocked_opts = _blocked_user_ids()
+    blocked_names = _blocked_creator_names(blocked_opts)
     if sort == 'position':
         levels = Level.query.filter_by(is_verified=True, list_type='challenge').order_by(Level.position).all()
         if blocked_names:
@@ -210,9 +227,10 @@ def challenge_list():
         next_num = page + 1
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='challenge', is_verified=True)
-        if blocked_names:
+        hide_ids = [uid for uid, opts in blocked_opts.items() if opts.get('hide_levels', True)]
+        if hide_ids:
             base_q = base_q.filter(~Level.creator.in_(
-                [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+                [u.username for u in User.query.filter(User.id.in_(hide_ids)).all()]
             ))
         total = base_q.count()
         total_pages = max(1, (total + 39) // 40)
@@ -234,8 +252,8 @@ def platformer_list():
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
-    blocked_ids = _blocked_user_ids()
-    blocked_names = {u.username.lower() for u in User.query.filter(User.id.in_(blocked_ids)).all()} if blocked_ids else set()
+    blocked_opts = _blocked_user_ids()
+    blocked_names = _blocked_creator_names(blocked_opts)
     if sort == 'position':
         levels = Level.query.filter_by(is_verified=True, list_type='platformer').order_by(Level.position).all()
         if blocked_names:
@@ -251,9 +269,10 @@ def platformer_list():
         next_num = page + 1
     else:
         base_q = _sorted_levels_query(Level.query, sort, list_type='platformer', is_verified=True)
-        if blocked_names:
+        hide_ids = [uid for uid, opts in blocked_opts.items() if opts.get('hide_levels', True)]
+        if hide_ids:
             base_q = base_q.filter(~Level.creator.in_(
-                [u.username for u in User.query.filter(User.id.in_(blocked_ids)).all()]
+                [u.username for u in User.query.filter(User.id.in_(hide_ids)).all()]
             ))
         total = base_q.count()
         total_pages = max(1, (total + 39) // 40)
@@ -541,12 +560,12 @@ def leaderboard():
     view = (request.args.get('view') or 'users').strip().lower()
     list_type = (request.args.get('list') or 'main').strip().lower()
     users, clans, view, list_type = leaderboard_rows(view, list_type, sort_by, filter_device, filter_status)
-    blocked_ids = set()
+    blocked_opts = {}
     if getattr(current_user, 'is_authenticated', False):
-        blocked_ids = _blocked_user_ids()
+        blocked_opts = _blocked_user_ids()
     return render_template('leaderboard.html', users=users, clans=clans, view=view, sort_by=sort_by,
                            filter_device=filter_device, filter_status=filter_status, list_type=list_type,
-                           blocked_ids=blocked_ids)
+                           blocked_opts=blocked_opts)
 
 
 # ── Roulette page ─────────────────────────────────────────────────────────────

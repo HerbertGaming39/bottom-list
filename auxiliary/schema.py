@@ -218,6 +218,16 @@ def ensure_schema():
     except Exception:
         _rollback()
 
+    # ── user_block ────────────────────────────────────────────────────────
+    try:
+        info = db.session.execute(text("PRAGMA table_info(user_block)")).fetchall()
+        if info:
+            cols = [row[1] for row in info]
+            _add_col_if_missing(cols, "user_block", "block_options", "TEXT DEFAULT '{}'")
+            db.session.commit()
+    except Exception:
+        _rollback()
+
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
