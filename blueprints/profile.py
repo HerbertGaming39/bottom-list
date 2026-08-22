@@ -375,6 +375,12 @@ def submit_record():
             flash('Please choose a list.', 'danger')
             return redirect(url_for('profile.submit_record'))
         video_url = (request.form.get('video_url') or '').strip()
+        if video_url:
+            from utils.security import validate_url_scheme
+            _verr = validate_url_scheme(video_url)
+            if _verr:
+                flash(_verr, 'danger')
+                return redirect(url_for('profile.submit_record'))
         device = request.form.get('device')
         comment = request.form.get('comment')
         beaten_on_vc = request.form.get('beaten_on_vc') == '1'
@@ -490,8 +496,15 @@ def submit_level():
         video_url = (request.form.get('video_url') or '').strip()
         gd_level_id = (request.form.get('gd_level_id') or '').strip()
         collaborators = (request.form.get('collaborators') or '').strip()
-        is_verified = request.form.get('is_verified') == 'on'
+        from utils.security import validate_url_scheme as _vus
+        for _label, _url in (('Video link', video_url), ('Verification link', request.form.get('verified_video_url') or '')):
+            if _url:
+                _err = _vus(_url)
+                if _err:
+                    flash(f'{_label}: {_err}', 'danger')
+                    return redirect(url_for('profile.submit_level'))
         verified_video_url = (request.form.get('verified_video_url') or '').strip()
+        is_verified = request.form.get('is_verified') == 'on'
         if is_verified and not verified_video_url:
             flash('Verification link is required when marked verified.', 'danger')
             return redirect(url_for('profile.submit_level'))
