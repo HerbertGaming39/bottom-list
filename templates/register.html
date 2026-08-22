@@ -3,7 +3,16 @@
 {% block content %}
 <div class="max-w-md mx-auto">
     <div class="glass-panel p-8 rounded-lg shadow-xl">
-        <h2 class="text-3xl font-bold text-center text-white mb-8">Register</h2>
+        <h2 class="text-3xl font-bold text-center text-white mb-4">Register</h2>
+        {% if not session.get('pending_discord') %}
+        <div class="mb-6 p-3 rounded-lg border border-yellow-700 bg-yellow-900/20 text-sm text-yellow-300">
+            Registration requires Discord. Go back to the <a href="{{ url_for('auth.login') }}" class="underline font-semibold">login page</a> and click <strong>“Login with Discord”</strong> — you'll be brought here to finish signup.
+        </div>
+        {% else %}
+        <div class="mb-6 p-3 rounded-lg border border-emerald-700 bg-emerald-900/20 text-sm text-emerald-300">
+            Discord account <strong>{{ session.get('pending_discord').discord_username }}</strong> will be linked to your new account.
+        </div>
+        {% endif %}
         <form method="POST" action="{{ url_for('auth.register') }}">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">

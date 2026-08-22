@@ -115,6 +115,12 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     if request.method == 'POST':
+        # DISCORD-ONLY REGISTRATION: accounts are created through the
+        # Discord OAuth flow (which sets pending_discord) - no plain
+        # username/password signups anymore.
+        if not (session.get('pending_discord') or {}).get('discord_id'):
+            flash('Registration requires Discord. Click "Log in with Discord" on the login page first.', 'warning')
+            return redirect(url_for('auth.login'))
         if request.form.get('website'):
             flash('Bot detected.', 'danger')
             return redirect(url_for('auth.register'))
