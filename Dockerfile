@@ -13,10 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Non-root runtime user; data dirs are mounted as volumes from the host
-RUN groupadd -r -g 10001 appuser && useradd -r -u 10001 -g appuser appuser \
+# Runtime user matching host volume ownership (marcel = uid/gid 1000)
+RUN groupadd -r -g 1000 appgroup && useradd -r -u 1000 -g 1000 -d /app appuser \
     && mkdir -p /app/instance /app/logs /app/backups \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appgroup /app
 
 USER appuser
 
