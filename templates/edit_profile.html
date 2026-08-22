@@ -7,6 +7,11 @@
         <form method="POST" action="" enctype="multipart/form-data">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <div class="mb-6">
+                <label for="display_name" class="block text-sm font-medium text-gray-400 mb-2">Display Name</label>
+                <input type="text" name="display_name" id="display_name" maxlength="32" value="{{ current_user.display_name or '' }}" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="{{ current_user.username }}">
+                <div class="text-xs text-gray-500 mt-1">Shown on your profile. Leave empty to use your username ({{ current_user.username }}).</div>
+            </div>
+            <div class="mb-6">
                 <label for="bio" class="block text-sm font-medium text-gray-400 mb-2">Bio / About Me</label>
                 <textarea name="bio" id="bio" rows="4" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
             </div>

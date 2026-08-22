@@ -2,61 +2,19 @@
 
 {% block content %}
 <div class="max-w-md mx-auto">
-    <div class="glass-panel p-8 rounded-lg shadow-xl">
-        <h2 class="text-3xl font-bold text-center text-white mb-8">Login</h2>
+    <div class="glass-panel p-8 rounded-lg shadow-xl text-center">
+        <h2 class="text-3xl font-bold text-center text-white mb-6">Login</h2>
         {% if discord_oauth_ready %}
-        <a href="{{ url_for('auth.discord_login') }}" class="w-full flex items-center justify-center gap-2 text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors mb-4">
+        <a href="{{ url_for('auth.discord_login') }}" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors mb-4">
             <img src="{{ url_for('main.discord_icon_png') }}" alt="" class="w-5 h-5">
             <span>Login with Discord</span>
         </a>
-        <div class="text-xs text-gray-500 text-center mb-6">Discord is the only way to log in.</div>
-        {% endif %}
-
-        {% if discord_oauth_ready %}
-        <details class="mt-2 border-t border-slate-700 pt-4">
-            <summary class="text-sm text-gray-400 cursor-pointer hover:text-gray-300 select-none">Legacy account? Log in with password to link your Discord</summary>
-        {% endif %}
-        <form method="POST" action="{{ url_for('auth.login') }}" class="{% if discord_oauth_ready %}mt-4{% endif %}">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-            <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
-            <div class="mb-6">
-                <label for="username" class="block text-sm font-medium text-gray-400 mb-2">Username</label>
-                <input type="text" name="username" id="username" required autocomplete="username" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            </div>
-            <div class="mb-6">
-                <label for="password" class="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                <input type="password" name="password" id="password" required autocomplete="current-password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            </div>
-            <div class="mb-6">
-                <label for="totp_code" class="block text-sm font-medium text-gray-400 mb-2">2FA code <span class="text-gray-600">(only if enabled)</span></label>
-                <input type="text" name="totp_code" id="totp_code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
-            </div>
-            <div class="mb-6">
-                {% if captcha_provider == 'recaptcha' and captcha_site_key %}
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-                <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
-                {% elif captcha_provider == 'hcaptcha' and captcha_site_key %}
-                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-                <div class="h-captcha" data-sitekey="{{ captcha_site_key }}"></div>
-                {% else %}
-                <label class="block text-sm font-medium text-gray-400 mb-2">Anti-bot check</label>
-                <div class="flex items-center space-x-2">
-                    <span class="text-white">{{ captcha_a }} + {{ captcha_b }} =</span>
-                    <input type="number" name="captcha_answer" required class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white w-24">
-                </div>
-                {% endif %}
-            </div>
-            <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors">
-                Link legacy account
-            </button>
-        </form>
-        {% if discord_oauth_ready %}
-        </details>
-        {% endif %}
-
-        <div class="mt-6 text-center text-sm">
-            <p class="text-gray-400">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-blue-400 hover:text-blue-300">Register</a></p>
+        <div class="text-xs text-gray-500">Discord is the only way to log in. Your account is created automatically on first login, and you can pick a display name afterwards.</div>
+        {% else %}
+        <div class="p-3 rounded-lg border border-yellow-700 bg-yellow-900/20 text-sm text-yellow-300">
+            Discord login is not configured yet. Please contact an administrator.
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -625,7 +625,7 @@
                         <a href="{{ url_for('auth.logout') }}" style="color:#888;">Sign out</a>
                     {% else %}
                         <a href="{{ url_for('auth.login') }}">Log in</a>
-                        <a href="{{ url_for('auth.register') }}" style="color:#60a5fa;font-weight:600;">Register</a>
+                        <a href="{{ url_for('auth.discord_login') }}" style="color:#60a5fa;font-weight:600;">Join</a>
                         <div class="dd-sep"></div>
                         <a href="{{ url_for('main.clans') }}">Clans</a>
                     {% endif %}
@@ -676,7 +676,7 @@
         {% else %}
             <div class="mm-section">Account</div>
             <a href="{{ url_for('auth.login') }}">Log in</a>
-            <a href="{{ url_for('auth.register') }}" style="color:#60a5fa;">Register</a>
+            <a href="{{ url_for('auth.discord_login') }}" style="color:#60a5fa;">Join</a>
         {% endif %}
     </div>
 

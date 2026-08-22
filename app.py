@@ -122,6 +122,9 @@ with app.app_context():
     if 'password_changed_at' not in user_cols:
         _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN password_changed_at DATETIME'))
         _db.session.commit()
+    if 'display_name' not in user_cols:
+        _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN display_name VARCHAR(64)'))
+        _db.session.commit()
 
 # ── Login manager ──────────────────────────────────────────────────────────────
 from models import User

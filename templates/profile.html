@@ -31,7 +31,8 @@
                 {% if avatar_url %}
                 <img src="{{ avatar_url }}" alt="Avatar" class="w-14 h-14 rounded-full object-cover border border-slate-700">
                 {% endif %}
-                <h1 class="text-3xl font-bold {{ 'text-yellow-400' if user.is_donor else 'text-white' }}">{{ user.username }}{% if user.is_donor %} <span class="text-sm bg-yellow-600 text-black px-2 py-0.5 rounded font-bold uppercase align-middle">Donor</span>{% endif %}</h1>
+                <h1 class="text-3xl font-bold {{ 'text-yellow-400' if user.is_donor else 'text-white' }}">{{ user.public_name }}{% if user.is_donor %} <span class="text-sm bg-yellow-600 text-black px-2 py-0.5 rounded font-bold uppercase align-middle">Donor</span>{% endif %}</h1>
+                {% if user.display_name and user.display_name != user.username %}<p class="text-xs text-gray-500 -mt-2">@{{ user.username }}</p>{% endif %}
             </div>
             <p class="text-gray-400">{% if is_self or (current_user.is_authenticated and has_perm(current_user, 'access_admin')) %}Rank: {{ rank_label(user_rank(user)) }}{% endif %}</p>
             {% if user.clan %}

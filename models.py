@@ -27,6 +27,7 @@ class ClanJoinRequest(db.Model):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    display_name = db.Column(db.String(64), nullable=True)
     password = db.Column(db.String(150), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
@@ -59,6 +60,11 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(64), nullable=True)
     password_changed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=utcnow)
+
+    @property
+    def public_name(self):
+        """Cosmetic name shown on profiles: display_name if set, else username."""
+        return (self.display_name or '').strip() or self.username
 
     @property
     def avatar_url(self):

@@ -33,157 +33,19 @@ auth_bp = Blueprint('auth', __name__)
 
 # ── Login ─────────────────────────────────────────────────────────────────────
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET'])
 def login():
+    """Discord-only login. Password authentication has been retired."""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    if request.method == 'POST':
-        if not validate_csrf():
-            flash('Security check failed. Please refresh the page and try again.', 'danger')
-            return redirect(url_for('auth.login'))
-        if request.form.get('website'):
-            flash('Bot detected.', 'danger')
-            return redirect(url_for('auth.login'))
-        provider = get_captcha_provider()
-        captcha_ok = verify_captcha()
-        if captcha_ok is False:
-            flash('Invalid hCaptcha.' if provider == 'hcaptcha' else 'Invalid reCAPTCHA.', 'danger')
-            return redirect(url_for('auth.login'))
-        if captcha_ok is None:
-            flash('CAPTCHA verification unavailable. Please contact an administrator.', 'danger')
-            return redirect(url_for('auth.login'))
-        username = request.form.get('username')
-        password = trim_pw(request.form.get('password', ''))
-        user = User.query.filter_by(username=username).first()
-        # Password checked BEFORE any account-state messaging so failed logins
-        # never confirm whether a username exists (anti-enumeration).
-        if user and bcrypt.check_password_hash(user.password, password):
-            if bool(getattr(user, 'is_disabled', False)):
-                from datetime import datetime as _dt
-                sched = getattr(user, 'scheduled_deletion_at', None)
-                try:
-                    pending_cancel = bool(sched) and sched > _dt.utcnow()
-                except Exception:
-                    pending_cancel = False
-                if pending_cancel:
-                    # Deletion grace period: allow login ONLY to cancel the deletion.
-                    session.clear()
-                    login_user(user)
-                    import time as _t0
-                    session['login_ts'] = _t0.time()
-                    flash('Your account is scheduled for deletion. Cancel below to keep it.', 'warning')
-                    return redirect(url_for('profile.edit_profile'))
-                add_site_log('login', f'Login failed (disabled): {username}', actor_user_id=getattr(user, 'id', None))
-                flash('Login Unsuccessful. Please check username and password', 'danger')
-                return redirect(url_for('auth.login'))
-            # Discord-first policy: once an account has a linked Discord and
-            # the owner flips the site to Discord-only mode, password login
-            # is refused (accounts WITHOUT a linked Discord can always use
-            # password login so they can sign in and link).
-            from auxiliary.settings_helpers import get_setting as _gs
-            if str(_gs('password_login_enabled') or '1').strip() != '1' and getattr(user, 'discord_id', None):
-                flash('This site uses Discord login. Please use "Log in with Discord".', 'warning')
-                return redirect(url_for('auth.login'))
-            # Two-factor verification (if enrolled)
-            if getattr(user, 'totp_secret', None):
-                from utils.security import totp_verify
-                if not totp_verify(user.totp_secret, request.form.get('totp_code') or ''):
-                    flash('Invalid authenticator code.', 'danger')
-                    return redirect(url_for('auth.login'))
-            session.clear()  # prevent session fixation: drop pre-auth session state
-            login_user(user)
-            import time as _t
-            session['login_ts'] = _t.time()
-            add_site_log('login', f'Login success: {user.username}', actor_user_id=user.id)
-            if needs_guidelines_acceptance(user):
-                return redirect(url_for('auth.guidelines'))
-            return redirect(url_for('main.home'))
-        else:
-            add_site_log('login', f'Login failed: {username}', actor_user_id=(user.id if user else None))
-            flash('Login Unsuccessful. Please check username and password', 'danger')
-    provider = get_captcha_provider()
-    site_key = get_captcha_site_key(provider)
-    if provider and site_key:
-        return render_template('login.html', captcha_provider=provider, captcha_site_key=site_key, discord_oauth_ready=discord_oauth_ready())
     return render_template('login.html', captcha_provider='', captcha_site_key='', discord_oauth_ready=discord_oauth_ready())
 
 
-# ── Register ──────────────────────────────────────────────────────────────────
-
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/register', methods=['GET'])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-    if request.method == 'POST':
-        # DISCORD-ONLY REGISTRATION: accounts are created through the
-        # Discord OAuth flow (which sets pending_discord) - no plain
-        # username/password signups anymore.
-        if not (session.get('pending_discord') or {}).get('discord_id'):
-            flash('Registration requires Discord. Click "Log in with Discord" on the login page first.', 'warning')
-            return redirect(url_for('auth.login'))
-        if request.form.get('website'):
-            flash('Bot detected.', 'danger')
-            return redirect(url_for('auth.register'))
-        if not (request.form.get('agree_guidelines') or '').strip():
-            flash('You must agree to the guidelines to create an account.', 'danger')
-            return redirect(url_for('auth.register'))
-        provider = get_captcha_provider()
-        captcha_ok = verify_captcha()
-        if captcha_ok is False:
-            flash('Invalid hCaptcha.' if provider == 'hcaptcha' else 'Invalid reCAPTCHA.', 'danger')
-            return redirect(url_for('auth.register'))
-        if captcha_ok is None:
-            flash('CAPTCHA verification unavailable. Registration requires a configured CAPTCHA provider.', 'danger')
-            return redirect(url_for('auth.register'))
-        username = (request.form.get('username') or '').strip()
-        password = trim_pw(request.form.get('password', ''))
-        pw_len = len(password or '')
-        has_alpha = any(c.isalpha() for c in password or '')
-        has_digit = any(c.isdigit() for c in password or '')
-        from utils.security import validate_username
-        uname_error = validate_username(username)
-        if uname_error:
-            flash(uname_error, 'danger')
-            return redirect(url_for('auth.register'))
-        if pw_len < 8 or not (has_alpha and has_digit):
-            flash('Password must be at least 8 characters and include letters and numbers.', 'danger')
-            return redirect(url_for('auth.register'))
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists', 'danger')
-            return redirect(url_for('auth.register'))
-        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, password=hashed_pw, guidelines_accepted_at=datetime.utcnow(), register_ip=None, bcoins=50)
-        pending = session.get('pending_discord') or {}
-        pending_id = str(pending.get('discord_id') or '').strip()
-        if pending_id:
-            exists = User.query.filter(User.discord_id == pending_id).first()
-            if exists:
-                flash('That Discord account is already linked to another user.', 'warning')
-            else:
-                user.discord_id = pending_id
-                user.discord_username = (pending.get('discord_username') or '')[:100]
-                user.discord_avatar = (pending.get('discord_avatar') or '')[:100]
-                if not user.discord_tag:
-                    user.discord_tag = (pending.get('discord_tag') or '')[:100]
-        db.session.add(user)
-        db.session.commit()
-        add_site_log('account_create', f'Account created: {user.username}', actor_user_id=user.id)
-        if pending_id and not User.query.filter(User.discord_id == pending_id, User.id != user.id).first():
-            try:
-                session.pop('pending_discord', None)
-            except Exception:
-                pass
-            add_site_log('account_link', f'Discord linked during registration for {user.username}.', actor_user_id=user.id)
-        flash('Account created! You can now log in.', 'success')
-        return redirect(url_for('auth.login'))
-    provider = get_captcha_provider()
-    site_key = get_captcha_site_key(provider)
-    if provider and site_key:
-        return render_template('register.html', captcha_provider=provider, captcha_site_key=site_key, guidelines_url=get_guidelines_url())
-    return render_template('register.html', captcha_provider='', captcha_site_key='', guidelines_url=get_guidelines_url())
+    """Registration happens automatically through Discord OAuth."""
+    return redirect(url_for('auth.discord_login') if discord_oauth_ready() else url_for('auth.login'))
 
-
-# ── 2FA verification step-up (Discord login) ─────────────────────────────────
 
 @auth_bp.route('/login/2fa', methods=['GET', 'POST'])
 def verify_2fa():
@@ -351,10 +213,42 @@ def discord_callback():
             if needs_guidelines_acceptance(u):
                 return redirect(url_for('auth.guidelines', next=nxt or url_for('main.home')))
             return redirect(nxt or url_for('main.home'))
-        session['pending_discord'] = {'discord_id': discord_id, 'discord_username': username[:100], 'discord_avatar': avatar[:100], 'discord_tag': tag[:100]}
-        flash('No account is linked to that Discord. Register to link it.', 'warning')
-        return redirect(url_for('auth.register'))
+        # AUTO-REGISTRATION: no account linked to this Discord -> create one
+        # instantly. Original username derived from the Discord name (made
+        # unique); user can change it later in profile settings.
+        base_name = ''.join(ch for ch in username if ch.isalnum() or ch in ('_', '.', '-'))[:24] or 'player'
+        candidate = base_name
+        suffix = 1
+        while User.query.filter_by(username=candidate).first():
+            candidate = f'{base_name}{suffix}'
+            suffix += 1
+            if suffix > 999:
+                candidate = f"{base_name}{secrets.token_hex(3)}"
+                break
+        new_user = User(
+            username=candidate,
+            password='',  # Discord-only account: no password
+            discord_id=discord_id,
+            discord_username=username[:100],
+            discord_avatar=avatar[:100],
+            discord_tag=tag[:100],
+            bcoins=50,
+        )
+        db.session.add(new_user)
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            flash('Account creation failed. Please try again.', 'danger')
+            return redirect(url_for('auth.login'))
+        add_site_log('account_create', f'Account auto-created via Discord: {new_user.username}.', actor_user_id=new_user.id)
+        login_user(new_user)
+        import time as _t3
+        session['login_ts'] = _t3.time()
+        flash(f'Welcome! Your account "{new_user.username}" is ready. You can change your display name in Settings.', 'success')
+        return redirect(url_for('auth.guidelines', next=url_for('profile.edit_profile')))
 
+    # Logged-in user manually linking a Discord account (profile settings)
     if getattr(current_user, 'is_authenticated', False):
         other = User.query.filter(User.discord_id == discord_id, User.id != current_user.id).first()
         if other:
@@ -370,9 +264,8 @@ def discord_callback():
         flash('Discord linked.', 'success')
         return redirect(url_for('profile.edit_profile'))
 
-    session['pending_discord'] = {'discord_id': discord_id, 'discord_username': username[:100], 'discord_avatar': avatar[:100], 'discord_tag': tag[:100]}
-    flash('Discord linked for registration. Complete signup to save it.', 'success')
-    return redirect(url_for('auth.register') if mode == 'register' else nxt)
+    flash('Discord linking failed.', 'danger')
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/discord/unlink', methods=['POST'])

@@ -168,6 +168,12 @@ def user_profile(user_id):
 def edit_profile():
     if request.method == 'POST':
         from utils.security import validate_url_scheme, validate_username
+        # Display name: cosmetic, freely changeable
+        new_display = (request.form.get('display_name') or '').strip()
+        if len(new_display) > 32:
+            flash('Display name must be at most 32 characters.', 'danger')
+            return redirect(url_for('profile.edit_profile'))
+        current_user.display_name = new_display or None
         new_bio = (request.form.get('bio') or '').strip()
         if len(new_bio) > 500:
             flash('Bio must be at most 500 characters.', 'danger')
