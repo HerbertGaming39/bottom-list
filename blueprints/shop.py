@@ -89,8 +89,9 @@ _WHEEL_SLOTS = [
 
 
 def _pick_wheel_reward():
+    import secrets as _secrets
     total_weight = sum(s['weight'] for s in _WHEEL_SLOTS)
-    roll = random.randint(1, total_weight)
+    roll = _secrets.randbelow(total_weight) + 1
     cumulative = 0
     for slot in _WHEEL_SLOTS:
         cumulative += slot['weight']
