@@ -98,6 +98,60 @@
     </div>
 
     <div class="glass-panel p-8 rounded-lg mt-6">
+        <h2 class="text-xl font-bold text-white mb-4">Security</h2>
+
+        {% if current_user.totp_secret %}
+        <div class="mb-6 p-4 rounded-lg border border-emerald-700 bg-emerald-900/20">
+            <div class="text-sm font-semibold text-emerald-300 mb-2">Two-factor authentication is ON</div>
+            <form method="POST" action="">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="2fa_disable">
+                <div class="grid grid-cols-1 gap-2 max-w-md">
+                    <input type="password" name="current_password" placeholder="Current password" autocomplete="current-password" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+                    <input type="text" name="totp_code" placeholder="6-digit authenticator code" inputmode="numeric" autocomplete="one-time-code" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white font-mono">
+                </div>
+                <button type="submit" class="mt-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-lg">Disable 2FA</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="mb-6 p-4 rounded-lg border border-slate-700">
+            <div class="text-sm font-semibold text-gray-200 mb-1">Two-factor authentication (authenticator app)</div>
+            <div class="text-xs text-gray-500 mb-3">Adds a 6-digit code from your authenticator app on login.</div>
+            {% if session.get('pending_totp_secret') %}
+            <div class="text-xs text-gray-300 mb-2">1. Add this secret to your app (Google Authenticator, Authy, ...):<br>
+                <span class="font-mono text-blue-300 select-all break-all">{{ session.get('pending_totp_secret') }}</span></div>
+            <div class="text-xs text-gray-300 mb-2">Or open the link: <a class="text-blue-400 break-all" href="{{ totp_uri }}">otpauth link</a></div>
+            <form method="POST" action="" class="flex gap-2 items-center">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="2fa_enable">
+                <input type="text" name="totp_code" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" class="w-32 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white font-mono">
+                <button type="submit" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg">Confirm & enable</button>
+            </form>
+            {% else %}
+            <form method="POST" action="">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="2fa_begin">
+                <button type="submit" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg">Set up 2FA</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="border-t border-slate-700 pt-5">
+            <div class="text-sm font-semibold text-gray-200 mb-1">Change password</div>
+            <form method="POST" action="" class="max-w-md space-y-2 mt-2">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="change_password">
+                <input type="password" name="current_password" placeholder="Current password" autocomplete="current-password" required class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+                <input type="password" name="new_password" placeholder="New password (8+ chars, letters and numbers)" autocomplete="new-password" required minlength="8" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+                <input type="password" name="new_password2" placeholder="Repeat new password" autocomplete="new-password" required minlength="8" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg">Change password</button>
+                <div class="text-xs text-gray-500">Changing your password logs out all other devices.</div>
+            </form>
+        </div>
+    </div>
+
+    <div class="glass-panel p-8 rounded-lg mt-6">
         <div class="flex items-center justify-between gap-4">
             <div>
                 <div class="text-xl font-bold text-white">Clans</div>

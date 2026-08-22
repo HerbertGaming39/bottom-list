@@ -415,17 +415,28 @@ def edit_level(level_id):
                 return redirect(url_for('admin.edit_level', level_id=level.id))
             level.thumbnail_filename = unique
 
-        # Position management (simplified)
+        # Position management with proper shifting: inserting at a spot
+        # pushes later levels down instead of creating duplicate positions.
         if not level.is_verified:
             level.position = None
         else:
+            siblings = Level.query.filter(
+                Level.list_type == lt,
+                Level.is_verified == True,
+                Level.id != level.id,
+                Level.position.isnot(None),
+            ).order_by(Level.position).all()
             if new_position is None:
-                try:
-                    max_pos = db.session.query(db.func.max(Level.position)).filter(Level.is_verified == True, Level.list_type == lt, Level.position.isnot(None), Level.id != level.id).scalar()
-                    new_position = int(max_pos or 0) + 1
-                except Exception:
-                    new_position = 1
-            level.position = new_position
+                new_position = len(siblings) + 1
+            try:
+                new_position = int(new_position)
+            except Exception:
+                new_position = len(siblings) + 1
+            new_position = max(1, min(new_position, len(siblings) + 1))
+            ordered = list(siblings)
+            ordered.insert(new_position - 1, level)
+            for idx, lv in enumerate(ordered, start=1):
+                lv.position = idx
 
         db.session.commit()
         from utils.cache import cache_bust_prefixes
@@ -846,14 +857,20 @@ def admin_user_edit(user_id):
         if new_password:
             if new_password != new_password2:
                 flash('Passwords do not match.', 'danger')
+            elif get_user_rank(user) in ('admin', 'elder_moderator') and get_user_rank(current_user) != 'admin':
+                flash('Only admins can change passwords for staff accounts.', 'danger')
             else:
                 user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
                 add_site_log('admin_action', f'{current_user.username} changed password for {user.username}.', actor_user_id=current_user.id)
                 flash('Password updated.', 'success')
 
         valid_ranks = ['member', 'mod', 'admin']
+        from auxiliary.settings_helpers import get_user_rank as _gur
         if new_rank in valid_ranks:
-            user.rank = new_rank
+            if new_rank == 'admin' and _gur(current_user) != 'admin':
+                flash('Only admins can grant the admin rank.', 'danger')
+            else:
+                user.rank = new_rank
 
         if new_points:
             try:
@@ -941,6 +958,10 @@ def reset_password(user_id):
     from config import bcrypt
     from utils.security import trim_pw
     user = User.query.get_or_404(user_id)
+    # Rank hierarchy: cannot reset the password of an equal-or-higher rank
+    if get_user_rank(user) in ('admin', 'elder_moderator') and get_user_rank(current_user) != 'admin':
+        flash('Only admins can reset passwords for staff accounts.', 'danger')
+        return redirect(url_for('admin.admin_dashboard'))
     new_password = trim_pw(request.form.get('new_password', '').strip())
     if not new_password:
         flash('New password cannot be empty.', 'danger')
@@ -977,6 +998,10 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
         flash('Cannot delete your own account from admin panel.', 'danger')
+        return redirect(url_for('admin.admin_dashboard'))
+    # Rank hierarchy: only admins may delete staff accounts
+    if get_user_rank(user) in ('admin', 'elder_moderator') and get_user_rank(current_user) != 'admin':
+        flash('Only admins can delete staff accounts.', 'danger')
         return redirect(url_for('admin.admin_dashboard'))
     uname = user.username
     db.session.delete(user)
@@ -1429,6 +1454,10 @@ def admin_pages_create():
         flash('Slug already exists.', 'danger')
         return redirect(url_for('admin.admin_pages'))
     now = datetime.utcnow()
+    # SECURITY: raw-HTML pages are an XSS vector - only top-level admins
+    # may enable is_html; everyone else's pages render escaped.
+    if is_html and get_user_rank(current_user) != 'admin':
+        is_html = False
     page = Page(slug=cleaned, title=title[:200], body=body, is_html=is_html, created_at=now, updated_at=now)
     db.session.add(page)
     db.session.commit()
@@ -1450,7 +1479,9 @@ def admin_pages_update(page_id):
         return redirect(url_for('admin.admin_pages'))
     page.title = title[:200]
     page.body = body
-    page.is_html = is_html
+    # SECURITY: only top-level admins may change raw-HTML rendering
+    if get_user_rank(current_user) == 'admin':
+        page.is_html = is_html
     page.updated_at = datetime.utcnow()
     db.session.commit()
     add_site_log('admin_action', f'{current_user.username} updated page "{page.slug}".', actor_user_id=current_user.id)
@@ -2073,20 +2104,50 @@ def admin_db_sql(model_name):
     if request.method == 'POST':
         sql_text = (request.form.get('sql') or '').strip()
         low = sql_text.strip().lower()
-        if not (low.startswith('select') or low.startswith('pragma') or low.startswith('with')):
-            error = 'Only SELECT/PRAGMA queries are allowed here.'
-        elif any(b in low for b in ['insert', 'update', 'delete', 'drop', 'alter', 'create']):
-            error = 'This query contains a blocked keyword.'
-        if not error:
-            try:
-                res = db.session.execute(text(sql_text))
+        # SECURITY: read-only enforcement via a real SQLite read-only connection
+        # (keyword blocklists are bypassable). Falls back to strict checks.
+        import sqlite3 as _sq3
+        ro_conn = None
+        try:
+            from flask import current_app as _ca
+            _uri = _ca.config.get('SQLALCHEMY_DATABASE_URI', '')
+            if 'sqlite:///' in _uri:
+                _p = _uri.split('sqlite:///')[-1]
+                if not _p or not _p[1:2] == ':':
+                    import os as _os
+                    _p = _os.path.join(_ca.instance_path, _p)
+                ro_conn = _sq3.connect(f'file:{_p}?mode=ro', uri=True)
+                cur = ro_conn.execute(sql_text)
+                result_cols = [d[0] for d in cur.description] if cur.description else []
+                result_rows = [list(r) for r in cur.fetchmany(500)]
+            else:
+                raise RuntimeError('non-sqlite')
+        except _sq3.Error as e:
+            error = f'SQL error: {e}'
+        except Exception:
+            # Fallback for non-sqlite backends (kept restrictive on purpose)
+            if not (low.startswith('select') or low.startswith('with')):
+                error = 'Only SELECT queries are allowed here.'
+            elif any(b in low for b in ['insert', 'update', 'delete', 'drop', 'alter', 'create', 'pragma', 'attach']):
+                error = 'This query contains a blocked keyword.'
+            elif ';' in sql_text.rstrip(';'):
+                error = 'Only one statement at a time.'
+            else:
                 try:
-                    result_cols = list(res.keys())
+                    res = db.session.execute(text(sql_text))
+                    try:
+                        result_cols = list(res.keys())
+                    except Exception:
+                        result_cols = []
+                    result_rows = [list(r) for r in res.fetchmany(500)]
                 except Exception:
-                    result_cols = []
-                result_rows = [list(r) for r in res.fetchmany(500)]
-            except Exception:
-                error = 'SQL failed.'
+                    error = 'SQL failed.'
+        finally:
+            if ro_conn is not None:
+                try:
+                    ro_conn.close()
+                except Exception:
+                    pass
     return render_template('admin_db.html', selected=model_name, models=models, active_tab='sql', sql_text=sql_text, sql_error=error, sql_cols=result_cols, sql_rows=result_rows, db_server='localhost', db_name='site')
 
 
@@ -2306,8 +2367,13 @@ def admin_db_edit(model_name, row_id):
     if not model:
         abort(404)
     row = model.query.get_or_404(row_id)
+    # SECURITY: never editable via the DB editor - privilege/credential fields
+    _PROTECTED_COLS = {
+        'id', 'password', 'submitted_at', '_csrf_token',
+        'is_admin', 'is_mod', 'rank', 'api_token', 'discord_id',
+    }
     for key, value in request.form.items():
-        if key in ('id', 'password', 'submitted_at', '_csrf_token'):
+        if key in _PROTECTED_COLS:
             continue
         if hasattr(row, key):
             cur = getattr(row, key)

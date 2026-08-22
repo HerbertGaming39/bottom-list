@@ -43,12 +43,23 @@ def shop_buy(item_id):
     if existing:
         flash('You already own this item.', 'warning')
         return redirect(url_for('shop.shop_list'))
-    if (current_user.bcoins or 0) < item.price:
+    # Atomic debit: prevents double-spend / negative balance under concurrency
+    from sqlalchemy import text
+    debited = db.session.execute(
+        text("UPDATE user SET bcoins = bcoins - :p WHERE id = :id AND bcoins >= :p"),
+        {'p': item.price, 'id': current_user.id}
+    )
+    if debited.rowcount != 1:
+        db.session.rollback()
         flash(f'Not enough bcoins! You need {item.price} but have {current_user.bcoins or 0}.', 'danger')
         return redirect(url_for('shop.shop_list'))
-    current_user.bcoins = (current_user.bcoins or 0) - item.price
     db.session.add(UserPurchase(user_id=current_user.id, item_id=item.id))
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Purchase failed (duplicate or race). Please retry.', 'danger')
+        return redirect(url_for('shop.shop_list'))
     flash(f'Purchased "{item.name}" for {item.price} bcoins!', 'success')
     return redirect(url_for('shop.shop_list'))
 
@@ -106,11 +117,17 @@ def wheel():
 @login_required
 def wheel_spin():
     from datetime import timedelta
-    if current_user.last_wheel_spin_at:
-        next_spin = current_user.last_wheel_spin_at + timedelta(days=1)
-        if utcnow() < next_spin:
-            flash('You can only spin once per day!', 'danger')
-            return redirect(url_for('shop.wheel'))
+    from sqlalchemy import text
+    # Atomic cooldown claim: only the first concurrent request wins
+    claimed = db.session.execute(
+        text("UPDATE user SET last_wheel_spin_at = :now WHERE id = :id AND (last_wheel_spin_at IS NULL OR last_wheel_spin_at <= :cutoff)"),
+        {'now': utcnow(), 'id': current_user.id, 'cutoff': utcnow() - timedelta(days=1)}
+    )
+    if claimed.rowcount != 1:
+        db.session.rollback()
+        flash('You can only spin once per day!', 'danger')
+        return redirect(url_for('shop.wheel'))
+    db.session.commit()
     reward = _pick_wheel_reward()
     current_user.last_wheel_spin_at = utcnow()
     if reward['reward_type'] == 'bcoins':
@@ -237,8 +254,12 @@ def black_market_sell(purchase_id):
         return redirect(url_for('shop.black_market'))
 
     if request.method == 'POST':
-        price = int(request.form.get('price', 0))
-        if price < 1000:
+        try:
+            price = int(request.form.get('price', 0))
+        except (TypeError, ValueError):
+            flash('Invalid price.', 'danger')
+            return render_template('black_market_sell.html', purchase=purchase, item=item)
+        if price < 1000 or price > 10_000_000:
             flash('Minimum listing price is 1000 bcoins.', 'danger')
             return render_template('black_market_sell.html', purchase=purchase, item=item)
         listing = MarketListing(item_id=item.id, seller_id=current_user.id, price=price)
@@ -271,11 +292,50 @@ def black_market_buy(listing_id):
         flash(f'Not enough bcoins! You need {listing.price} but have {current_user.bcoins or 0}.', 'danger')
         return redirect(url_for('shop.black_market'))
 
-    current_user.bcoins = (current_user.bcoins or 0) - listing.price
-    listing.seller.bcoins = (listing.seller.bcoins or 0) + listing.price
-    listing.is_sold = True
+    from sqlalchemy import text
+    # Atomically claim the listing: exactly one concurrent buyer can win
+    claimed = db.session.execute(
+        text("UPDATE market_listing SET is_sold = 1 WHERE id = :lid AND is_sold = 0"),
+        {'lid': listing.id}
+    )
+    if claimed.rowcount != 1:
+        db.session.rollback()
+        flash('Listing not found or already sold.', 'danger')
+        return redirect(url_for('shop.black_market'))
+    # Atomic debit: prevents negative balances under concurrency
+    debited = db.session.execute(
+        text("UPDATE user SET bcoins = bcoins - :p WHERE id = :id AND bcoins >= :p"),
+        {'p': listing.price, 'id': current_user.id}
+    )
+    if debited.rowcount != 1:
+        db.session.rollback()
+        flash(f'Not enough bcoins! You need {listing.price} but have {current_user.bcoins or 0}.', 'danger')
+        return redirect(url_for('shop.black_market'))
+    # Atomic credit to seller
+    credited = db.session.execute(
+        text("UPDATE user SET bcoins = bcoins + :p WHERE id = :sid"),
+        {'p': listing.price, 'sid': listing.seller_id}
+    )
+    if credited.rowcount != 1:
+        db.session.rollback()
+        flash('Seller account no longer exists; purchase cancelled.', 'danger')
+        return redirect(url_for('shop.black_market'))
+    # OWNERSHIP TRANSFER: remove the seller's purchase row, grant a new one to the buyer
+    seller_purchase = UserPurchase.query.filter_by(user_id=listing.seller_id, item_id=listing.item_id).first()
+    if seller_purchase:
+        _EQUIP_COLS = ('equipped_avatar_item_id', 'equipped_background_item_id', 'equipped_deco_item_id')
+        seller = listing.seller
+        for col in _EQUIP_COLS:
+            if getattr(seller, col, None) == listing.item_id:
+                setattr(seller, col, None)
+        db.session.delete(seller_purchase)
     db.session.add(UserPurchase(user_id=current_user.id, item_id=listing.item_id))
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Purchase failed due to a conflict. Please retry.', 'danger')
+        return redirect(url_for('shop.black_market'))
     flash(f'Purchased "{listing.item.name}" for {listing.price} bcoins!', 'success')
     return redirect(url_for('shop.black_market'))
 

@@ -16,8 +16,6 @@ from flask import (
     redirect, url_for, request, flash, abort, session
 )
 from flask_login import current_user, logout_user
-from jinja2 import pass_context
-from markupsafe import Markup
 
 from config import create_app, db, login_manager
 from auxiliary.schema import ensure_schema
@@ -55,8 +53,11 @@ logging.getLogger('waitress').setLevel(logging.ERROR)
 
 
 def _notify_discord_error(title: str, body: str):
-    """Send an error summary to the Discord logs webhook (best-effort)."""
+    """Send an error summary to the Discord logs webhook (best-effort).
+    Local filesystem paths are scrubbed before leaving the server."""
     try:
+        import re as _re
+        body = _re.sub(r'[A-Za-z]:\\\\[^`"\\s]+', '[path]', body)
         from auxiliary.discord_webhooks import send_discord_log_message
         send_discord_log_message(f'[{title}] {body}'[:1900])
     except Exception:
@@ -76,7 +77,10 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(main_bp)
 app.register_blueprint(profile_bp)
 app.register_blueprint(admin_bp)
-app.register_blueprint(api_bp)
+# API DISCONTINUED: blueprint intentionally not registered.
+# Roulette keeps its own /api/roulette/* routes via roulette_bp.
+# from blueprints.api import api_bp
+# app.register_blueprint(api_bp)
 app.register_blueprint(roulette_bp)
 app.register_blueprint(leaderboard_bp)
 app.register_blueprint(shop_bp)
@@ -111,6 +115,15 @@ with app.app_context():
         _db.session.commit()
     if 'scheduled_deletion_at' not in user_cols:
         _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN scheduled_deletion_at DATETIME'))
+        _db.session.commit()
+    if 'username_changed_at' not in user_cols:
+        _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN username_changed_at DATETIME'))
+        _db.session.commit()
+    if 'totp_secret' not in user_cols:
+        _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN totp_secret VARCHAR(64)'))
+        _db.session.commit()
+    if 'password_changed_at' not in user_cols:
+        _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN password_changed_at DATETIME'))
         _db.session.commit()
 
 # ── Login manager ──────────────────────────────────────────────────────────────
@@ -186,7 +199,30 @@ def _do_auto_backup():
         from datetime import datetime
         ts = datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
         dst = os.path.join(dst_dir, f'auto-{ts}-{uuid.uuid4().hex[:8]}.db')
-        shutil.copy2(src, dst)
+        # Use SQLite's online backup API - shutil.copy2 on a live DB can
+        # produce torn/corrupt copies while requests are writing.
+        import sqlite3 as _sq3
+        src_conn = _sq3.connect(src)
+        dst_conn = _sq3.connect(dst)
+        try:
+            with dst_conn:
+                src_conn.backup(dst_conn)
+        finally:
+            src_conn.close()
+            dst_conn.close()
+        # Retention: keep only the 10 most recent backups
+        try:
+            _bks = sorted(
+                [f for f in os.listdir(dst_dir) if f.startswith('auto-') and f.endswith('.db')],
+                reverse=True,
+            )
+            for _old in _bks[10:]:
+                try:
+                    os.remove(os.path.join(dst_dir, _old))
+                except Exception:
+                    pass
+        except Exception:
+            pass
         set_setting('last_auto_backup_ts', str(now_ts))
         try:
             add_site_log('admin_action', 'Auto-backup created.', actor_user_id=None, send_to_discord=False)
@@ -349,8 +385,36 @@ def _enforce_account_state_and_guidelines():
         return
     if not getattr(current_user, 'is_authenticated', False):
         return
+    # SECURITY: invalidate sessions issued before a password/2FA change
+    try:
+        _pw_changed = getattr(current_user, 'password_changed_at', None)
+        if _pw_changed and session.get('login_ts'):
+            import time as _t2
+            from datetime import datetime as _dtc
+            changed_ts = _pw_changed.timestamp() if hasattr(_pw_changed, 'timestamp') else 0
+            if float(session.get('login_ts')) < changed_ts:
+                logout_user()
+                flash('Your password or security settings changed. Please log in again.', 'warning')
+                return redirect(url_for('auth.login'))
+    except Exception:
+        pass
     try:
         if bool(getattr(current_user, 'is_disabled', False)):
+            from datetime import datetime as _dtnow
+            sched = getattr(current_user, 'scheduled_deletion_at', None)
+            pending_cancel = False
+            if sched:
+                try:
+                    pending_cancel = sched > _dtnow.utcnow()
+                except Exception:
+                    pending_cancel = False
+            if pending_cancel:
+                # Grace period: allow ONLY cancellation-related endpoints.
+                allowed = ('profile.edit_profile', 'auth.cancel_delete', 'auth.logout', 'static')
+                if request.endpoint in allowed:
+                    return
+                flash('Your account is scheduled for deletion. Cancel below to keep it.', 'warning')
+                return redirect(url_for('profile.edit_profile'))
             logout_user()
             flash('Your account has been disabled.', 'danger')
             return redirect(url_for('auth.login'))
@@ -370,15 +434,9 @@ app.jinja_env.globals['get_setting']         = get_setting
 app.jinja_env.globals['get_captcha_provider'] = get_captcha_provider
 app.jinja_env.globals['get_captcha_site_key'] = get_captcha_site_key
 
-@app.template_filter('evaluate')
-@pass_context
-def evaluate_template(context, val):
-    from jinja2 import Template
-    t = Template(val)
-    try:
-        return Markup(t.render(context))
-    except Exception:
-        return Markup('')
+# REMOVED: 'evaluate' template filter (rendered arbitrary strings as Jinja
+# templates with full context = SSTI/RCE footgun). Do not re-add. If dynamic
+# content rendering is ever needed, use a strict allowlist sanitizer instead.
 
 
 def _setting_truthy(key: str) -> bool:

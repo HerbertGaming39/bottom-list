@@ -19,7 +19,11 @@
             </div>
             <div class="mb-6">
                 <label for="password" class="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                <input type="password" name="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <input type="password" name="password" id="password" required autocomplete="current-password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="totp_code" class="block text-sm font-medium text-gray-400 mb-2">2FA code <span class="text-gray-600">(only if enabled)</span></label>
+                <input type="text" name="totp_code" id="totp_code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
             </div>
             <div class="mb-6">
                 {% if captcha_provider == 'recaptcha' and captcha_site_key %}

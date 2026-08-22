@@ -46,7 +46,9 @@ def _api_require_user():
     if getattr(current_user, 'is_authenticated', False) and not bool(getattr(current_user, 'is_disabled', False)):
         return current_user, None
 
-    token = (request.headers.get('X-API-Token') or request.args.get('api_token') or '').strip()
+    # SECURITY: header-only. Query-string tokens leak into access logs,
+    # browser history and Referer headers (removed request.args fallback).
+    token = (request.headers.get('X-API-Token') or '').strip()
     if not token:
         return None, ('login_required', 401)
 
@@ -818,6 +820,9 @@ def api_set_password():
     data = request.get_json(silent=True) or {}
     new_pw = trim_pw(data.get('new_password') or '')
     new_pw2 = data.get('new_password2') or ''
+    current_pw = data.get('current_password') or ''
+    if not current_pw or not bcrypt.check_password_hash(user.password, trim_pw(current_pw)):
+        return jsonify({'error': 'forbidden', 'message': 'current_password required and must match'}), 403
     if not new_pw:
         return jsonify({'error': 'bad_request', 'message': 'new_password required'}), 400
     if new_pw != new_pw2:
@@ -847,6 +852,10 @@ def api_profile_update():
     if bio:
         user.bio = bio[:500]
     if youtube:
+        from utils.security import validate_url_scheme
+        _err = validate_url_scheme(youtube)
+        if _err:
+            return jsonify({'error': 'bad_request', 'message': _err}), 400
         user.youtube_link = youtube[:200]
     if discord_tag:
         user.discord_tag = discord_tag[:100]
@@ -906,6 +915,10 @@ def api_submit_record(level_id):
     video_url = (data.get('video_url') or '').strip()
     if not video_url:
         return jsonify({'error': 'bad_request', 'message': 'video_url required'}), 400
+    from utils.security import validate_url_scheme
+    _verr = validate_url_scheme(video_url)
+    if _verr:
+        return jsonify({'error': 'bad_request', 'message': _verr}), 400
     existing = Record.query.filter_by(user_id=user.id, level_id=lv.id).first()
     if existing:
         return jsonify({'error': 'already_submitted', 'record_id': existing.id}), 409
@@ -984,6 +997,9 @@ def api_admin_update_user(user_id):
     if new_password:
         target.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
     if new_rank in ('member', 'mod', 'admin'):
+        from auxiliary.settings_helpers import get_user_rank as _gur
+        if new_rank == 'admin' and _gur(user) != 'admin':
+            return jsonify({'error': 'forbidden', 'message': 'only admins can grant the admin rank'}), 403
         target.rank = new_rank
     if new_points is not None:
         try:

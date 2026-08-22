@@ -27,6 +27,11 @@ from auxiliary.points import (sum_approved_points_for_user, sum_approved_points_
 profile_bp = Blueprint('profile', __name__)
 
 
+def utcnow():
+    from datetime import timezone
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 # ── Profile view ──────────────────────────────────────────────────────────────
 
 @profile_bp.route('/profile')
@@ -162,8 +167,17 @@ def user_profile(user_id):
 @login_required
 def edit_profile():
     if request.method == 'POST':
-        current_user.bio = request.form.get('bio')
-        current_user.youtube_link = request.form.get('youtube_link')
+        from utils.security import validate_url_scheme, validate_username
+        new_bio = (request.form.get('bio') or '').strip()
+        if len(new_bio) > 500:
+            flash('Bio must be at most 500 characters.', 'danger')
+            return redirect(url_for('profile.edit_profile'))
+        current_user.bio = new_bio
+        yt_error = validate_url_scheme(request.form.get('youtube_link'))
+        if yt_error:
+            flash(yt_error, 'danger')
+            return redirect(url_for('profile.edit_profile'))
+        current_user.youtube_link = (request.form.get('youtube_link') or '').strip()
         for field, config_key, attr in [
             ('avatar_file', 'PROFILE_MEDIA_UPLOAD_FOLDER', 'avatar_filename'),
             ('banner_file', 'PROFILE_MEDIA_UPLOAD_FOLDER', 'banner_filename'),
@@ -195,15 +209,27 @@ def edit_profile():
 @profile_bp.route('/profile/change_username', methods=['POST'])
 @login_required
 def change_username():
+    from datetime import timedelta
+    from utils.security import validate_username
+    # Cooldown: prevent identity rotation to evade moderation
+    if current_user.username_changed_at:
+        try:
+            if (utcnow() - current_user.username_changed_at) < timedelta(days=30):
+                flash('You can only change your username once every 30 days.', 'danger')
+                return redirect(url_for('profile.user_profile', user_id=current_user.id))
+        except Exception:
+            pass
     new_username = (request.form.get('new_username') or '').strip()
-    if not new_username:
-        flash('Username cannot be empty.', 'danger')
+    uname_error = validate_username(new_username)
+    if uname_error:
+        flash(uname_error, 'danger')
         return redirect(url_for('profile.user_profile', user_id=current_user.id))
     if User.query.filter_by(username=new_username).first():
         flash('Username already taken.', 'danger')
         return redirect(url_for('profile.user_profile', user_id=current_user.id))
     old_username = current_user.username
     current_user.username = new_username
+    current_user.username_changed_at = utcnow()
     db.session.commit()
     add_site_log('profile_edit', f'Username changed: {old_username} -> {new_username}.', actor_user_id=current_user.id)
     flash('Username updated.', 'success')
@@ -224,6 +250,77 @@ def settings():
             flash('API token regenerated.', 'success')
             return redirect(url_for('profile.settings'))
 
+        if action == 'change_password':
+            from config import bcrypt
+            from utils.security import trim_pw, rate_limited as _rl
+            from datetime import timezone
+            if _rl('pw_change', limit=5, window_seconds=300):
+                flash('Too many attempts. Please wait a few minutes.', 'danger')
+                return redirect(url_for('profile.settings'))
+            current_pw = trim_pw(request.form.get('current_password', ''))
+            new_pw = trim_pw(request.form.get('new_password', ''))
+            new_pw2 = request.form.get('new_password2', '')
+            if not current_user.password:
+                flash('Your account has no password set (Discord-only). Set one via Discord link flow.', 'danger')
+                return redirect(url_for('profile.settings'))
+            if not bcrypt.check_password_hash(current_user.password, current_pw):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('profile.settings'))
+            if len(new_pw) < 8 or not (any(c.isalpha() for c in new_pw) and any(c.isdigit() for c in new_pw)):
+                flash('New password must be at least 8 characters with letters and numbers.', 'danger')
+                return redirect(url_for('profile.settings'))
+            if new_pw != new_pw2:
+                flash('New passwords do not match.', 'danger')
+                return redirect(url_for('profile.settings'))
+            current_user.password = bcrypt.generate_password_hash(new_pw).decode('utf-8')
+            # Invalidate all other sessions (this request's session is refreshed below)
+            current_user.password_changed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            db.session.commit()
+            session['login_ts'] = utcnow().timestamp()
+            add_site_log('password_change', f'{current_user.username} changed password.', actor_user_id=current_user.id)
+            flash('Password changed. Other sessions were logged out.', 'success')
+            return redirect(url_for('profile.settings'))
+
+        if action == '2fa_begin':
+            from utils.security import totp_generate_secret
+            session['pending_totp_secret'] = totp_generate_secret()
+            flash('Scan the code with your authenticator app, then enter a code to confirm.', 'info')
+            return redirect(url_for('profile.settings'))
+
+        if action == '2fa_enable':
+            from utils.security import totp_verify
+            secret = session.get('pending_totp_secret') or ''
+            code = (request.form.get('totp_code') or '').strip()
+            if not secret:
+                flash('Start the 2FA setup first.', 'warning')
+                return redirect(url_for('profile.settings'))
+            if not totp_verify(secret, code):
+                flash('That code was not valid. Try again.', 'danger')
+                return redirect(url_for('profile.settings'))
+            current_user.totp_secret = secret
+            current_user.password_changed_at = utcnow()  # log out other sessions too
+            db.session.commit()
+            session.pop('pending_totp_secret', None)
+            session['login_ts'] = utcnow().timestamp()
+            add_site_log('security_2fa', f'{current_user.username} enabled two-factor auth.', actor_user_id=current_user.id)
+            flash('Two-factor authentication is now enabled!', 'success')
+            return redirect(url_for('profile.settings'))
+
+        if action == '2fa_disable':
+            from utils.security import totp_verify, trim_pw
+            from config import bcrypt
+            code = (request.form.get('totp_code') or '').strip()
+            pw = trim_pw(request.form.get('current_password', ''))
+            ok_pw = bool(current_user.password) and bcrypt.check_password_hash(current_user.password, pw)
+            if not (ok_pw and current_user.totp_secret and totp_verify(current_user.totp_secret, code)):
+                flash('Password or 2FA code incorrect.', 'danger')
+                return redirect(url_for('profile.settings'))
+            current_user.totp_secret = None
+            db.session.commit()
+            add_site_log('security_2fa', f'{current_user.username} disabled two-factor auth.', actor_user_id=current_user.id)
+            flash('Two-factor authentication disabled.', 'success')
+            return redirect(url_for('profile.settings'))
+
         db.session.commit()
         add_site_log('settings_edit', f'{current_user.username} edited settings.', actor_user_id=current_user.id)
         flash('Settings saved.', 'success')
@@ -235,7 +332,12 @@ def settings():
             pass
         return resp
 
-    return render_template('settings.html')
+    pending_totp = session.get('pending_totp_secret')
+    totp_uri = None
+    if pending_totp:
+        from utils.security import totp_provisioning_uri
+        totp_uri = totp_provisioning_uri(pending_totp, current_user.username)
+    return render_template('settings.html', totp_uri=totp_uri)
 
 
 # ── Record submission ─────────────────────────────────────────────────────────

@@ -49,7 +49,7 @@ def get_token():
     try:
         enc = get_setting('discord_bot_token')
         if enc:
-            tok = decrypt_token(enc, app.config['SECRET_KEY'])
+            tok = decrypt_token(enc)
             if tok:
                 return tok.strip()
     except Exception as e:
@@ -1171,8 +1171,7 @@ def main():
     
     # Get token
     token = get_token()
-    preview = token[:10] + '...' if len(token) > 10 else 'NOT SET'
-    print(f'Token: {preview}')
+    print(f'Token: {"SET" if token else "NOT SET"}')  # never print token material
     
     if not token:
         print('\n\u274c No bot token found!')

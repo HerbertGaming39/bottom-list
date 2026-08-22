@@ -55,12 +55,45 @@ def login():
         username = request.form.get('username')
         password = trim_pw(request.form.get('password', ''))
         user = User.query.filter_by(username=username).first()
-        if user and bool(getattr(user, 'is_disabled', False)):
-            add_site_log('login', f'Login failed (disabled): {username}', actor_user_id=getattr(user, 'id', None))
-            flash('Your account has been disabled.', 'danger')
-            return redirect(url_for('auth.login'))
+        # Password checked BEFORE any account-state messaging so failed logins
+        # never confirm whether a username exists (anti-enumeration).
         if user and bcrypt.check_password_hash(user.password, password):
+            if bool(getattr(user, 'is_disabled', False)):
+                from datetime import datetime as _dt
+                sched = getattr(user, 'scheduled_deletion_at', None)
+                try:
+                    pending_cancel = bool(sched) and sched > _dt.utcnow()
+                except Exception:
+                    pending_cancel = False
+                if pending_cancel:
+                    # Deletion grace period: allow login ONLY to cancel the deletion.
+                    session.clear()
+                    login_user(user)
+                    import time as _t0
+                    session['login_ts'] = _t0.time()
+                    flash('Your account is scheduled for deletion. Cancel below to keep it.', 'warning')
+                    return redirect(url_for('profile.edit_profile'))
+                add_site_log('login', f'Login failed (disabled): {username}', actor_user_id=getattr(user, 'id', None))
+                flash('Login Unsuccessful. Please check username and password', 'danger')
+                return redirect(url_for('auth.login'))
+            # Discord-first policy: once an account has a linked Discord and
+            # the owner flips the site to Discord-only mode, password login
+            # is refused (accounts WITHOUT a linked Discord can always use
+            # password login so they can sign in and link).
+            from auxiliary.settings_helpers import get_setting as _gs
+            if str(_gs('password_login_enabled') or '1').strip() != '1' and getattr(user, 'discord_id', None):
+                flash('This site uses Discord login. Please use "Log in with Discord".', 'warning')
+                return redirect(url_for('auth.login'))
+            # Two-factor verification (if enrolled)
+            if getattr(user, 'totp_secret', None):
+                from utils.security import totp_verify
+                if not totp_verify(user.totp_secret, request.form.get('totp_code') or ''):
+                    flash('Invalid authenticator code.', 'danger')
+                    return redirect(url_for('auth.login'))
+            session.clear()  # prevent session fixation: drop pre-auth session state
             login_user(user)
+            import time as _t
+            session['login_ts'] = _t.time()
             add_site_log('login', f'Login success: {user.username}', actor_user_id=user.id)
             if needs_guidelines_acceptance(user):
                 return redirect(url_for('auth.guidelines'))
@@ -101,11 +134,10 @@ def register():
         pw_len = len(password or '')
         has_alpha = any(c.isalpha() for c in password or '')
         has_digit = any(c.isdigit() for c in password or '')
-        if not username:
-            flash('Username is required', 'danger')
-            return redirect(url_for('auth.register'))
-        if len(username) > 32:
-            flash('Username must be at most 32 characters long', 'danger')
+        from utils.security import validate_username
+        uname_error = validate_username(username)
+        if uname_error:
+            flash(uname_error, 'danger')
             return redirect(url_for('auth.register'))
         if pw_len < 8 or not (has_alpha and has_digit):
             flash('Password must be at least 8 characters and include letters and numbers.', 'danger')
@@ -143,6 +175,36 @@ def register():
     if provider and site_key:
         return render_template('register.html', captcha_provider=provider, captcha_site_key=site_key, guidelines_url=get_guidelines_url())
     return render_template('register.html', captcha_provider='', captcha_site_key='', guidelines_url=get_guidelines_url())
+
+
+# ── 2FA verification step-up (Discord login) ─────────────────────────────────
+
+@auth_bp.route('/login/2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    uid = session.get('pending_2fa_user_id')
+    if not uid:
+        return redirect(url_for('auth.login'))
+    user = db.session.get(User, int(uid))
+    if not user or not getattr(user, 'totp_secret', None):
+        session.pop('pending_2fa_user_id', None)
+        return redirect(url_for('auth.login'))
+    if request.method == 'POST':
+        from utils.security import totp_verify
+        code = (request.form.get('totp_code') or '').strip()
+        if totp_verify(user.totp_secret, code):
+            if bool(getattr(user, 'is_disabled', False)):
+                flash('Your account has been disabled.', 'danger')
+                return redirect(url_for('auth.login'))
+            session.clear()
+            login_user(user)
+            import time as _t
+            session['login_ts'] = _t.time()
+            session.pop('pending_2fa_user_id', None)
+            add_site_log('login', f'{user.username} logged in with Discord + 2FA.', actor_user_id=user.id)
+            return redirect(url_for('main.home'))
+        flash('Invalid authenticator code.', 'danger')
+        return redirect(url_for('auth.verify_2fa'))
+    return render_template('verify_2fa.html')
 
 
 # ── Logout ────────────────────────────────────────────────────────────────────
@@ -267,7 +329,17 @@ def discord_callback():
             if bool(getattr(u, 'is_disabled', False)):
                 flash('Your account has been disabled.', 'danger')
                 return redirect(url_for('auth.login'))
+            # Two-factor verification applies to Discord login too
+            if getattr(u, 'totp_secret', None):
+                from utils.security import totp_verify
+                totp_code = (request.args.get('totp_code') or request.form.get('totp_code') or '').strip()
+                if not totp_verify(u.totp_secret, totp_code):
+                    session['pending_2fa_user_id'] = u.id  # retry via password form hint
+                    flash('Enter your authenticator code to finish logging in.', 'warning')
+                    return redirect(url_for('auth.verify_2fa'))
             login_user(u)
+            import time as _t2
+            session['login_ts'] = _t2.time()
             add_site_log('login', f'{u.username} logged in with Discord.', actor_user_id=u.id)
             flash('Logged in with Discord.', 'success')
             if needs_guidelines_acceptance(u):

@@ -1,7 +1,7 @@
 """
 blueprints/roulette.py – Roulette single-player and multiplayer room API endpoints.
 """
-import random
+import secrets as _secrets
 import secrets
 import string
 import threading
@@ -224,7 +224,7 @@ def api_roulette_spin():
         session['roulette_pool_v2'] = {'key': key, 'pool': pool}
     if not pool:
         return jsonify({'error': 'empty_pool'}), 400
-    chosen_id = random.choice(pool)
+        chosen_id = _secrets.choice(pool)
     lv = db.session.get(Level, chosen_id)
     if not lv:
         session['roulette_pool_v2'] = {'key': key, 'pool': [i for i in pool if i != chosen_id]}
@@ -425,7 +425,7 @@ def roulette_room_spin():
             room['pool'] = pool
         if not pool:
             return jsonify({'error': 'empty_pool'}), 400
-        chosen_id = random.choice(pool)
+        chosen_id = _secrets.choice(pool)
         room['last_level_id'] = chosen_id
         room['current_round'] = current_round + 1
         room['updated_at'] = now_ts
@@ -709,7 +709,23 @@ def roulette_room_result():
         room = ROULETTE_ROOMS.get(code)
         if not room:
             return jsonify({'error': 'not_found'}), 404
+        # INTEGRITY: result must match the level actually spun this round and
+        # the submitter must be a room participant.
+        spun_id = int(room.get('last_level_id') or 0)
+        if spun_id != int(lv.id):
+            return jsonify({'error': 'level_mismatch'}), 400
+        participants = {p.get('player_id') for p in (room.get('players') or [])}
+        if not player_id or player_id not in participants:
+            return jsonify({'error': 'not_in_room'}), 403
         results = list(room.get('results') or [])
+        # INTEGRITY: one result per player per round - duplicates rejected.
+        for r in results:
+            try:
+                if int(r.get('round_no') or 0) == int(round_no) and (r.get('player_id') or '') == (player_id or ''):
+                    return jsonify({'error': 'already_submitted'}), 409
+            except Exception:
+                pass
+        entry['player_id'] = player_id
         results.append(entry)
         room['results'] = results[-500:]
         room['updated_at'] = now_ts

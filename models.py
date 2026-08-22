@@ -55,6 +55,9 @@ class User(UserMixin, db.Model):
     found_clues = db.Column(db.Text, nullable=True)
     is_donor = db.Column(db.Boolean, default=False)
     scheduled_deletion_at = db.Column(db.DateTime, nullable=True)
+    username_changed_at = db.Column(db.DateTime, nullable=True)
+    totp_secret = db.Column(db.String(64), nullable=True)
+    password_changed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     @property

@@ -192,6 +192,17 @@ def _is_sensitive_log_key(key: str) -> bool:
     return bool(re.search(r'(pass|password|secret|token|api[_-]?key|webhook|hcaptcha|recaptcha|captcha|code|state|session|cookie)', k))
 
 
+_TOKENISH_RE = re.compile(r'[A-Za-z0-9_\-]{28,}')
+
+def _scrub_secret_values(text: str) -> str:
+    """Value-level defense: mask long unbroken token-like strings even when
+    the surrounding key name was not flagged as sensitive."""
+    try:
+        return _TOKENISH_RE.sub('[redacted]', str(text or ''))
+    except Exception:
+        return text
+
+
 def _truncate_text(text: str, limit: int) -> str:
     s = str(text or '')
     if len(s) <= int(limit):
@@ -205,7 +216,11 @@ def _format_pairs(pairs: list, *, empty: str = '—', limit_chars: int = 950) ->
     parts = []
     total = 0
     for k, v in pairs:
-        seg = f'{k}={v}'
+        if _is_sensitive_log_key(k):
+            shown = '[redacted]'
+        else:
+            shown = _scrub_secret_values(v)
+        seg = f'{k}={shown}'
         if total + len(seg) + (2 if parts else 0) > limit_chars:
             parts.append('…')
             break
