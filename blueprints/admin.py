@@ -39,7 +39,8 @@ from auxiliary.points import (recalc_all_user_points, recalc_user_points_for_use
 from utils.security import (save_uploaded_file, _ALLOWED_IMAGE_EXTS, _ALLOWED_AUDIO_EXTS,
                              get_captcha_provider, get_captcha_site_key,
                              get_recaptcha_site_key, get_recaptcha_secret_key,
-                             get_hcaptcha_site_key, get_hcaptcha_secret_key)
+                             get_hcaptcha_site_key, get_hcaptcha_secret_key,
+                             safe_int)
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -89,7 +90,7 @@ def admin_dashboard():
     from sqlalchemy.orm import joinedload
     pending_records = Record.query.options(joinedload(Record.user), joinedload(Record.level)).filter_by(status='pending').all()
 
-    approved_page = int(request.args.get('approved_page', 1) or 1)
+    approved_page = safe_int(request.args.get('approved_page', 1), default=1)
     try:
         approved_per_page = max(25, min(500, int(request.args.get('approved_per_page', 100) or 100)))
     except Exception:
@@ -1599,7 +1600,7 @@ def admin_events_delete(event_id):
 def admin_users():
     _require_perm('manage_users')
     q = (request.args.get('q') or '').strip().lower()
-    page = max(1, int(request.args.get('page', 1) or 1))
+    page = safe_int(request.args.get('page', 1), default=1)
     per_page = 50
     base = User.query
     if q:
@@ -2025,8 +2026,8 @@ def admin_db_table(model_name):
     model = MODEL_MAP.get(model_name)
     if not model:
         abort(404)
-    page = int(request.args.get('page', 1))
-    per_page = max(5, min(200, int(request.args.get('per_page', 25))))
+    page = safe_int(request.args.get('page', 1), default=1)
+    per_page = max(5, min(200, int(request.args.get('per_page', 25) or 25) if str(request.args.get('per_page', '25')).isdigit() else 25))
     q = (request.args.get('q') or '').strip()
     tab = (request.args.get('tab') or 'browse').strip().lower()
     query = model.query

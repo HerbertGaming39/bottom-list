@@ -23,6 +23,16 @@ _RATE_LIMIT_LOCK = threading.Lock()
 _ALLOWED_IMAGE_EXTS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 _ALLOWED_AUDIO_EXTS = {'mp3', 'wav', 'ogg'}
 
+
+def safe_int(value, default: int = 1, lo: int = 1, hi: int = 1_000_000_000) -> int:
+    """Clamped integer parsing - prevents huge-offset overflow errors
+    (e.g. ?page=999999999999999999 crashing SQLite queries)."""
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(v, hi))
+
 _RESERVED_USERNAMES = {
     'admin', 'administrator', 'mod', 'moderator', 'staff', 'system',
     'root', 'support', 'help', 'official', 'owner', 'blist', 'bottomlist',

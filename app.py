@@ -486,6 +486,13 @@ def _handle_404(_e):
     return render_template('error.html', error_code=404, error_title='Page Not Found', error_message="The page you're looking for doesn't exist."), 404
 
 
+@app.errorhandler(OverflowError)
+def _handle_overflow(_e):
+    # Huge integers in URLs (e.g. /level/99999999999999999999) would
+    # otherwise crash SQLite queries with a 500 - treat them as 404.
+    return render_template('error.html', error_code=404, error_title='Page Not Found', error_message="The page you're looking for doesn't exist."), 404
+
+
 @app.errorhandler(403)
 def _handle_403(_e):
     return render_template('error.html', error_code=403, error_title='Access Denied', error_message="You don't have permission to access this page."), 403

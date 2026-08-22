@@ -16,6 +16,7 @@ from models import (Level, Record, User, Clan, NewsPost, Event, MapPack,
 from auxiliary.settings_helpers import has_perm, get_user_rank, rank_label, year_recap_enabled
 from utils.cache import cache_get, cache_set, cache_bust_prefixes
 from auxiliary.discord_webhooks import add_site_log
+from utils.security import safe_int
 import os
 
 main_bp = Blueprint('main', __name__)
@@ -94,7 +95,7 @@ def _sorted_levels_query(base_query, sort_key, list_type=None, is_verified=True)
 
 @main_bp.route('/')
 def home():
-    page = max(1, request.args.get('page', 1, type=int))
+    page = safe_int(request.args.get('page', 1), default=1)
     per_page = 40
     query = request.args.get('q')
     selected_cats = request.args.getlist('cat')
@@ -206,7 +207,7 @@ def home():
 
 @main_bp.route('/challenges')
 def challenge_list():
-    page = max(1, request.args.get('page', 1, type=int))
+    page = safe_int(request.args.get('page', 1), default=1)
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
@@ -248,7 +249,7 @@ def challenge_list():
 
 @main_bp.route('/platformer')
 def platformer_list():
-    page = max(1, request.args.get('page', 1, type=int))
+    page = safe_int(request.args.get('page', 1), default=1)
     sort = (request.args.get('sort') or 'position').strip().lower()
     if sort not in SORT_OPTIONS:
         sort = 'position'
@@ -294,7 +295,7 @@ def platformer_list():
 
 @main_bp.route('/unverified')
 def unverified_list():
-    page = max(1, request.args.get('page', 1, type=int))
+    page = safe_int(request.args.get('page', 1), default=1)
     pagination = (Level.query.filter_by(is_verified=False)
                   .order_by(Level.list_type.asc(), Level.position.asc().nullslast(), Level.id.asc())
                   .paginate(page=page, per_page=40, error_out=False))
