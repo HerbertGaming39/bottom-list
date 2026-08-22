@@ -4,6 +4,7 @@ services:
   web:
     build: .
     container_name: bl-web
+    user: \"1000:1000\"
     restart: unless-stopped
     # Bound to loopback only: Cloudflared tunnel on the host forwards
     # bottomlist.win traffic here. Never expose 6890 publicly.
@@ -37,6 +38,7 @@ services:
   bot:
     build: .
     container_name: bl-bot
+    user: \"1000:1000\"
     restart: unless-stopped
     command: python auxiliary/discord_bot.py
     volumes:
