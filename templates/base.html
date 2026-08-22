@@ -53,7 +53,7 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* ── Navbar ─────────────────────────────────────────────── */
+        /* â”€â”€ Navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .navbar {
             background-color: #2a2a2a;
             min-height: 70px;
@@ -137,13 +137,13 @@
         .dropdown-sep { height: 1px; background: #3a3a3a; margin: 4px 0; }
 
         /* Search bar */
-        .search-form { position: relative; }
+        .search-form { position: relative; display: inline-block; }
         .search-form input {
             background: #1a1a1a;
             border: 1px solid #444;
             color: #fff;
             font-size: 14px;
-            padding: 8px 14px 8px 34px;
+            padding: 8px 14px 8px 34px !important;
             border-radius: 8px;
             width: 240px;
             transition: border-color 0.15s, width 0.2s;
@@ -151,13 +151,14 @@
         .search-form input::placeholder { color: #666; }
         .search-form input:focus { outline: none; border-color: #60a5fa; width: 300px; }
         .search-form svg {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            fill: #888;
+            position: absolute !important;
+            left: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            margin: 0 !important;
+            width: 16px !important;
+            height: 16px !important;
+            fill: #888 !important;
             pointer-events: none;
             z-index: 1;
         }
@@ -330,7 +331,7 @@
         .mobile-menu .mm-search input::placeholder { color: #666; }
         .mobile-menu .mm-search input:focus { outline: none; border-color: #60a5fa; }
 
-        /* ── Glass panel (used by child templates) ──────────────── */
+        /* â”€â”€ Glass panel (used by child templates) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .glass-panel {
             background: #222;
             backdrop-filter: none;
@@ -338,7 +339,7 @@
             border-radius: 10px;
         }
 
-        /* ── Global child-template overrides ────────────────────── */
+        /* â”€â”€ Global child-template overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #1a1a1a;
@@ -491,7 +492,7 @@
         .aspect-w-16 { position: relative; width: 100%; padding-bottom: 56.25%; }
         .aspect-h-9 { position: absolute; inset: 0; height: 100%; }
 
-        /* ── Main content ───────────────────────────────────────── */
+        /* â”€â”€ Main content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .main-area {
             background-color: #1a1a1a;
             min-height: calc(100vh - 70px);
@@ -512,7 +513,7 @@
         .flash-info { background: rgba(96,165,250,0.1); border-color: #60a5fa; color: #93c5fd; }
         .flash-warning { background: rgba(234,179,8,0.1); border-color: #eab308; color: #fde047; }
 
-        /* ── Footer ─────────────────────────────────────────────── */
+        /* â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         footer {
             border-top: 1px solid rgba(255,255,255,0.06);
             background: #111;
@@ -525,7 +526,7 @@
         .footer-links a { color: #60a5fa; text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 6px; }
         .footer-links a img { width: 16px; height: 16px; }
 
-        /* ── Cookie consent ─────────────────────────────────────── */
+        /* â”€â”€ Cookie consent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .cookie-banner {
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
             background: #111; border-top: 1px solid #333;
@@ -544,7 +545,7 @@
         .cb-accept { background: #60a5fa; color: #fff; }
         .cb-accept:hover { background: #3b82f6; }
 
-        /* ── Notification consent ────────────────────────────────── */
+        /* â”€â”€ Notification consent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .notif-banner {
             position: fixed; bottom: 16px; right: 16px; z-index: 400;
             background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
@@ -561,7 +562,7 @@
         .nb-deny { background: #333; color: #ccc; }
         .nb-allow { background: #60a5fa; color: #fff; }
 
-        /* ── Puzzle modal ────────────────────────────────────────── */
+        /* â”€â”€ Puzzle modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .puzzle-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 600;
             display: none; align-items: center; justify-content: center; padding: 16px;
@@ -587,7 +588,7 @@
         .puzzle-error { display: none; font-size: 13px; color: #f87171; margin-top: 10px; }
         .puzzle-error.show { display: block; }
 
-        /* ── Mobile responsive ───────────────────────────────────── */
+        /* â”€â”€ Mobile responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         @media (max-width: 768px) {
             .navbar { padding: 0 16px; min-height: 60px; }
             .navbar-left { gap: 4px; }
@@ -610,7 +611,7 @@
 <body>
     <a href="#main-content" class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to content</a>
 
-    <!-- ── Navbar ──────────────────────────────────────────────── -->
+    <!-- â”€â”€ Navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <header class="navbar" role="banner">
         <div class="navbar-left">
             <a href="{{ url_for('main.home') }}" class="logo-brand">
@@ -684,7 +685,6 @@
                         <a href="{{ url_for('auth.logout') }}" style="color:#888;">Sign out</a>
                     {% else %}
                         <a href="{{ url_for('auth.login') }}">Log in</a>
-                        <a href="{{ url_for('auth.discord_login') }}" style="color:#60a5fa;font-weight:600;">Join</a>
                         <div class="dd-sep"></div>
                         <a href="{{ url_for('main.clans') }}">Clans</a>
                     {% endif %}
@@ -695,7 +695,7 @@
         </div>
     </header>
 
-    <!-- ── Mobile slide-out menu ────────────────────────────────── -->
+    <!-- â”€â”€ Mobile slide-out menu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
     <div class="mobile-menu" id="mobileMenu" role="navigation" aria-label="Mobile navigation">
         <div class="mm-section">Lists</div>
@@ -736,11 +736,10 @@
         {% else %}
             <div class="mm-section">Account</div>
             <a href="{{ url_for('auth.login') }}">Log in</a>
-            <a href="{{ url_for('auth.discord_login') }}" style="color:#60a5fa;">Join</a>
         {% endif %}
     </div>
 
-    <!-- ── Main content ────────────────────────────────────────── -->
+    <!-- â”€â”€ Main content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <main id="main-content" class="main-area" role="main">
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -755,7 +754,7 @@
         </div>
     </main>
 
-    <!-- ── Footer ──────────────────────────────────────────────── -->
+    <!-- â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <footer>
         <div class="footer-inner">
             <div class="footer-text">Made for the community</div>
@@ -781,7 +780,7 @@
         </div>
     </footer>
 
-    <!-- ── Cookie consent ──────────────────────────────────────── -->
+    <!-- â”€â”€ Cookie consent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="cookie-banner" id="cookieBanner">
         <div class="cookie-inner">
             <div class="cookie-text">
@@ -795,7 +794,7 @@
         </div>
     </div>
 
-    <!-- ── Notification consent ─────────────────────────────────── -->
+    <!-- â”€â”€ Notification consent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     {% if current_user.is_authenticated %}
     <div class="notif-banner" id="notifBanner">
         <div class="nb-title">Enable notifications?</div>
@@ -807,7 +806,7 @@
     </div>
     {% endif %}
 
-    <!-- ── Puzzle confirmation modal ────────────────────────────── -->
+    <!-- â”€â”€ Puzzle confirmation modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="puzzle-overlay" id="puzzleModal">
         <div class="puzzle-box">
             <div class="puzzle-head">
@@ -827,7 +826,7 @@
         </div>
     </div>
 
-    <!-- ── Scripts ──────────────────────────────────────────────── -->
+    <!-- â”€â”€ Scripts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <script>
     (function() {
         /* Avatar dropdown */
@@ -951,5 +950,41 @@
     })();
     </script>
     {% block scripts %}{% endblock %}
+
+    {% if current_user.is_authenticated and user_rank(current_user) != 'member' and not current_user.totp_secret %}
+    <div id="twofa-nudge" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-700 rounded-2xl max-w-md w-full p-8 text-center shadow-2xl">
+            <div class="text-4xl mb-4">&#128273;</div>
+            <h2 class="text-2xl font-bold text-white mb-3">Please use 2FA on your account</h2>
+            <p class="text-sm text-gray-400 mb-6">You have staff permissions, so your account protects the whole site. Enable two-factor authentication so a stolen password can't compromise the list.</p>
+            <div class="flex flex-col gap-3">
+                <button id="twofa-agree" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Yes, set it up now</button>
+                <button id="twofa-dismiss" class="w-full bg-slate-700 hover:bg-slate-600 text-gray-300 py-2.5 rounded-lg text-sm">No thanks, don't ask again</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function() {
+        var modal = document.getElementById('twofa-nudge')
+        if (!modal) return
+        var dismissed = false
+        try { dismissed = localStorage.getItem('bl_2fa_nudge_dismissed') === '1' } catch (e) {}
+        if (dismissed) return
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        var agree = document.getElementById('twofa-agree')
+        var dismiss = document.getElementById('twofa-dismiss')
+        if (agree) agree.addEventListener('click', function() {
+            try { localStorage.setItem('bl_2fa_nudge_dismissed', '1') } catch (e) {}
+            window.location.href = '{{ url_for("profile.settings") }}#security'
+        })
+        if (dismiss) dismiss.addEventListener('click', function() {
+            try { localStorage.setItem('bl_2fa_nudge_dismissed', '1') } catch (e) {}
+            modal.classList.add('hidden')
+            modal.classList.remove('flex')
+        })
+    })()
+    </script>
+    {% endif %}
 </body>
 </html>
