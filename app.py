@@ -68,7 +68,8 @@ from blueprints.auth       import auth_bp
 from blueprints.main       import main_bp
 from blueprints.profile    import profile_bp
 from blueprints.admin      import admin_bp
-from blueprints.api        import api_bp
+# API DISCONTINUED: blueprint removed entirely (blueprints/api.py deleted).
+# Roulette keeps its own /api/roulette/* routes via roulette_bp.
 from blueprints.roulette   import roulette_bp
 from blueprints.leaderboard import leaderboard_bp
 from blueprints.shop import shop_bp
@@ -77,10 +78,6 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(main_bp)
 app.register_blueprint(profile_bp)
 app.register_blueprint(admin_bp)
-# API DISCONTINUED: blueprint intentionally not registered.
-# Roulette keeps its own /api/roulette/* routes via roulette_bp.
-# from blueprints.api import api_bp
-# app.register_blueprint(api_bp)
 app.register_blueprint(roulette_bp)
 app.register_blueprint(leaderboard_bp)
 app.register_blueprint(shop_bp)

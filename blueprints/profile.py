@@ -243,12 +243,6 @@ def change_username():
 def settings():
     if request.method == 'POST':
         action = (request.form.get('action') or '').strip().lower()
-        if action == 'regen_api_token':
-            current_user.api_token = secrets.token_urlsafe(32)
-            db.session.commit()
-            add_site_log('settings_edit', f'{current_user.username} regenerated API token.', actor_user_id=current_user.id)
-            flash('API token regenerated.', 'success')
-            return redirect(url_for('profile.settings'))
 
         if action == 'change_password':
             from config import bcrypt

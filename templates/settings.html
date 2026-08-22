@@ -62,24 +62,6 @@
                 <div class="border-t border-slate-700 pt-4 space-y-4">
                     <div class="flex items-center justify-between gap-3">
                         <div>
-                            <div class="text-sm font-semibold text-gray-200">API Token</div>
-                            <div class="text-xs text-gray-500 mt-1">Regenerate your API token. This will invalidate the old one.</div>
-                        </div>
-                        <button type="submit" name="action" value="regen_api_token" class="px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-lg">Regenerate</button>
-                    </div>
-                    <div class="ml-0">
-                        {% if current_user.api_token %}
-                        <div class="flex items-center gap-2" id="api-token-row">
-                            <input type="password" readonly value="{{ current_user.api_token }}" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-gray-300 font-mono" id="api-token-field">
-                            <button type="button" onclick="toggleApiToken()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded transition-colors shrink-0" id="api-token-toggle" title="Show/hide token">Show</button>
-                            <button type="button" onclick="copyApiToken()" class="px-2.5 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs rounded transition-colors shrink-0" id="api-token-copy">Copy</button>
-                        </div>
-                        {% else %}
-                        <div class="text-xs text-yellow-400 mt-1">No API token yet. Click Regenerate to create one.</div>
-                        {% endif %}
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
                             <div class="text-sm font-semibold text-gray-200">Export My Data</div>
                             <div class="text-xs text-gray-500 mt-1">Download your profile, records, and submissions as JSON.</div>
                         </div>
@@ -213,37 +195,7 @@
         })
     }
 })()
-
-function toggleApiToken() {
-    const f = document.getElementById('api-token-field')
-    const btn = document.getElementById('api-token-toggle')
-    if (!f || !btn) return
-    const hidden = f.getAttribute('type') === 'password'
-    f.setAttribute('type', hidden ? 'text' : 'password')
-    btn.textContent = hidden ? 'Hide' : 'Show'
-}
-
-function copyApiToken() {
-    const f = document.getElementById('api-token-field')
-    if (!f) return
-    f.setAttribute('type', 'text')
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(f.value).then(() => {
-                const btn = document.getElementById('api-token-copy')
-                if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500) }
-            })
-        } else {
-            f.select()
-            document.execCommand('copy')
-            const btn = document.getElementById('api-token-copy')
-            if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500) }
-        }
-    } catch (e) {
-        f.select()
-        try { document.execCommand('copy') } catch (e2) {}
-    }
-}
 </script>
 
 {% endblock %}
+
