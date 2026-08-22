@@ -1,0 +1,57 @@
+name: bottomlist
+
+services:
+  web:
+    build: .
+    container_name: bl-web
+    restart: unless-stopped
+    # Bound to loopback only: Cloudflared tunnel on the host forwards
+    # bottomlist.win traffic here. Never expose 6890 publicly.
+    ports:
+      - "127.0.0.1:6890:6890"
+    volumes:
+      - ./instance:/app/instance
+      - ./static:/app/static
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.5
+    pids_limit: 128
+    environment:
+      COOKIE_SECURE: "1"
+      WAITRESS_WORKERS: "2"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:6890/robots.txt', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  bot:
+    build: .
+    container_name: bl-bot
+    restart: unless-stopped
+    command: python auxiliary/discord_bot.py
+    volumes:
+      - ./instance:/app/instance
+      - ./static:/app/static
+      - ./logs:/app/logs
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+    pids_limit: 96
+    depends_on:
+      web:
+        condition: service_healthy

@@ -1,0 +1,15 @@
+.git
+.opencode
+.trash
+backups
+instance
+logs
+venv
+__pycache__
+**/__pycache__
+*.pyc
+database.db
+opencode.exe
+docker-compose.yml
+Dockerfile
+.dockerignore
