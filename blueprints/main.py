@@ -626,6 +626,21 @@ def robots_txt():
     return Response(content, mimetype='text/plain')
 
 
+@main_bp.route('/.well-known/security.txt')
+def security_txt():
+    # RFC 9116 - security researcher contact info
+    content = (
+        "Contact: mailto:security@bottomlist.win\n"
+        "Contact: https://discord.gg/2e5Nb6Hn4c\n"
+        "Expires: 2027-08-23T00:00:00.000Z\n"
+        "Preferred-Languages: en, pl\n"
+        "Canonical: https://bottomlist.win/.well-known/security.txt\n"
+    )
+    resp = Response(content, mimetype='text/plain')
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
 @main_bp.route('/sitemap.xml')
 def sitemap_xml():
     from models import Level
