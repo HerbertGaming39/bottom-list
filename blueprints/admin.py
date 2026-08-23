@@ -903,7 +903,7 @@ def admin_user_edit(user_id):
     return render_template('admin_user_edit.html', user=user, valid_ranks=['member', 'mod', 'admin'])
 
 
-@admin_bp.route('/admin/toggle_disabled/<int:user_id>')
+@admin_bp.route('/admin/toggle_disabled/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def toggle_disabled(user_id):
     _require_perm('manage_users')
