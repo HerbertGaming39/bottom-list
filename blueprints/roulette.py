@@ -224,11 +224,15 @@ def api_roulette_spin():
         session['roulette_pool_v2'] = {'key': key, 'pool': pool}
     if not pool:
         return jsonify({'error': 'empty_pool'}), 400
-        chosen_id = _secrets.choice(pool)
+    chosen_id = _secrets.choice(pool)
     lv = db.session.get(Level, chosen_id)
     if not lv:
         session['roulette_pool_v2'] = {'key': key, 'pool': [i for i in pool if i != chosen_id]}
         return jsonify({'error': 'invalid_level'}), 404
+    # no_repeat mode: consume the drawn level so it isn't spun again
+    if no_repeat:
+        remaining = [i for i in pool if i != chosen_id]
+        session['roulette_pool_v2'] = {'key': key, 'pool': remaining}
     return jsonify({'level': {'id': lv.id, 'gd_level_id': lv.gd_level_id, 'name': lv.name, 'creator': lv.creator, 'video_url': lv.video_url, 'position': lv.position}, 'pool_size': len(pool)})
 
 
