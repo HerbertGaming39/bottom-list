@@ -75,6 +75,37 @@ def verify_2fa():
     return render_template('verify_2fa.html')
 
 
+# ── Magic-link migration (legacy accounts) ────────────────────────────────────
+
+@auth_bp.route('/migrate/<token>')
+def migrate_claim(token):
+    """Landing page for an admin-generated 15-minute Discord login link."""
+    from models import LoginLink
+    link = LoginLink.query.filter_by(token=token).first()
+    now = datetime.utcnow()
+    if not link or link.used_at or not link.expires_at or link.expires_at < now:
+        return render_template('migrate_claim.html', valid=False, username=None)
+    user = db.session.get(User, link.user_id)
+    if not user:
+        return render_template('migrate_claim.html', valid=False, username=None)
+    # Start the OAuth flow with the token carried through the session
+    session['migrate_token'] = token
+    state = uuid.uuid4().hex
+    session['discord_oauth_state'] = state
+    session['discord_oauth_mode'] = 'login'
+    session['discord_oauth_next'] = url_for('main.home')
+    params = {
+        'client_id': get_discord_client_id(),
+        'redirect_uri': get_discord_redirect_uri(),
+        'response_type': 'code',
+        'scope': 'identify',
+        'state': state,
+        'prompt': 'consent'
+    }
+    oauth_url = 'https://discord.com/api/oauth2/authorize?' + urllib.parse.urlencode(params)
+    return render_template('migrate_claim.html', valid=True, username=user.username, oauth_url=oauth_url)
+
+
 # ── Logout ────────────────────────────────────────────────────────────────────
 
 @auth_bp.route('/logout')
@@ -213,6 +244,42 @@ def discord_callback():
             if needs_guidelines_acceptance(u):
                 return redirect(url_for('auth.guidelines', next=nxt or url_for('main.home')))
             return redirect(nxt or url_for('main.home'))
+        # MAGIC-LINK MIGRATION: admin-issued link binds this Discord to the
+        # pre-existing legacy account instead of creating a new one.
+        migrate_token = (session.get('migrate_token') or '').strip()
+        if migrate_token:
+            from models import LoginLink
+            session.pop('migrate_token', None)
+            link = LoginLink.query.filter_by(token=migrate_token).first()
+            now = datetime.utcnow()
+            if not link or link.used_at or not link.expires_at or link.expires_at < now:
+                flash('That login link has expired or was already used. Ask an admin for a new one.', 'danger')
+                return redirect(url_for('auth.login'))
+            target = db.session.get(User, link.user_id)
+            if not target:
+                flash('Linked account no longer exists.', 'danger')
+                return redirect(url_for('auth.login'))
+            clash = User.query.filter(User.discord_id == discord_id, User.id != target.id).first()
+            if clash:
+                flash('That Discord is already linked to a different account.', 'warning')
+                return redirect(url_for('auth.login'))
+            target.discord_id = discord_id
+            target.discord_username = username[:100]
+            target.discord_avatar = avatar[:100]
+            if not target.discord_tag:
+                target.discord_tag = tag[:100]
+            link.used_at = now
+            db.session.commit()
+            add_site_log('account_link', f'{target.username} migrated to Discord {tag} via login link.', actor_user_id=target.id)
+            session.clear()
+            login_user(target)
+            import time as _tm
+            session['login_ts'] = _tm.time()
+            flash(f'Discord linked! Welcome back, {target.username}. You can log in with Discord from now on.', 'success')
+            if needs_guidelines_acceptance(target):
+                return redirect(url_for('auth.guidelines', next=nxt or url_for('main.home')))
+            return redirect(nxt or url_for('main.home'))
+
         # AUTO-REGISTRATION: no account linked to this Discord -> create one
         # instantly. Original username derived from the Discord name (made
         # unique); user can change it later in profile settings.

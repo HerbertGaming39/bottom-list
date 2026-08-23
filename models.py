@@ -15,6 +15,17 @@ class Clan(db.Model):
     members = db.relationship('User', backref='clan', lazy=True, foreign_keys='User.clan_id')
     owner = db.relationship('User', foreign_keys=[owner_user_id], lazy=True)
 
+class LoginLink(db.Model):
+    """Single-use, time-limited magic link for migrating legacy accounts to Discord."""
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used_at = db.Column(db.DateTime, nullable=True)
+    user = db.relationship('User', foreign_keys=[user_id])
+
 class ClanJoinRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=False)

@@ -909,6 +909,33 @@ def admin_user_edit(user_id):
     return render_template('admin_user_edit.html', user=user, valid_ranks=['member', 'mod', 'admin'])
 
 
+@admin_bp.route('/admin/gen_login_link/<int:user_id>', methods=['POST'])
+@login_required
+def gen_login_link(user_id):
+    """Mint a single-use, 15-minute magic link that lets a legacy account
+    bind their Discord and log in (for accounts that never migrated)."""
+    _require_perm('manage_users')
+    import secrets as _s
+    from models import LoginLink
+    from datetime import timedelta
+    user = User.query.get_or_404(user_id)
+    if getattr(user, 'discord_id', None):
+        flash('That account already has a Discord linked.', 'warning')
+        return redirect(url_for('admin.admin_user_edit', user_id=user_id))
+    token = _s.token_urlsafe(32)
+    link = LoginLink(
+        token=token,
+        user_id=user.id,
+        created_by_user_id=current_user.id,
+        expires_at=datetime.utcnow() + timedelta(minutes=15),
+    )
+    db.session.add(link)
+    db.session.commit()
+    add_site_log('admin_action', f'{current_user.username} generated a 15-minute Discord login link for {user.username}.', actor_user_id=current_user.id)
+    url = url_for('auth.migrate_claim', token=token, _external=True)
+    return render_template('admin_login_link.html', user=user, login_url=url)
+
+
 @admin_bp.route('/admin/toggle_disabled/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def toggle_disabled(user_id):
