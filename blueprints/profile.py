@@ -173,6 +173,10 @@ def edit_profile():
         if len(new_display) > 32:
             flash('Display name must be at most 32 characters.', 'danger')
             return redirect(url_for('profile.edit_profile'))
+        # Anti-impersonation: cannot mimic an existing username
+        if new_display and User.query.filter(db.func.lower(User.username) == new_display.lower()).first():
+            flash('Display name cannot match an existing username.', 'danger')
+            return redirect(url_for('profile.edit_profile'))
         current_user.display_name = new_display or None
         new_bio = (request.form.get('bio') or '').strip()
         if len(new_bio) > 500:

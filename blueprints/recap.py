@@ -546,6 +546,11 @@ def _recap_for_year(y: int) -> dict:
 def recap():
     if not _year_recap_enabled():
         abort(404)
+    # Expensive endpoint (~60 aggregate queries): throttle abuse
+    from utils.security import rate_limited
+    if rate_limited('recap', limit=10, window_seconds=300):
+        from flask import jsonify
+        return jsonify({'error': 'rate_limited'}), 429
     year = int(datetime.utcnow().year)
     this_year = _recap_for_year(year)
     last_year = _recap_for_year(year - 1)
