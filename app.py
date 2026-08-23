@@ -125,6 +125,9 @@ with app.app_context():
     if 'display_name' not in user_cols:
         _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN display_name VARCHAR(64)'))
         _db.session.commit()
+    if 'disable_reason' not in user_cols:
+        _db.session.execute(_sa.text('ALTER TABLE user ADD COLUMN disable_reason VARCHAR(300)'))
+        _db.session.commit()
 
 # ── Login manager ──────────────────────────────────────────────────────────────
 from models import User
@@ -416,7 +419,11 @@ def _enforce_account_state_and_guidelines():
                 flash('Your account is scheduled for deletion. Cancel below to keep it.', 'warning')
                 return redirect(url_for('profile.edit_profile'))
             logout_user()
-            flash('Your account has been disabled.', 'danger')
+            _reason = getattr(current_user, 'disable_reason', None)
+            if _reason:
+                flash('Your account has been disabled. Reason: ' + str(_reason), 'danger')
+            else:
+                flash('Your account has been disabled.', 'danger')
             return redirect(url_for('auth.login'))
     except Exception:
         pass

@@ -889,6 +889,12 @@ def admin_user_edit(user_id):
         user.bio = new_bio or None
         user.youtube_link = new_youtube or None
         user.is_disabled = new_disabled
+        # Capture/update the disable reason from the editor form
+        _edit_reason = (request.form.get('disable_reason') or '').strip()[:300]
+        if new_disabled:
+            user.disable_reason = _edit_reason or (getattr(user, 'disable_reason', None) or 'No reason given')
+        else:
+            user.disable_reason = None
         user.is_donor = new_donor
 
         try:
@@ -911,10 +917,17 @@ def toggle_disabled(user_id):
     if user.id == current_user.id:
         flash('You cannot disable your own account.', 'warning')
         return redirect(url_for('admin.admin_dashboard'))
-    user.is_disabled = not bool(getattr(user, 'is_disabled', False))
+    reason = (request.form.get('reason') or '').strip()[:300]
+    disabling = not bool(getattr(user, 'is_disabled', False))
+    user.is_disabled = disabling
+    user.disable_reason = reason if disabling else None
     db.session.commit()
-    add_site_log('admin_action', f'{current_user.username} set disabled={bool(user.is_disabled)} for {user.username}.', actor_user_id=current_user.id)
-    flash(f'User {user.username} is now {"disabled" if user.is_disabled else "enabled"}.', 'success')
+    if disabling:
+        add_site_log('admin_action', f'{current_user.username} disabled {user.username}. Reason: {reason or "(not given)"}', actor_user_id=current_user.id)
+        flash(f'User {user.username} is now disabled. Reason: {reason or "(not given)"}', 'success')
+    else:
+        add_site_log('admin_action', f'{current_user.username} re-enabled {user.username}.', actor_user_id=current_user.id)
+        flash(f'User {user.username} has been re-enabled.', 'success')
     return redirect(url_for('admin.admin_dashboard'))
 
 

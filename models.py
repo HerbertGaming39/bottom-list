@@ -32,6 +32,7 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
     is_disabled = db.Column(db.Boolean, default=False)
+    disable_reason = db.Column(db.String(300), nullable=True)
     rank = db.Column(db.String(30), nullable=False, default='member')
     points = db.Column(db.Float, default=0.0)
     bio = db.Column(db.String(500), nullable=True)

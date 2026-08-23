@@ -71,6 +71,7 @@
                     <input type="checkbox" name="is_disabled" value="1" class="h-4 w-4 accent-red-600" {{ 'checked' if user.is_disabled else '' }}>
                     Disabled
                 </label>
+                <input type="text" name="disable_reason" maxlength="300" value="{{ user.disable_reason or '' }}" placeholder="Disable reason (if disabling)" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-gray-200 flex-1 min-w-[220px]">
                 <label class="flex items-center gap-2 text-sm text-gray-300">
                     <input type="checkbox" name="is_donor" value="1" class="h-4 w-4 accent-green-600" {{ 'checked' if user.is_donor else '' }}>
                     Donor
