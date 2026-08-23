@@ -101,7 +101,7 @@
             <div class="text-xs text-gray-500 mb-3">Adds a 6-digit code from your authenticator app on login.</div>
             {% if session.get('pending_totp_secret') %}
             <div class="text-xs text-gray-300 mb-2">1. Scan this QR code with your authenticator app (Google Authenticator, Authy, Aegis, ...):</div>
-            <div class="mb-3 bg-white p-2 rounded inline-block"><canvas id="totp-qr"></canvas></div>
+            <div class="mb-3 bg-white p-2 rounded inline-block"><div id="totp-qr"></div></div>
             <details class="mb-3">
                 <summary class="text-xs text-gray-400 cursor-pointer">Can't scan? Enter this secret manually</summary>
                 <div class="font-mono text-blue-300 select-all break-all text-xs mt-1">{{ session.get('pending_totp_secret') }}</div>
@@ -200,15 +200,15 @@
 })()
 </script>
 {% if session.get('pending_totp_secret') %}
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
 <script>
 (function() {
     var el = document.getElementById('totp-qr')
     if (!el || typeof QRCode === 'undefined') return
     var uri = {{ totp_uri | tojson }}
-    QRCode.toCanvas(el, uri, { width: 180, margin: 1 }, function(err) {
-        if (err) { console.error('QR render failed', err); el.style.display = 'none' }
-    })
+    try {
+        new QRCode(el, { text: uri, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M })
+    } catch (e) { console.error('QR render failed', e) }
 })()
 </script>
 {% endif %}

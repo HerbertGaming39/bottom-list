@@ -752,3 +752,9 @@ def _room_state_dict(code, room):
         'results': list(room.get('results') or [])[-200:],
         'owner_player_id': room.get('owner_player_id') or '',
     }
+
+# Solo-mode routes (previously aliased through the removed API blueprint)
+roulette_bp.add_url_rule('/api/roulette/pool', view_func=api_roulette_pool, methods=['GET'])
+roulette_bp.add_url_rule('/api/roulette/spin', view_func=api_roulette_spin, methods=['POST'])
+roulette_bp.add_url_rule('/api/roulette/skip', view_func=api_roulette_skip, methods=['POST'])
+roulette_bp.add_url_rule('/api/roulette/reset', view_func=api_roulette_reset, methods=['POST'])
